@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 12 · ทริกเกอร์ (Trigger) — Database Lecture Note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
+  <nav>
+<div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
+<a href="index.html"><span class="no">🏠</span>หน้าแรก / ภาพรวม</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 1 · ออกแบบฐานข้อมูล</div>
+<a href="01-intro.html"><span class="no">01</span>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</a>
+<a href="02-er-model.html"><span class="no">02</span>แบบจำลอง ER</a>
+<a href="03-relational-normalization.html"><span class="no">03</span>แปลง ER เป็นตาราง &amp; Normalization</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 2 · ภาษา SQL</div>
+<a href="04-sql-ddl-dml.html"><span class="no">04</span>สร้างตาราง &amp; INSERT/UPDATE/DELETE</a>
+<a href="05-select.html"><span class="no">05</span>การแสดงข้อมูลด้วยคำสั่ง SELECT</a>
+<a href="06-join.html"><span class="no">06</span>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 3 · ขั้นสูง</div>
+<a href="07-view.html"><span class="no">07</span>วิว (View)</a>
+<a href="08-index.html"><span class="no">08</span>ดัชนี (Index)</a>
+<a href="09-transaction.html"><span class="no">09</span>ทรานแซกชัน (Transaction)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม</div>
+<a href="10-security.html"><span class="no">10</span>ความปลอดภัยของฐานข้อมูล</a>
+<a href="11-stored-procedure.html"><span class="no">11</span>Stored Procedure &amp; Function</a>
+<a href="12-trigger.html" class="active"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
+<div class="subnav"><a href="#s1"><span class="sno">12.1</span>แนวคิดของทริกเกอร์</a><a href="#s2"><span class="sno">12.2</span>โครงสร้างคำสั่ง CREATE TRIGGER</a><a href="#s3"><span class="sno">12.3</span>ทริกเกอร์ BEFORE — ตรวจสอบและแก้ไขข้อมูลก่อนบันทึก</a><a href="#s4"><span class="sno">12.4</span>ทริกเกอร์ AFTER — บันทึกประวัติการเปลี่ยนแปลง (Audit Log)</a><a href="#s5"><span class="sno">12.5</span>กฎธุรกิจที่ต้องอ่านข้อมูลหลายตาราง</a><a href="#s6"><span class="sno">12.6</span>รักษาข้อมูลสรุปให้สอดคล้องอัตโนมัติ</a><a href="#s7"><span class="sno">12.7</span>การจัดการทริกเกอร์ และข้อควรระวัง</a><a href="#review"><span class="sno">✎</span>คำถามท้ายบท</a></div>
+</div>
+<div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
+<a href="appendix-a-script.html"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">ง</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+</div>
+  </nav>
+  <img src="icon/you-did-it.png" alt="" class="sidebar-img">
+</aside>
+<main class="content">
+<div class="page-head"><span class="kicker">CHAPTER 12 · สัปดาห์ที่ 15</span><h1>บทที่ 12 · ทริกเกอร์ (Trigger)</h1><p class="sub">แนวคิดของทริกเกอร์ BEFORE / AFTER, OLD / NEW, การตรวจสอบข้อมูล การบันทึกประวัติ กฎธุรกิจข้ามตาราง การรักษาข้อมูลสรุปให้สอดคล้อง และข้อควรระวัง</p></div>
+
+
+<div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
+<li>อธิบายแนวคิด จังหวะการทำงาน (BEFORE / AFTER) และเหตุการณ์ของทริกเกอร์ได้</li>
+<li>ใช้ OLD และ NEW ในทริกเกอร์ได้ถูกต้อง</li>
+<li>เขียนทริกเกอร์ตรวจสอบ/แก้ไขข้อมูลก่อนบันทึก และบันทึกประวัติการเปลี่ยนแปลงได้</li>
+<li>เขียนทริกเกอร์บังคับกฎธุรกิจที่ต้องอ่านข้อมูลหลายตาราง และรักษาข้อมูลสรุปให้สอดคล้องได้</li>
+<li>เลือกใช้ทริกเกอร์ เทียบกับ Constraint และ Stored Procedure ได้อย่างเหมาะสม</li>
+</ol></div>
+
+<div class="pagetoc"><div class="pagetoc-t">📑 ในบทนี้</div><ul><li><a href="#s1">12.1  แนวคิดของทริกเกอร์</a></li><li><a href="#s2">12.2  โครงสร้างคำสั่ง CREATE TRIGGER</a></li><li><a href="#s3">12.3  ทริกเกอร์ BEFORE — ตรวจสอบและแก้ไขข้อมูลก่อนบันทึก</a></li><li><a href="#s4">12.4  ทริกเกอร์ AFTER — บันทึกประวัติการเปลี่ยนแปลง (Audit Log)</a></li><li><a href="#s5">12.5  กฎธุรกิจที่ต้องอ่านข้อมูลหลายตาราง</a></li><li><a href="#s6">12.6  รักษาข้อมูลสรุปให้สอดคล้องอัตโนมัติ</a></li><li><a href="#s7">12.7  การจัดการทริกเกอร์ และข้อควรระวัง</a></li></ul></div>
+<h2 id="s1"><span class="sec">12.1</span> แนวคิดของทริกเกอร์</h2>
+<p>ชุดคำสั่งที่ระบบ<b>เรียกอัตโนมัติ</b>เมื่อเกิด INSERT / UPDATE / DELETE กับตาราง — ผู้ใช้เรียกเองไม่ได้ เหมาะกับกฎที่ต้องมีผล<b>ทุกครั้ง ไม่ว่าคำสั่งมาจากช่องทางใด</b></p>
+<figure class="shot"><img src="image/fig8-3.jpg" alt="ภาพที่ 12.1" loading="lazy"><figcaption><b>ภาพที่ 12.1</b> จังหวะการทำงานของทริกเกอร์แบบ BEFORE และ AFTER</figcaption></figure>
+<table class="tbl"><tr><th>เหตุการณ์</th><th>OLD</th><th>NEW</th><th>ใช้บ่อยเพื่อ</th></tr>
+<tr><td>INSERT</td><td>✘</td><td>✔</td><td>ตรวจ/กำหนดค่าก่อนบันทึก</td></tr>
+<tr><td>UPDATE</td><td>✔</td><td>✔</td><td>บันทึกประวัติค่าเดิม</td></tr>
+<tr><td>DELETE</td><td>✔</td><td>✘</td><td>เก็บข้อมูลที่ถูกลบ</td></tr>
+</table>
+<p>BEFORE / AFTER × INSERT / UPDATE / DELETE = 6 รูปแบบ</p>
+<h2 id="s2"><span class="sec">12.2</span> โครงสร้างคำสั่ง CREATE TRIGGER</h2>
+<div class="code"><div class="code-head"><span>รูปแบบคำสั่ง</span></div><pre class="sql">DELIMITER $$
+CREATE TRIGGER ชื่อทริกเกอร์
+{BEFORE | AFTER} {INSERT | UPDATE | DELETE} ON ชื่อตาราง
+FOR EACH ROW
+[{FOLLOWS | PRECEDES} ทริกเกอร์อื่น]
+BEGIN
+    -- อ้างถึงค่าเดิมด้วย OLD.คอลัมน์ และค่าใหม่ด้วย NEW.คอลัมน์
+END $$
+DELIMITER ;</pre></div>
+<ul>
+<li><b>FOR EACH ROW</b> — ทำงาน<b>ทีละแถว</b> เช่น UPDATE กระทบ 10 แถว ทริกเกอร์ทำงาน 10 ครั้ง</li>
+<li>ตั้งชื่อ <code>tg_ตาราง_จังหวะ_เหตุการณ์</code> เช่น <code>tg_enroll_before_insert</code> จะรู้ทันทีว่าทำงานเมื่อใด</li>
+<li>ใน BEFORE แก้ค่า <code>NEW.คอลัมน์</code> ได้ (เปลี่ยนค่าก่อนบันทึก) ใน AFTER แก้ไม่ได้ เพราะบันทึกไปแล้ว</li>
+<li>ห้ามแก้ไขตารางเดียวกับที่กระตุ้นทริกเกอร์ (Error 1442) และห้ามใช้ COMMIT / ROLLBACK ในทริกเกอร์</li>
+</ul>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ทริกเกอร์แรก — ทำรหัสวิชาให้เป็นตัวพิมพ์ใหญ่และตัดช่องว่างอัตโนมัติ</span></div><pre class="sql">DELIMITER $$
+
+CREATE TRIGGER tg_subject_before_insert
+BEFORE INSERT ON subject
+FOR EACH ROW
+BEGIN
+    SET NEW.subid = UPPER(TRIM(NEW.subid));
+    SET NEW.name  = TRIM(NEW.name);
+END $$
+
+DELIMITER ;</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ทดสอบ — ป้อน ' cs011 ' ตัวพิมพ์เล็กมีช่องว่าง</span></div><pre class="sql">INSERT INTO subject (subid, name, credit, major) VALUES (&#x27; cs011 &#x27;, &#x27;  Cloud Computing &#x27;, 3, &#x27;CS&#x27;);</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>credit</th><th>major</th><th>pre</th></tr><tr><td>CS011</td><td>Cloud Computing</td><td>3</td><td>CS</td><td class="null">NULL</td></tr></table></div>
+
+<h2 id="s3"><span class="sec">12.3</span> ทริกเกอร์ BEFORE — ตรวจสอบและแก้ไขข้อมูลก่อนบันทึก</h2>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>สร้างทริกเกอร์</span></div><pre class="sql">DELIMITER $$
+
+CREATE TRIGGER tg_student_before_insert
+BEFORE INSERT ON student
+FOR EACH ROW
+BEGIN
+    IF NEW.name IS NULL THEN
+        SIGNAL SQLSTATE &#x27;45000&#x27;
+            SET MESSAGE_TEXT = &#x27;ต้องระบุชื่อนิสิต&#x27;;
+    END IF;
+
+    IF NEW.major IS NULL THEN
+        SET NEW.major = &#x27;Undeclared&#x27;;
+    END IF;
+END $$
+
+DELIMITER ;</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ทดสอบ — ไม่ระบุชื่อ</span></div><pre class="sql">INSERT INTO student (stdid, major) VALUES (&#x27;80010&#x27;, &#x27;CS&#x27;);</pre></div>
+<div class="run-err"><b>✖ Error Code: 1644.</b> ต้องระบุชื่อนิสิต</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ทดสอบ — ไม่ระบุสาขา ทริกเกอร์เติมให้</span></div><pre class="sql">INSERT INTO student (stdid, name) VALUES (&#x27;80011&#x27;, &#x27;Inosuke&#x27;);</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>80011</td><td>Inosuke</td><td>Undeclared</td><td class="null">NULL</td><td class="null">NULL</td></tr></table></div>
+<h2 id="s4"><span class="sec">12.4</span> ทริกเกอร์ AFTER — บันทึกประวัติการเปลี่ยนแปลง (Audit Log)</h2>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตาราง log + ทริกเกอร์</span></div><pre class="sql">CREATE TABLE grade_log (
+    log_id     INT AUTO_INCREMENT PRIMARY KEY,
+    secid      INT,
+    stdid      VARCHAR(10),
+    old_grade  CHAR(1),
+    new_grade  CHAR(1),
+    changed_by VARCHAR(50),
+    changed_at DATETIME
+);
+
+DELIMITER $$
+
+CREATE TRIGGER tg_enroll_after_update
+AFTER UPDATE ON enroll
+FOR EACH ROW
+BEGIN
+    IF NOT (OLD.grade &lt;=&gt; NEW.grade) THEN
+        INSERT INTO grade_log (secid, stdid, old_grade, new_grade, changed_by, changed_at)
+        VALUES (OLD.secid, OLD.stdid, OLD.grade, NEW.grade, CURRENT_USER(), NOW());
+    END IF;
+END $$
+
+DELIMITER ;</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ทดสอบ — แก้เกรด 2 รายการ</span></div><pre class="sql">UPDATE enroll SET grade = &#x27;B&#x27; WHERE secid = 34 AND stdid = &#x27;70033&#x27;;
+UPDATE enroll SET grade = &#x27;D&#x27; WHERE secid = 1  AND stdid = &#x27;60006&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>log_id</th><th>secid</th><th>stdid</th><th>old_grade</th><th>new_grade</th><th>changed_by</th></tr><tr><td>1</td><td>34</td><td>70033</td><td class="null">NULL</td><td>B</td><td>root@localhost</td></tr><tr><td>2</td><td>1</td><td>60006</td><td>F</td><td>D</td><td>root@localhost</td></tr></table></div>
+<div class="box idea"><div class="box-t">💡 ตัวดำเนินการ &lt;=&gt;</div><p>NULL-safe equal: คืนค่าจริงเมื่อทั้งสองฝั่งเป็น NULL — จำเป็นเพราะเกรดเดิมอาจเป็น NULL (เช่น 70033 ใน secid 34) ถ้าใช้ <code>=</code> จะได้ Unknown และไม่ถูกบันทึก</p></div>
+<h2 id="s5"><span class="sec">12.5</span> กฎธุรกิจที่ต้องอ่านข้อมูลหลายตาราง</h2>
+<p>CHECK บังคับกฎนี้ไม่ได้ เพราะต้องอ่านข้อมูลจากหลายตาราง</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>สร้างทริกเกอร์</span></div><pre class="sql">DELIMITER $$
+
+CREATE TRIGGER tg_enroll_check_credit
+BEFORE INSERT ON enroll
+FOR EACH ROW
+BEGIN
+    DECLARE v_term    VARCHAR(6);
+    DECLARE v_current INT DEFAULT 0;
+    DECLARE v_new     INT DEFAULT 0;
+
+    SELECT sec.term, sub.credit INTO v_term, v_new
+    FROM   section sec INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE  sec.secid = NEW.secid;
+
+    SELECT IFNULL(SUM(sub.credit), 0) INTO v_current
+    FROM   enroll e
+           INNER JOIN section sec ON e.secid   = sec.secid
+           INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE  e.stdid = NEW.stdid AND sec.term = v_term;
+
+    IF (v_current + v_new) &gt; 22 THEN
+        SIGNAL SQLSTATE &#x27;45000&#x27;
+            SET MESSAGE_TEXT = &#x27;ลงทะเบียนเกิน 22 หน่วยกิตต่อภาคเรียน&#x27;;
+    END IF;
+END $$
+
+DELIMITER ;</pre></div>
+<p>ทดสอบ: เปิด 6 กลุ่มเรียนในภาค 2026-2 (วิชา 4+6+4+3+3+3 = 23 หน่วยกิต) แล้วให้นิสิต 60015 ลงทีละกลุ่ม</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เตรียมกลุ่มเรียน + ลง 5 กลุ่มแรก (20 หน่วยกิต)</span></div><pre class="sql">INSERT INTO section (subid, lecid, term) VALUES
+    (&#x27;CS007&#x27;,&#x27;t02&#x27;,&#x27;2026-2&#x27;), (&#x27;CS009&#x27;,&#x27;t02&#x27;,&#x27;2026-2&#x27;), (&#x27;MA002&#x27;,&#x27;t05&#x27;,&#x27;2026-2&#x27;),
+    (&#x27;CS001&#x27;,&#x27;t01&#x27;,&#x27;2026-2&#x27;), (&#x27;CS008&#x27;,&#x27;t03&#x27;,&#x27;2026-2&#x27;), (&#x27;PH001&#x27;,&#x27;t16&#x27;,&#x27;2026-2&#x27;);
+INSERT INTO enroll (secid, stdid)
+SELECT secid, &#x27;60015&#x27; FROM section WHERE term = &#x27;2026-2&#x27; AND subid &lt;&gt; &#x27;PH001&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 5 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>subid</th><th>credit</th></tr><tr><td>53</td><td>CS007</td><td>4</td></tr><tr><td>54</td><td>CS009</td><td>6</td></tr><tr><td>55</td><td>MA002</td><td>4</td></tr><tr><td>56</td><td>CS001</td><td>3</td></tr><tr><td>57</td><td>CS008</td><td>3</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ลงกลุ่มที่ 6 (PH001 3 หน่วยกิต) → รวม 23 เกิน 22</span></div><pre class="sql">INSERT INTO enroll (secid, stdid)
+SELECT secid, &#x27;60015&#x27; FROM section WHERE term = &#x27;2026-2&#x27; AND subid = &#x27;PH001&#x27;;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1644.</b> ลงทะเบียนเกิน 22 หน่วยกิตต่อภาคเรียน</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ดู / ลบทริกเกอร์</span></div><pre class="sql">SHOW TRIGGERS;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>Trigger</th><th>Event</th><th>Table</th><th>Statement</th><th>Timing</th><th>Created</th><th>sql_mode</th><th>Definer</th><th>character_set_client</th><th>collation_connection</th><th>Database Collation</th></tr><tr><td>tg_enroll_check_credit</td><td>INSERT</td><td>enroll</td><td>BEGIN
+    DECLARE v_term    VARCHAR(6);
+    DECLARE v_current INT DEFAULT 0;
+    DECLARE v_new     INT DEFAULT 0;
+
+    SELECT sec.term, sub.credit INTO v_term, v_new
+    FROM   section sec INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE  sec.secid = NEW.secid;
+
+    SELECT IFNULL(SUM(sub.credit), 0) INTO v_current
+    FROM   enroll e
+           INNER JOIN section sec ON e.secid   = sec.secid
+           INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE  e.stdid = NEW.stdid AND sec.term = v_term;
+
+    IF (v_current + v_new) &gt; 22 THEN
+        SIGNAL SQLSTATE &#x27;45000&#x27;
+            SET MESSAGE_TEXT = &#x27;ลงทะเบียนเกิน 22 หน่วยกิตต่อภาคเรียน&#x27;;
+    END IF;
+END</td><td>BEFORE</td><td>2026-10-03 18:53:20.900000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_enroll_after_update</td><td>UPDATE</td><td>enroll</td><td>BEGIN
+    IF NOT (OLD.grade &lt;=&gt; NEW.grade) THEN
+        INSERT INTO grade_log (secid, stdid, old_grade, new_grade, changed_by, changed_at)
+        VALUES (OLD.secid, OLD.stdid, OLD.grade, NEW.grade, CURRENT_USER(), NOW());
+    END IF;
+END</td><td>AFTER</td><td>2026-10-03 18:53:20.900000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_student_before_insert</td><td>INSERT</td><td>student</td><td>BEGIN
+    IF NEW.name IS NULL THEN
+        SIGNAL SQLSTATE &#x27;45000&#x27;
+            SET MESSAGE_TEXT = &#x27;ต้องระบุชื่อนิสิต&#x27;;
+    END IF;
+
+    IF NEW.major IS NULL THEN
+        SET NEW.major = &#x27;Undeclared&#x27;;
+    END IF;
+END</td><td>BEFORE</td><td>2026-10-03 18:53:20.890000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_subject_before_insert</td><td>INSERT</td><td>subject</td><td>BEGIN
+    SET NEW.subid = UPPER(TRIM(NEW.subid));
+    SET NEW.name  = TRIM(NEW.name);
+END</td><td>BEFORE</td><td>2026-10-03 18:53:20.890000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr></table></div>
+<h2 id="s6"><span class="sec">12.6</span> รักษาข้อมูลสรุปให้สอดคล้องอัตโนมัติ</h2>
+<p>บางครั้งเราเลือก<b>ดีนอร์มัลไลซ์</b> (บทที่ 3) เก็บค่าสรุปไว้ในตาราง เพื่อให้อ่านเร็ว เช่น จำนวนนิสิตในแต่ละกลุ่มเรียน — ความเสี่ยงคือค่าไม่ตรงกับข้อมูลจริง ทริกเกอร์ช่วยปรับค่าให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 1 — เพิ่มคอลัมน์ n_student ใน section และกำหนดค่าเริ่มต้นจากข้อมูลจริง</span></div><pre class="sql">ALTER TABLE section ADD COLUMN n_student INT NOT NULL DEFAULT 0;
+
+UPDATE section sec
+SET    n_student =
+       (SELECT COUNT(*)
+        FROM   enroll e
+        WHERE  e.secid = sec.secid);
+
+SELECT secid, subid, term, n_student FROM section WHERE term = &#x27;2026-1&#x27; OR secid &lt;= 3;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>subid</th><th>term</th><th>n_student</th></tr><tr><td>1</td><td>CS001</td><td>2023-1</td><td>5</td></tr><tr><td>2</td><td>CS004</td><td>2023-1</td><td>4</td></tr><tr><td>3</td><td>CS005</td><td>2023-1</td><td>0</td></tr><tr><td>51</td><td>CS004</td><td>2026-1</td><td>2</td></tr><tr><td>52</td><td>CS009</td><td>2026-1</td><td>0</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 2 — ทริกเกอร์เพิ่ม/ลดจำนวนเมื่อมีการลงทะเบียน/ถอน</span></div><pre class="sql">DELIMITER $$
+
+CREATE TRIGGER tg_enroll_after_insert_count
+AFTER INSERT ON enroll
+FOR EACH ROW
+BEGIN
+    UPDATE section SET n_student = n_student + 1 WHERE secid = NEW.secid;
+END $$
+
+CREATE TRIGGER tg_enroll_after_delete_count
+AFTER DELETE ON enroll
+FOR EACH ROW
+BEGIN
+    UPDATE section SET n_student = n_student - 1 WHERE secid = OLD.secid;
+END $$
+
+DELIMITER ;</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 3 — ทดสอบ: ลง 2 คน ถอน 1 คน ในกลุ่ม 52</span></div><pre class="sql">INSERT INTO enroll (secid, stdid) VALUES (52, &#x27;60014&#x27;), (52, &#x27;60016&#x27;);
+DELETE FROM enroll WHERE secid = 52 AND stdid = &#x27;60016&#x27;;
+SELECT sec.secid, sec.n_student AS stored_count,
+       (SELECT COUNT(*)
+        FROM   enroll e
+        WHERE  e.secid = sec.secid) AS real_count
+FROM   section sec WHERE secid = 52;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>stored_count</th><th>real_count</th></tr><tr><td>52</td><td>1</td><td>1</td></tr></table></div>
+<div class="box note"><div class="box-t">📝 ทางเลือก: วิว vs ทริกเกอร์</div><p>วิว (บทที่ 7) คำนวณใหม่ทุกครั้ง — ถูกต้องเสมอแต่ช้าเมื่อข้อมูลมาก ส่วนเก็บค่าไว้ + ทริกเกอร์ — อ่านเร็วมากแต่ซับซ้อนกว่า และถ้ามีคนปิดทริกเกอร์หรือแก้ข้อมูลด้วยวิธีอื่น ค่าอาจไม่ตรง ควรมีคำสั่งตรวจ/คำนวณใหม่ (เช่นขั้นที่ 1) ไว้ใช้เป็นระยะ</p></div>
+
+<h2 id="s7"><span class="sec">12.7</span> การจัดการทริกเกอร์ และข้อควรระวัง</h2>
+<table class="tbl"><tr><th>ประเด็น</th><th>Stored Procedure</th><th>Trigger</th></tr>
+<tr><td>เรียกใช้</td><td>ผู้ใช้ CALL เอง</td><td>อัตโนมัติเมื่อเกิดเหตุการณ์</td></tr>
+<tr><td>พารามิเตอร์</td><td>รับได้</td><td>ไม่ได้ ใช้ OLD / NEW แทน</td></tr>
+<tr><td>COMMIT / ROLLBACK</td><td>ใช้ได้</td><td>ใช้ไม่ได้ (อยู่ในทรานแซกชันของคำสั่งที่กระตุ้น)</td></tr>
+<tr><td>เหมาะกับ</td><td>งานที่สั่งทำเป็นครั้งคราว</td><td>กฎที่ต้องบังคับทุกครั้ง</td></tr>
+</table>
+<div class="box warn"><div class="box-t">⚠️ ข้อควรระวัง</div><p>ทริกเกอร์ทำงานเบื้องหลัง ตามหาสาเหตุปัญหายาก และถ้าทริกเกอร์กระตุ้นทริกเกอร์อื่นต่อกัน อาจวนไม่รู้จบ — ใช้เฉพาะกฎที่ CHECK หรือ FK ทำไม่ได้</p></div>
+
+<h3>ห้ามแก้ตารางเดียวกับที่กระตุ้นทริกเกอร์ (Error 1442)</h3>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ทริกเกอร์บน student ที่พยายาม UPDATE student</span></div><pre class="sql">DELIMITER $$
+CREATE TRIGGER tg_student_bad
+AFTER INSERT ON student
+FOR EACH ROW
+BEGIN
+    UPDATE student SET gpa = 0 WHERE stdid = NEW.stdid;
+END $$
+DELIMITER ;</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>INSERT → error ตอนทริกเกอร์ทำงาน (แก้โดยใช้ BEFORE + SET NEW.gpa = 0 แทน)</span></div><pre class="sql">INSERT INTO student (stdid, name, major) VALUES (&#x27;80020&#x27;, &#x27;Tanjiro&#x27;, &#x27;CS&#x27;);</pre></div>
+<div class="run-err"><b>✖ Error Code: 1442.</b> Can&#x27;t update table &#x27;student&#x27; in stored function/trigger because it is already used by statement which invoked this stored function/trigger.</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ลบทริกเกอร์ที่ผิด</span></div><pre class="sql">DROP TRIGGER tg_student_bad;</pre></div>
+
+<div class="ex" id="ex12.1"><div class="ex-head"><span class="ex-badge">ฝึก 12.1</span><span class="ex-title">ห้ามลดเงินเดือน</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงเขียนทริกเกอร์ที่ป้องกันไม่ให้ลดเงินเดือนอาจารย์ (ค่าใหม่น้อยกว่าค่าเดิมให้แจ้ง error) แล้วทดสอบ</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELIMITER $$
+CREATE TRIGGER tg_lecturer_no_cut
+BEFORE UPDATE ON lecturer
+FOR EACH ROW
+BEGIN
+    IF NEW.salary &lt; OLD.salary THEN
+        SIGNAL SQLSTATE &#x27;45000&#x27;
+            SET MESSAGE_TEXT = &#x27;ห้ามลดเงินเดือน&#x27;;
+    END IF;
+END $$
+DELIMITER ;</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ทดสอบ</span></div><pre class="sql">UPDATE lecturer SET salary = 30000 WHERE lecid = &#x27;t01&#x27;;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1644.</b> ห้ามลดเงินเดือน</div></div></div></div>
+<div class="ex" id="ex12.2"><div class="ex-head"><span class="ex-badge">ฝึก 12.2</span><span class="ex-title">เก็บประวัตินิสิตที่ถูกลบ</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงเขียนทริกเกอร์ที่บันทึกข้อมูลนิสิตที่ถูกลบลงตาราง <code>student_deleted_log</code> พร้อมชื่อผู้ลบและเวลา</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE student_deleted_log (
+    stdid      VARCHAR(10),
+    name       VARCHAR(50),
+    major      VARCHAR(20),
+    deleted_by VARCHAR(50),
+    deleted_at DATETIME
+);
+
+DELIMITER $$
+CREATE TRIGGER tg_student_after_delete
+AFTER DELETE ON student
+FOR EACH ROW
+BEGIN
+    INSERT INTO student_deleted_log
+    VALUES (OLD.stdid, OLD.name, OLD.major, CURRENT_USER(), NOW());
+END $$
+DELIMITER ;
+
+DELETE FROM student WHERE stdid = &#x27;80011&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>deleted_by</th></tr><tr><td>80011</td><td>Inosuke</td><td>Undeclared</td><td>root@localhost</td></tr></table></div></div></div></div>
+<div class="ex" id="ex12.3"><div class="ex-head"><span class="ex-badge">ฝึก 12.3</span><span class="ex-title">จำกัด 40 คนต่อกลุ่ม</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>จงเขียนทริกเกอร์จำกัดจำนวนนิสิตในกลุ่มเรียนหนึ่งไม่ให้เกิน 40 คน</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELIMITER $$
+CREATE TRIGGER tg_enroll_max40
+BEFORE INSERT ON enroll
+FOR EACH ROW
+BEGIN
+    IF (SELECT COUNT(*) FROM enroll WHERE secid = NEW.secid) &gt;= 40 THEN
+        SIGNAL SQLSTATE &#x27;45000&#x27;
+            SET MESSAGE_TEXT = &#x27;กลุ่มเรียนนี้เต็มแล้ว (40 คน)&#x27;;
+    END IF;
+END $$
+DELIMITER ;</pre></div>
+<p>ตารางหนึ่งมีทริกเกอร์ BEFORE INSERT ได้หลายตัว (MySQL 5.7+) ทำงานตามลำดับที่สร้าง หรือกำหนดด้วย <code>FOLLOWS</code> / <code>PRECEDES</code></p></div></div></div>
+
+<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
+<li class="part">เขียนทริกเกอร์</li>
+<li>เขียนทริกเกอร์ป้องกันไม่ให้ลดเงินเดือนอาจารย์ <span class="hint">(BEFORE UPDATE + SIGNAL)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELIMITER $$
+CREATE TRIGGER tg_lecturer_no_cut
+BEFORE UPDATE ON lecturer
+FOR EACH ROW
+BEGIN
+    IF NEW.salary &lt; OLD.salary THEN
+        SIGNAL SQLSTATE &#x27;45000&#x27;
+            SET MESSAGE_TEXT = &#x27;ห้ามลดเงินเดือน&#x27;;
+    END IF;
+END $$
+DELIMITER ;</pre></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ทดสอบ — ลดเงินเดือน</span></div><pre class="sql">UPDATE lecturer SET salary = 30000 WHERE lecid = &#x27;t01&#x27;;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1644.</b> ห้ามลดเงินเดือน</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ทดสอบ — ขึ้นเงินเดือนยังทำได้</span></div><pre class="sql">UPDATE lecturer SET salary = salary + 1000 WHERE lecid = &#x27;t01&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>salary</th></tr><tr><td>t01</td><td>41000</td></tr></table></div></div></li>
+<li>เขียนทริกเกอร์ที่แปลงเกรดเป็นตัวพิมพ์ใหญ่อัตโนมัติก่อนบันทึก (เช่น 'a' → 'A') <span class="hint">(SET NEW.grade = UPPER(NEW.grade))</span><div class="rv-ans"><p>ต้องเป็น <b>BEFORE</b> จึงแก้ค่า NEW ได้ก่อนบันทึก และควรมีทั้งตอน INSERT และ UPDATE</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELIMITER $$
+CREATE TRIGGER tg_enroll_grade_upper_ins
+BEFORE INSERT ON enroll
+FOR EACH ROW
+BEGIN
+    SET NEW.grade = UPPER(NEW.grade);
+END $$
+
+CREATE TRIGGER tg_enroll_grade_upper_upd
+BEFORE UPDATE ON enroll
+FOR EACH ROW
+BEGIN
+    SET NEW.grade = UPPER(NEW.grade);
+END $$
+DELIMITER ;</pre></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">INSERT INTO enroll VALUES (1, &#x27;60016&#x27;, &#x27;b&#x27;);
+UPDATE enroll SET grade = &#x27;c&#x27; WHERE secid = 1 AND stdid = &#x27;60001&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>stdid</th><th>grade</th></tr><tr><td>1</td><td>60001</td><td>C</td></tr><tr><td>1</td><td>60016</td><td>B</td></tr></table></div></div></li>
+<li>เขียนทริกเกอร์บันทึกข้อมูลนิสิตที่ถูกลบลงตาราง student_deleted_log พร้อมชื่อผู้ลบและเวลา <span class="hint">(AFTER DELETE + OLD)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE student_deleted_log (
+    stdid      VARCHAR(10),
+    name       VARCHAR(50),
+    major      VARCHAR(20),
+    deleted_by VARCHAR(50),
+    deleted_at DATETIME
+);
+
+DELIMITER $$
+CREATE TRIGGER tg_student_after_delete
+AFTER DELETE ON student
+FOR EACH ROW
+BEGIN
+    INSERT INTO student_deleted_log
+    VALUES (OLD.stdid, OLD.name, OLD.major, CURRENT_USER(), NOW());
+END $$
+DELIMITER ;</pre></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELETE FROM student WHERE stdid = &#x27;60016&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>deleted_by</th></tr><tr><td>60016</td><td>Mello</td><td>Physics</td><td>root@localhost</td></tr></table></div><p>ใช้ <b>OLD</b> เพราะเหตุการณ์ DELETE มีเฉพาะข้อมูลเดิม และใช้ AFTER เพื่อบันทึกเมื่อการลบสำเร็จแล้วเท่านั้น</p></div></li>
+<li>เขียนทริกเกอร์บันทึกประวัติการแก้เกรด และอธิบายว่าทำไมต้องใช้ <code>&lt;=&gt;</code> แทน <code>=</code> <span class="hint">(NULL-safe equal)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE grade_log (
+    log_id     INT AUTO_INCREMENT PRIMARY KEY,
+    secid      INT,
+    stdid      VARCHAR(10),
+    old_grade  CHAR(1),
+    new_grade  CHAR(1),
+    changed_by VARCHAR(50),
+    changed_at DATETIME
+);
+
+DELIMITER $$
+CREATE TRIGGER tg_enroll_after_update
+AFTER UPDATE ON enroll
+FOR EACH ROW
+BEGIN
+    IF NOT (OLD.grade &lt;=&gt; NEW.grade) THEN
+        INSERT INTO grade_log (secid, stdid, old_grade, new_grade, changed_by, changed_at)
+        VALUES (OLD.secid, OLD.stdid, OLD.grade, NEW.grade, CURRENT_USER(), NOW());
+    END IF;
+END $$
+DELIMITER ;</pre></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">UPDATE enroll SET grade = &#x27;B&#x27; WHERE secid = 34 AND stdid = &#x27;70033&#x27;;   -- เดิมเป็น NULL
+UPDATE enroll SET grade = &#x27;D&#x27; WHERE secid = 1  AND stdid = &#x27;60006&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>stdid</th><th>old_grade</th><th>new_grade</th></tr><tr><td>34</td><td>70033</td><td class="null">NULL</td><td>B</td></tr><tr><td>1</td><td>60006</td><td>F</td><td>D</td></tr></table></div><p>ถ้าเกรดเดิมเป็น NULL (ยังไม่มีเกรด) <code>OLD.grade &lt;&gt; NEW.grade</code> ได้ผลเป็น UNKNOWN ซึ่ง IF ถือว่าไม่จริง การให้เกรดครั้งแรกจึงไม่ถูกบันทึก ส่วน <code>&lt;=&gt;</code> (NULL-safe equal) เปรียบเทียบ NULL ได้: NULL &lt;=&gt; NULL เป็นจริง และ NULL &lt;=&gt; 'B' เป็นเท็จ</p></div></li>
+<li>เขียนทริกเกอร์จำกัดจำนวนนิสิตในกลุ่มเรียนหนึ่งไม่ให้เกิน 40 คน <span class="hint">(BEFORE INSERT ON enroll)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELIMITER $$
+CREATE TRIGGER tg_enroll_max40
+BEFORE INSERT ON enroll
+FOR EACH ROW
+BEGIN
+    IF (SELECT COUNT(*) FROM enroll WHERE secid = NEW.secid) &gt;= 40 THEN
+        SIGNAL SQLSTATE &#x27;45000&#x27;
+            SET MESSAGE_TEXT = &#x27;กลุ่มเรียนนี้เต็มแล้ว (40 คน)&#x27;;
+    END IF;
+END $$
+DELIMITER ;</pre></div><p>ใช้ BEFORE เพื่อปฏิเสธก่อนบันทึก — ในระบบที่มีผู้ใช้พร้อมกันมาก ควรทำร่วมกับการล็อก (บทที่ 9) ไม่เช่นนั้นสองคนอาจนับได้ 39 พร้อมกันแล้วลงได้ทั้งคู่</p></div></li>
+<li>อธิบายว่าทำไมกฎ “ต้องผ่านวิชาบังคับก่อนจึงลงวิชาถัดไปได้” บังคับด้วย CHECK ไม่ได้ แล้วเขียนทริกเกอร์บังคับกฎนี้ <span class="hint">(ข้อมูลหลายตาราง)</span><div class="rv-ans"><p>CHECK ตรวจได้เฉพาะค่าในแถวที่กำลังบันทึก แต่กฎนี้ต้องอ่าน section (วิชาของกลุ่ม) subject (วิชาบังคับก่อน) และแถว<b>อื่น</b>ใน enroll (ประวัติการเรียน) จึงต้องใช้ทริกเกอร์</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELIMITER $$
+CREATE TRIGGER tg_enroll_check_pre
+BEFORE INSERT ON enroll
+FOR EACH ROW
+BEGIN
+    DECLARE v_pre VARCHAR(10);
+
+    SELECT sub.pre INTO v_pre
+    FROM   section sec JOIN subject sub ON sec.subid = sub.subid
+    WHERE  sec.secid = NEW.secid;
+
+    IF v_pre IS NOT NULL AND NOT EXISTS (
+          SELECT 1
+          FROM   enroll e JOIN section s ON e.secid = s.secid
+          WHERE  e.stdid = NEW.stdid
+            AND  s.subid = v_pre
+            AND  e.grade IN (&#x27;A&#x27;, &#x27;B&#x27;, &#x27;C&#x27;, &#x27;D&#x27;)) THEN
+        SIGNAL SQLSTATE &#x27;45000&#x27;
+            SET MESSAGE_TEXT = &#x27;ยังไม่ผ่านวิชาบังคับก่อน&#x27;;
+    END IF;
+END $$
+DELIMITER ;</pre></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>60015 ยังไม่เคยผ่าน CS004 → ลง CS009 (secid 52) ไม่ได้</span></div><pre class="sql">INSERT INTO enroll (secid, stdid) VALUES (52, &#x27;60015&#x27;);</pre></div>
+<div class="run-err"><b>✖ Error Code: 1644.</b> ยังไม่ผ่านวิชาบังคับก่อน</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>60004 เคยได้ A วิชา CS004 → ลงได้</span></div><pre class="sql">INSERT INTO enroll (secid, stdid) VALUES (52, &#x27;60004&#x27;);</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>stdid</th><th>grade</th></tr><tr><td>52</td><td>60004</td><td class="null">NULL</td></tr></table></div></div></li>
+<li class="part">แนวคิดและข้อควรระวัง</li>
+<li>จงอธิบายความแตกต่างของ BEFORE และ AFTER และระบุว่า NEW / OLD ใช้ได้ในเหตุการณ์ใดบ้าง <span class="hint">(INSERT มีแต่ NEW, DELETE มีแต่ OLD)</span><div class="rv-ans"><p><b>BEFORE</b> ทำงานก่อนบันทึก ใช้ตรวจสอบ/ปฏิเสธ (SIGNAL) หรือแก้ค่า NEW ได้ · <b>AFTER</b> ทำงานหลังบันทึกสำเร็จ ใช้บันทึก log หรือปรับตารางอื่น แก้ค่า NEW ไม่ได้แล้ว</p><ul><li>INSERT — มีเฉพาะ <b>NEW</b></li><li>UPDATE — มีทั้ง <b>OLD</b> (ค่าก่อนแก้) และ <b>NEW</b> (ค่าหลังแก้)</li><li>DELETE — มีเฉพาะ <b>OLD</b></li></ul></div></li>
+<li>เหตุใดทริกเกอร์จึงแก้ตารางเดียวกับที่กระตุ้นทริกเกอร์ไม่ได้ และควรแก้ปัญหาอย่างไร <span class="hint">(Error 1442 → ใช้ BEFORE + SET NEW)</span><div class="rv-ans"><p>MySQL ห้ามทริกเกอร์ INSERT/UPDATE/DELETE ตารางที่กำลังถูกแก้อยู่ (Error 1442) เพราะอาจทำให้เกิดการเรียกทริกเกอร์วนซ้ำไม่รู้จบและข้อมูลไม่แน่นอน ถ้าต้องการเปลี่ยนค่าในแถวที่กำลังบันทึก ให้ใช้ทริกเกอร์ <b>BEFORE</b> แล้ว <code>SET NEW.คอลัมน์ = …</code> แทนการสั่ง UPDATE ตารางเดิม</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ผิด — UPDATE ตารางเดิมในทริกเกอร์</span></div><pre class="sql">DELIMITER $$
+CREATE TRIGGER tg_student_bad
+AFTER INSERT ON student
+FOR EACH ROW
+BEGIN
+    UPDATE student SET gpa = 0 WHERE stdid = NEW.stdid;
+END $$
+DELIMITER ;
+
+INSERT INTO student (stdid, name, major) VALUES (&#x27;80030&#x27;, &#x27;Zenitsu&#x27;, &#x27;CS&#x27;);</pre></div>
+<div class="run-err"><b>✖ Error Code: 1442.</b> Can&#x27;t update table &#x27;student&#x27; in stored function/trigger because it is already used by statement which invoked this stored function/trigger.</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DROP TRIGGER tg_student_bad;</pre></div></div></li>
+<li>เปรียบเทียบ Stored Procedure, Function และ Trigger ในแง่การเรียกใช้ พารามิเตอร์ ค่าที่คืน และงานที่เหมาะสม <span class="hint">(บทที่ 11–12)</span><div class="rv-ans"><ul><li><b>Procedure</b> — ผู้ใช้/โปรแกรมเรียกเองด้วย CALL · มี IN/OUT/INOUT · คืนผลลัพธ์ได้หลายชุด · งานหลายขั้นตอน เช่น ลงทะเบียน ย้ายกลุ่ม</li><li><b>Function</b> — เรียกในคำสั่ง SQL · มีเฉพาะ IN · คืนค่าเดียว · การคำนวณที่ใช้ซ้ำ เช่น อายุ เกรดเฉลี่ย</li><li><b>Trigger</b> — ทำงาน<b>อัตโนมัติ</b>เมื่อเกิด INSERT/UPDATE/DELETE บนตาราง เรียกเองไม่ได้ · ไม่มีพารามิเตอร์ (ใช้ OLD/NEW) · ไม่คืนค่า · บังคับกฎธุรกิจที่ต้องอ่านหลายตาราง บันทึก audit log รักษาข้อมูลสรุป</li></ul></div></li>
+</ol></div>
+
+<div class="pager"><a class="pg" href="11-stored-procedure.html">← 11 · Stored Procedure &amp; Function</a><a class="pg next" href="appendix-a-script.html">ก · สคริปต์ฐานข้อมูลกรณีศึกษา →</a></div>
+<footer>Lecture Note · 1204202 การออกแบบและการจัดการฐานข้อมูล · อ.ดร.พรทิวา ปะวะระ · ภาควิชาวิทยาการคอมพิวเตอร์ คณะวิทยาการสารสนเทศ มหาวิทยาลัยมหาสารคาม</footer>
+</main>
+<script src="assets/password.js"></script>
+<script src="assets/nav.js"></script>
+</body>
+</html>

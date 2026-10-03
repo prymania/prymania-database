@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 5 · การแสดงข้อมูลด้วยคำสั่ง SELECT — Database Lecture Note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
+  <nav>
+<div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
+<a href="index.html"><span class="no">🏠</span>หน้าแรก / ภาพรวม</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 1 · ออกแบบฐานข้อมูล</div>
+<a href="01-intro.html"><span class="no">01</span>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</a>
+<a href="02-er-model.html"><span class="no">02</span>แบบจำลอง ER</a>
+<a href="03-relational-normalization.html"><span class="no">03</span>แปลง ER เป็นตาราง &amp; Normalization</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 2 · ภาษา SQL</div>
+<a href="04-sql-ddl-dml.html"><span class="no">04</span>สร้างตาราง &amp; INSERT/UPDATE/DELETE</a>
+<a href="05-select.html" class="active"><span class="no">05</span>การแสดงข้อมูลด้วยคำสั่ง SELECT</a>
+<div class="subnav"><a href="#s1"><span class="sno">5.1</span>ข้อมูลตัวอย่างในฐานข้อมูลกรณีศึกษา</a><a href="#s2"><span class="sno">5.2</span>โครงสร้างและลำดับการประมวลผลของ SELECT</a><a href="#s3"><span class="sno">5.3</span>การเลือกคอลัมน์ ชื่อแทน และการกำจัดค่าซ้ำ</a><a href="#s4"><span class="sno">5.4</span>การกำหนดเงื่อนไขด้วย WHERE</a><a href="#s5"><span class="sno">5.5</span>การจัดการค่าว่าง และการค้นหาด้วย LIKE</a><a href="#s6"><span class="sno">5.6</span>การจัดเรียงและจำกัดจำนวนแถว</a><a href="#s7"><span class="sno">5.7</span>ฟังก์ชันรวม การจัดกลุ่ม และ HAVING</a><a href="#s8"><span class="sno">5.8</span>ฟังก์ชันสเกลาร์ และคำสั่ง CASE</a><a href="#s9"><span class="sno">5.9</span>ข้อผิดพลาดที่พบบ่อยในการเขียน SELECT</a><a href="#review"><span class="sno">✎</span>คำถามท้ายบท</a></div>
+<a href="06-join.html"><span class="no">06</span>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 3 · ขั้นสูง</div>
+<a href="07-view.html"><span class="no">07</span>วิว (View)</a>
+<a href="08-index.html"><span class="no">08</span>ดัชนี (Index)</a>
+<a href="09-transaction.html"><span class="no">09</span>ทรานแซกชัน (Transaction)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม</div>
+<a href="10-security.html"><span class="no">10</span>ความปลอดภัยของฐานข้อมูล</a>
+<a href="11-stored-procedure.html"><span class="no">11</span>Stored Procedure &amp; Function</a>
+<a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
+<a href="appendix-a-script.html"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">ง</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+</div>
+  </nav>
+  <img src="icon/drink.png" alt="" class="sidebar-img">
+</aside>
+<main class="content">
+<div class="page-head"><span class="kicker">CHAPTER 05 · สัปดาห์ที่ 6</span><h1>บทที่ 5 · การแสดงข้อมูลด้วยคำสั่ง SELECT</h1><p class="sub">โครงสร้างและลำดับการประมวลผล WHERE ค่าว่าง LIKE ORDER BY LIMIT ฟังก์ชันรวม GROUP BY HAVING ฟังก์ชันสเกลาร์ และ CASE</p></div>
+
+
+<div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
+<li>อธิบายโครงสร้างและลำดับการประมวลผลของ SELECT ได้</li>
+<li>เขียน SELECT พร้อมเงื่อนไข WHERE รูปแบบต่าง ๆ และจัดการค่าว่างได้ถูกต้อง</li>
+<li>ใช้ฟังก์ชันรวมร่วมกับ GROUP BY และ HAVING ได้</li>
+<li>ใช้ฟังก์ชันสเกลาร์ด้านข้อความ ตัวเลข วันที่ และเขียน CASE ได้</li>
+<li>ตรวจหาและแก้ข้อผิดพลาดที่พบบ่อยในการเขียน SELECT ได้</li>
+</ol></div>
+
+<div class="pagetoc"><div class="pagetoc-t">📑 ในบทนี้</div><ul><li><a href="#s1">5.1  ข้อมูลตัวอย่างในฐานข้อมูลกรณีศึกษา</a></li><li><a href="#s2">5.2  โครงสร้างและลำดับการประมวลผลของ SELECT</a></li><li><a href="#s3">5.3  การเลือกคอลัมน์ ชื่อแทน และการกำจัดค่าซ้ำ</a></li><li><a href="#s4">5.4  การกำหนดเงื่อนไขด้วย WHERE</a></li><li><a href="#s5">5.5  การจัดการค่าว่าง และการค้นหาด้วย LIKE</a></li><li><a href="#s6">5.6  การจัดเรียงและจำกัดจำนวนแถว</a></li><li><a href="#s7">5.7  ฟังก์ชันรวม การจัดกลุ่ม และ HAVING</a></li><li><a href="#s8">5.8  ฟังก์ชันสเกลาร์ และคำสั่ง CASE</a></li><li><a href="#s9">5.9  ข้อผิดพลาดที่พบบ่อยในการเขียน SELECT</a></li></ul></div>
+
+<h2 id="s1"><span class="sec">5.1</span> ข้อมูลตัวอย่างในฐานข้อมูลกรณีศึกษา</h2>
+<p>ทุกตัวอย่างในบทนี้รันบนข้อมูลจาก <a href="appendix-a-script.html">prymania_DBLabScript.sql</a> — เปิดหน้านี้ไว้เทียบขณะฝึกเขียนคำสั่ง สังเกตว่ามีข้อมูลที่เป็น <span class="null" style="color:#A9B4B6;font-style:italic">NULL</span> อยู่หลายจุดโดยตั้งใจ</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตาราง student</span></div><pre class="sql">SELECT * FROM student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (22 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2010-05-13</td></tr><tr><td>60002</td><td>Sakuragi</td><td>CS</td><td class="null">NULL</td><td>2010-01-15</td></tr><tr><td>60003</td><td>Mitsui</td><td>CS</td><td>2.00</td><td>2013-06-25</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2012-12-08</td></tr><tr><td>60005</td><td class="null">NULL</td><td>Math</td><td>2.78</td><td>2011-09-02</td></tr><tr><td>60006</td><td>Nobita</td><td>Math</td><td>1.55</td><td class="null">NULL</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>2011-01-31</td></tr><tr><td>60008</td><td>Kira</td><td>Art</td><td>3.05</td><td>2015-02-25</td></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>3.98</td><td>2015-03-31</td></tr><tr><td>60010</td><td>Gon</td><td>English</td><td>1.55</td><td>2016-02-20</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>3.98</td><td>2016-02-20</td></tr><tr><td>60012</td><td>Hisoka</td><td>CS</td><td>2.00</td><td>2015-06-06</td></tr><tr><td>60013</td><td>Gon</td><td>CS</td><td>2.78</td><td>2017-07-07</td></tr><tr><td>60014</td><td>Light</td><td>Physics</td><td>2.55</td><td>2016-10-10</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td><td>4.00</td><td>2014-08-24</td></tr><tr><td>60016</td><td>Mello</td><td>Physics</td><td>1.55</td><td>2015-12-13</td></tr><tr><td>70022</td><td class="null">NULL</td><td>English</td><td class="null">NULL</td><td class="null">NULL</td></tr><tr><td>70033</td><td>Zoro</td><td class="null">NULL</td><td>3.98</td><td>2012-02-29</td></tr><tr><td>70034</td><td>Luffy</td><td class="null">NULL</td><td>1.55</td><td>2010-02-11</td></tr><tr><td>70035</td><td>Nami</td><td class="null">NULL</td><td>2.85</td><td class="null">NULL</td></tr><tr><td>70036</td><td>Sanji</td><td>CS</td><td>2.78</td><td class="null">NULL</td></tr><tr><td>70037</td><td>Chopper</td><td class="null">NULL</td><td class="null">NULL</td><td>2011-12-24</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตาราง subject</span></div><pre class="sql">SELECT * FROM subject;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (20 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>credit</th><th>major</th><th>pre</th></tr><tr><td>CS001</td><td>Programming</td><td>3</td><td>CS</td><td class="null">NULL</td></tr><tr><td>CS002</td><td>Java</td><td>3</td><td>CS</td><td>CS001</td></tr><tr><td>CS003</td><td>Web Design</td><td>2</td><td>CS</td><td>CS001</td></tr><tr><td>CS004</td><td>Database</td><td>3</td><td>CS</td><td>CS001</td></tr><tr><td>CS005</td><td>Graphics</td><td>3</td><td>CS</td><td>CS002</td></tr><tr><td>CS006</td><td>Mobile Apps</td><td>2</td><td>CS</td><td>CS002</td></tr><tr><td>CS007</td><td>Robotics</td><td>4</td><td>CS</td><td>CS002</td></tr><tr><td>CS008</td><td>AI</td><td>3</td><td>CS</td><td>CS002</td></tr><tr><td>CS009</td><td>Project</td><td>6</td><td>CS</td><td>CS004</td></tr><tr><td>CS010</td><td>Security</td><td>3</td><td>CS</td><td>CS004</td></tr><tr><td>EN001</td><td>English</td><td>2</td><td>English</td><td class="null">NULL</td></tr><tr><td>EN002</td><td>Reading</td><td>3</td><td>English</td><td>EN001</td></tr><tr><td>EN003</td><td>Conversation</td><td>3</td><td>English</td><td>EN001</td></tr><tr><td>EN004</td><td>Writing</td><td>3</td><td>English</td><td>EN002</td></tr><tr><td>MA001</td><td>Mathematics</td><td>3</td><td>Math</td><td class="null">NULL</td></tr><tr><td>MA002</td><td>Discrete Math</td><td>4</td><td>Math</td><td>MA001</td></tr><tr><td>MA003</td><td>Statistics</td><td>3</td><td>Math</td><td>MA002</td></tr><tr><td>PH001</td><td>Physics</td><td>3</td><td>Physics</td><td class="null">NULL</td></tr><tr><td>TH001</td><td>Thai</td><td>1</td><td>Thai</td><td class="null">NULL</td></tr><tr><td>TH002</td><td>Thai Writing</td><td>1</td><td>Thai</td><td>TH001</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตาราง lecturer</span></div><pre class="sql">SELECT * FROM lecturer;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (16 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th><th>major</th></tr><tr><td>t01</td><td>Peter Parker</td><td>40000</td><td>CS</td></tr><tr><td>t02</td><td>Steve Roger</td><td>50000</td><td>CS</td></tr><tr><td>t03</td><td>Yoda</td><td>80000</td><td>Math</td></tr><tr><td>t04</td><td>Post Malone</td><td>47000</td><td>Thai</td></tr><tr><td>t05</td><td>IronMan</td><td>65000</td><td>Thai</td></tr><tr><td>t06</td><td>Goku</td><td>20000</td><td>English</td></tr><tr><td>t07</td><td>Vegeta</td><td>25000</td><td>English</td></tr><tr><td>t08</td><td>Cell</td><td>70000</td><td>English</td></tr><tr><td>t09</td><td>Frieza</td><td>60000</td><td>English</td></tr><tr><td>t10</td><td>Piccolo</td><td>15000</td><td>Art</td></tr><tr><td>t11</td><td>Batman</td><td class="null">NULL</td><td>DC</td></tr><tr><td>t12</td><td>Wolverine</td><td class="null">NULL</td><td>DC</td></tr><tr><td>t13</td><td>Thor</td><td>60000</td><td>DC</td></tr><tr><td>t14</td><td>Yoda</td><td>80000</td><td>CS</td></tr><tr><td>t15</td><td>Gohan</td><td>20000</td><td>Math</td></tr><tr><td>t16</td><td>Levi</td><td class="null">NULL</td><td>Physics</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตาราง section (52 แถว)</span></div><pre class="sql">SELECT * FROM section;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 12 จาก 52 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>subid</th><th>lecid</th><th>term</th></tr><tr><td>1</td><td>CS001</td><td>t01</td><td>2023-1</td></tr><tr><td>11</td><td>CS001</td><td>t01</td><td>2024-1</td></tr><tr><td>15</td><td>CS001</td><td>t01</td><td>2024-2</td></tr><tr><td>35</td><td>CS001</td><td>t01</td><td>2025-1</td></tr><tr><td>24</td><td>CS001</td><td>t02</td><td>2024-1</td></tr><tr><td>39</td><td>CS001</td><td>t02</td><td>2025-2</td></tr><tr><td>49</td><td>CS001</td><td>t10</td><td>2025-3</td></tr><tr><td>6</td><td>CS002</td><td>t01</td><td>2023-2</td></tr><tr><td>16</td><td>CS002</td><td>t01</td><td>2024-2</td></tr><tr><td>29</td><td>CS002</td><td>t02</td><td>2024-2</td></tr><tr><td>30</td><td>CS002</td><td>t04</td><td>2024-2</td></tr><tr><td>33</td><td>CS002</td><td>t05</td><td>2024-3</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตาราง enroll (100 แถว)</span></div><pre class="sql">SELECT * FROM enroll;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 12 จาก 100 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>stdid</th><th>grade</th></tr><tr><td>1</td><td>60001</td><td>A</td></tr><tr><td>1</td><td>60002</td><td>B</td></tr><tr><td>1</td><td>60005</td><td>C</td></tr><tr><td>1</td><td>60006</td><td>F</td></tr><tr><td>1</td><td>60010</td><td>F</td></tr><tr><td>2</td><td>60001</td><td>C</td></tr><tr><td>2</td><td>60002</td><td>A</td></tr><tr><td>2</td><td>60005</td><td>D</td></tr><tr><td>2</td><td>60010</td><td>F</td></tr><tr><td>4</td><td>60004</td><td>F</td></tr><tr><td>5</td><td>60003</td><td>F</td></tr><tr><td>5</td><td>60004</td><td>B</td></tr></table></div>
+
+<h2 id="s2"><span class="sec">5.2</span> โครงสร้างและลำดับการประมวลผลของ SELECT</h2>
+<div class="code"><div class="code-head"><span>รูปแบบเต็ม ([ ] = ละได้)</span></div><pre>SELECT   [DISTINCT] รายการคอลัมน์
+FROM     ชื่อตาราง
+[WHERE    เงื่อนไขการคัดเลือกแถว]
+[GROUP BY คอลัมน์ที่ใช้จัดกลุ่ม]
+[HAVING   เงื่อนไขการคัดเลือกกลุ่ม]
+[ORDER BY คอลัมน์ [ASC | DESC]]
+[LIMIT    จำนวนแถว [OFFSET ตำแหน่งเริ่มต้น]];</pre></div>
+<p>เขียนจากบนลงล่าง แต่ DBMS <b>ประมวลผลคนละลำดับ</b>:</p>
+<div class="flow">
+<div class="st">① FROM</div><span class="ar">→</span><div class="st">② WHERE</div><span class="ar">→</span><div class="st">③ GROUP BY</div><span class="ar">→</span><div class="st">④ HAVING</div><span class="ar">→</span><div class="st">⑤ SELECT</div><span class="ar">→</span><div class="st">⑥ ORDER BY</div><span class="ar">→</span><div class="st">⑦ LIMIT</div>
+</div>
+<div class="box idea"><div class="box-t">💡 ทำไมต้องรู้ลำดับ</div><p>อธิบายได้ว่าทำไม<b>ใช้ชื่อแทน (alias) จาก SELECT ใน WHERE ไม่ได้</b> (WHERE ทำงานก่อน SELECT) แต่<b>ใช้ใน ORDER BY ได้</b> (ORDER BY ทำงานหลัง SELECT)</p></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ใช้ alias ใน WHERE → error</span></div><pre class="sql">SELECT stdid, gpa * 25 AS score FROM student WHERE score &gt; 90;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1054.</b> Unknown column &#x27;score&#x27; in &#x27;where clause&#x27;</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ใช้ alias ใน ORDER BY → ได้</span></div><pre class="sql">SELECT stdid, gpa * 25 AS score FROM student ORDER BY score DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 5 จาก 22 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>score</th></tr><tr><td>60015</td><td>100.00</td></tr><tr><td>60004</td><td>99.50</td></tr><tr><td>60007</td><td>99.50</td></tr><tr><td>60009</td><td>99.50</td></tr><tr><td>60011</td><td>99.50</td></tr></table></div>
+
+<div class="ex" id="ex5.1"><div class="ex-head"><span class="ex-badge">ฝึก 5.1</span><span class="ex-title">ลำดับการประมวลผล</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>ในคำสั่ง <code>SELECT major, COUNT(*) FROM student WHERE gpa > 2 GROUP BY major HAVING COUNT(*) > 1 ORDER BY major;</code> ส่วนใดทำงานเป็นลำดับที่ 2 และ 4</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>ลำดับที่ 2 = <b>WHERE gpa &gt; 2</b> (คัดแถว), ลำดับที่ 4 = <b>HAVING COUNT(*) &gt; 1</b> (คัดกลุ่ม)</p></div></div></div>
+
+<h2 id="s3"><span class="sec">5.3</span> การเลือกคอลัมน์ ชื่อแทน และการกำจัดค่าซ้ำ</h2>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.1 — ทุกคอลัมน์</span></div><pre class="sql">SELECT * FROM student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 5 จาก 22 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2010-05-13</td></tr><tr><td>60002</td><td>Sakuragi</td><td>CS</td><td class="null">NULL</td><td>2010-01-15</td></tr><tr><td>60003</td><td>Mitsui</td><td>CS</td><td>2.00</td><td>2013-06-25</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2012-12-08</td></tr><tr><td>60005</td><td class="null">NULL</td><td>Math</td><td>2.78</td><td>2011-09-02</td></tr></table></div>
+<div class="box tip"><div class="box-t">✅ แนวปฏิบัติที่ดี</div><p><code>*</code> สะดวกตอนทดลอง แต่ไม่ควรใช้ในโปรแกรมจริง — เพิ่มคอลัมน์ใหม่แล้วผลลัพธ์เปลี่ยนโดยโปรแกรมไม่รู้ตัว และดึงข้อมูลเกินจำเป็น</p></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.2 — เลือกบางคอลัมน์</span></div><pre class="sql">SELECT stdid, name, gpa
+FROM   student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 5 จาก 22 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>gpa</th></tr><tr><td>60001</td><td>Rukawa</td><td>3.75</td></tr><tr><td>60002</td><td>Sakuragi</td><td class="null">NULL</td></tr><tr><td>60003</td><td>Mitsui</td><td>2.00</td></tr><tr><td>60004</td><td>Sendoh</td><td>3.98</td></tr><tr><td>60005</td><td class="null">NULL</td><td>2.78</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.3 — ชื่อแทน (Alias) ด้วย AS</span></div><pre class="sql">SELECT stdid AS student_id,
+       name  AS student_name,
+       gpa   AS &#x27;grade point&#x27;
+FROM   student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 5 จาก 22 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_id</th><th>student_name</th><th>grade point</th></tr><tr><td>60001</td><td>Rukawa</td><td>3.75</td></tr><tr><td>60002</td><td>Sakuragi</td><td class="null">NULL</td></tr><tr><td>60003</td><td>Mitsui</td><td>2.00</td></tr><tr><td>60004</td><td>Sendoh</td><td>3.98</td></tr><tr><td>60005</td><td class="null">NULL</td><td>2.78</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.4 — กำจัดค่าซ้ำด้วย DISTINCT</span></div><pre class="sql">SELECT DISTINCT major
+FROM   student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th></tr><tr><td>CS</td></tr><tr><td>Math</td></tr><tr><td>Art</td></tr><tr><td>English</td></tr><tr><td>Physics</td></tr><tr><td class="null">NULL</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.5 — คำนวณคอลัมน์ใหม่</span></div><pre class="sql">SELECT lecid, name, salary,
+       salary * 12 AS salary_per_year
+FROM   lecturer;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 6 จาก 16 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th><th>salary_per_year</th></tr><tr><td>t01</td><td>Peter Parker</td><td>40000</td><td>480000</td></tr><tr><td>t02</td><td>Steve Roger</td><td>50000</td><td>600000</td></tr><tr><td>t03</td><td>Yoda</td><td>80000</td><td>960000</td></tr><tr><td>t04</td><td>Post Malone</td><td>47000</td><td>564000</td></tr><tr><td>t05</td><td>IronMan</td><td>65000</td><td>780000</td></tr><tr><td>t06</td><td>Goku</td><td>20000</td><td>240000</td></tr></table></div>
+
+<div class="ex" id="ex5.2"><div class="ex-head"><span class="ex-badge">ฝึก 5.2</span><span class="ex-title">DISTINCT หลายคอลัมน์</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงคู่ (major, credit) ที่ไม่ซ้ำกันจากตาราง subject เรียงตาม major — มีกี่แถว</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT DISTINCT major, credit
+FROM   subject
+ORDER  BY major, credit;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (10 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>credit</th></tr><tr><td>CS</td><td>2</td></tr><tr><td>CS</td><td>3</td></tr><tr><td>CS</td><td>4</td></tr><tr><td>CS</td><td>6</td></tr><tr><td>English</td><td>2</td></tr><tr><td>English</td><td>3</td></tr><tr><td>Math</td><td>3</td></tr><tr><td>Math</td><td>4</td></tr><tr><td>Physics</td><td>3</td></tr><tr><td>Thai</td><td>1</td></tr></table></div>
+<p>DISTINCT ใช้กับ<b>ทุกคอลัมน์รวมกัน</b> ไม่ใช่เฉพาะคอลัมน์แรก</p></div></div></div>
+
+<h2 id="s4"><span class="sec">5.4</span> การกำหนดเงื่อนไขด้วย WHERE</h2>
+<table class="tbl"><tr><th>ตัวดำเนินการ</th><th>ความหมาย</th><th>ตัวอย่าง</th></tr>
+<tr><td><code>=</code></td><td>เท่ากับ</td><td><code>major = 'CS'</code></td></tr>
+<tr><td><code>&lt;&gt;</code> หรือ <code>!=</code></td><td>ไม่เท่ากับ</td><td><code>major &lt;&gt; 'CS'</code></td></tr>
+<tr><td><code>&gt; &lt; &gt;= &lt;=</code></td><td>เปรียบเทียบ</td><td><code>gpa &gt;= 3.00</code></td></tr>
+<tr><td>AND / OR / NOT</td><td>ตรรกะ</td><td><code>major = 'CS' AND gpa &gt; 3</code></td></tr>
+<tr><td>BETWEEN … AND …</td><td>อยู่ในช่วง (รวมปลาย)</td><td><code>gpa BETWEEN 2 AND 3</code></td></tr>
+<tr><td>IN (…) / NOT IN (…)</td><td>อยู่ในรายการ</td><td><code>major IN ('CS','Math')</code></td></tr>
+<tr><td>IS NULL / IS NOT NULL</td><td>เป็นค่าว่าง</td><td><code>gpa IS NULL</code></td></tr>
+<tr><td>LIKE</td><td>ตรงกับรูปแบบ</td><td><code>name LIKE 'S%'</code></td></tr>
+</table>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.6 — นิสิตสาขา CS</span></div><pre class="sql">SELECT stdid, name, major, gpa
+FROM   student
+WHERE  major = &#x27;CS&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td></tr><tr><td>60002</td><td>Sakuragi</td><td>CS</td><td class="null">NULL</td></tr><tr><td>60003</td><td>Mitsui</td><td>CS</td><td>2.00</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td></tr><tr><td>60012</td><td>Hisoka</td><td>CS</td><td>2.00</td></tr><tr><td>60013</td><td>Gon</td><td>CS</td><td>2.78</td></tr><tr><td>70036</td><td>Sanji</td><td>CS</td><td>2.78</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.7 — AND</span></div><pre class="sql">SELECT stdid, name, major, gpa
+FROM   student
+WHERE  gpa &gt; 2.50
+  AND  major = &#x27;English&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>3.98</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>3.98</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.8 — BETWEEN</span></div><pre class="sql">SELECT lecid, name, salary
+FROM   lecturer
+WHERE  salary BETWEEN 40000 AND 60000;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th></tr><tr><td>t01</td><td>Peter Parker</td><td>40000</td></tr><tr><td>t02</td><td>Steve Roger</td><td>50000</td></tr><tr><td>t04</td><td>Post Malone</td><td>47000</td></tr><tr><td>t09</td><td>Frieza</td><td>60000</td></tr><tr><td>t13</td><td>Thor</td><td>60000</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.9 — IN</span></div><pre class="sql">SELECT subid, name, credit, major
+FROM   subject
+WHERE  major IN (&#x27;Math&#x27;, &#x27;Thai&#x27;, &#x27;Physics&#x27;);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>credit</th><th>major</th></tr><tr><td>MA001</td><td>Mathematics</td><td>3</td><td>Math</td></tr><tr><td>MA002</td><td>Discrete Math</td><td>4</td><td>Math</td></tr><tr><td>MA003</td><td>Statistics</td><td>3</td><td>Math</td></tr><tr><td>PH001</td><td>Physics</td><td>3</td><td>Physics</td></tr><tr><td>TH001</td><td>Thai</td><td>1</td><td>Thai</td></tr><tr><td>TH002</td><td>Thai Writing</td><td>1</td><td>Thai</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.10 — NOT IN</span></div><pre class="sql">SELECT subid, name, major
+FROM   subject
+WHERE  major NOT IN (&#x27;CS&#x27;, &#x27;English&#x27;);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>major</th></tr><tr><td>MA001</td><td>Mathematics</td><td>Math</td></tr><tr><td>MA002</td><td>Discrete Math</td><td>Math</td></tr><tr><td>MA003</td><td>Statistics</td><td>Math</td></tr><tr><td>PH001</td><td>Physics</td><td>Physics</td></tr><tr><td>TH001</td><td>Thai</td><td>Thai</td></tr><tr><td>TH002</td><td>Thai Writing</td><td>Thai</td></tr></table></div>
+<div class="box warn"><div class="box-t">⚠️ AND มาก่อน OR</div><p><code>WHERE major = 'CS' OR major = 'Math' AND gpa &gt; 3</code> จะถูกตีความเป็น <code>major = 'CS' OR (major = 'Math' AND gpa &gt; 3)</code> — ใส่วงเล็บให้ชัดเสมอ</p></div>
+
+<div class="ex" id="ex5.3"><div class="ex-head"><span class="ex-badge">ฝึก 5.3</span><span class="ex-title">เงื่อนไขหลายข้อ</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงรหัส ชื่อ สาขา gpa ของนิสิตสาขา CS <b>หรือ</b> Physics ที่มี gpa ตั้งแต่ 2.50 ขึ้นไป</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, major, gpa
+FROM   student
+WHERE  major IN (&#x27;CS&#x27;, &#x27;Physics&#x27;)
+  AND  gpa &gt;= 2.50;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td></tr><tr><td>60013</td><td>Gon</td><td>CS</td><td>2.78</td></tr><tr><td>60014</td><td>Light</td><td>Physics</td><td>2.55</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td><td>4.00</td></tr><tr><td>70036</td><td>Sanji</td><td>CS</td><td>2.78</td></tr></table></div>
+<p>ถ้าเขียน <code>major = 'CS' OR major = 'Physics' AND gpa &gt;= 2.50</code> โดยไม่ใส่วงเล็บ จะได้นิสิต CS ทุกคน (รวม gpa ต่ำและ NULL) ผิดโจทย์</p></div></div></div>
+<div class="ex" id="ex5.4"><div class="ex-head"><span class="ex-badge">ฝึก 5.4</span><span class="ex-title">อาจารย์ที่ไม่ได้อยู่สาขาหลัก</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงแสดงอาจารย์ที่<b>ไม่ได้</b>อยู่สาขา CS และ Math และมีเงินเดือนมากกว่า 50,000</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT lecid, name, major, salary
+FROM   lecturer
+WHERE  major NOT IN (&#x27;CS&#x27;, &#x27;Math&#x27;)
+  AND  salary &gt; 50000;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>major</th><th>salary</th></tr><tr><td>t05</td><td>IronMan</td><td>Thai</td><td>65000</td></tr><tr><td>t08</td><td>Cell</td><td>English</td><td>70000</td></tr><tr><td>t09</td><td>Frieza</td><td>English</td><td>60000</td></tr><tr><td>t13</td><td>Thor</td><td>DC</td><td>60000</td></tr></table></div></div></div></div>
+
+<h2 id="s5"><span class="sec">5.5</span> การจัดการค่าว่าง และการค้นหาด้วย LIKE</h2>
+<h3>5.5.1 ค่าว่างและการเปรียบเทียบ</h3>
+<p><span class="term">NULL</span> คือ “ไม่ทราบค่า” — เปรียบเทียบด้วยตัวดำเนินการปกติจะได้ <b>Unknown</b> เสมอ ต้องใช้ <code>IS NULL</code> / <code>IS NOT NULL</code></p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.11 — นิสิตที่ยังไม่มี gpa</span></div><pre class="sql">SELECT stdid, name, major, gpa
+FROM   student
+WHERE  gpa IS NULL;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th></tr><tr><td>60002</td><td>Sakuragi</td><td>CS</td><td class="null">NULL</td></tr><tr><td>70022</td><td class="null">NULL</td><td>English</td><td class="null">NULL</td></tr><tr><td>70037</td><td>Chopper</td><td class="null">NULL</td><td class="null">NULL</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ผิด! ใช้ = NULL ไม่ได้ผล</span></div><pre class="sql">SELECT stdid, name, gpa
+FROM   student
+WHERE  gpa = NULL;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (0 แถว — ไม่มีข้อมูลที่ตรงเงื่อนไข)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>gpa</th></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.12 — นิสิตที่ไม่มีสาขา</span></div><pre class="sql">SELECT stdid, name, major
+FROM   student
+WHERE  major IS NULL;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th></tr><tr><td>70033</td><td>Zoro</td><td class="null">NULL</td></tr><tr><td>70034</td><td>Luffy</td><td class="null">NULL</td></tr><tr><td>70035</td><td>Nami</td><td class="null">NULL</td></tr><tr><td>70037</td><td>Chopper</td><td class="null">NULL</td></tr></table></div>
+<div class="box warn"><div class="box-t">⚠️ กับดัก NULL</div><p><code>WHERE major &lt;&gt; 'CS'</code> จะ<b>ไม่รวม</b>นิสิตที่ major เป็น NULL ด้วย — ถ้าต้องการรวม ต้องเขียน <code>WHERE major &lt;&gt; 'CS' OR major IS NULL</code></p></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.13 — แทนค่าว่างด้วย IFNULL / COALESCE</span></div><pre class="sql">SELECT stdid,
+       IFNULL(name, &#x27;(ไม่มีชื่อ)&#x27;)    AS name_shown,
+       IFNULL(gpa, 0)                AS gpa_shown,
+       COALESCE(major, &#x27;ยังไม่ระบุ&#x27;)   AS major_shown
+FROM   student
+WHERE  gpa IS NULL OR major IS NULL OR name IS NULL;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name_shown</th><th>gpa_shown</th><th>major_shown</th></tr><tr><td>60002</td><td>Sakuragi</td><td>0.00</td><td>CS</td></tr><tr><td>60005</td><td>(ไม่มีชื่อ)</td><td>2.78</td><td>Math</td></tr><tr><td>70022</td><td>(ไม่มีชื่อ)</td><td>0.00</td><td>English</td></tr><tr><td>70033</td><td>Zoro</td><td>3.98</td><td>ยังไม่ระบุ</td></tr><tr><td>70034</td><td>Luffy</td><td>1.55</td><td>ยังไม่ระบุ</td></tr><tr><td>70035</td><td>Nami</td><td>2.85</td><td>ยังไม่ระบุ</td></tr><tr><td>70037</td><td>Chopper</td><td>0.00</td><td>ยังไม่ระบุ</td></tr></table></div>
+
+<div class="ex" id="ex5.5"><div class="ex-head"><span class="ex-badge">ฝึก 5.5</span><span class="ex-title">ไม่ใช่ CS (รวมคนที่ไม่มีสาขา)</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงนิสิตทุกคนที่<b>ไม่ได้</b>อยู่สาขา CS โดยรวมนิสิตที่ยังไม่ระบุสาขาด้วย — ควรได้กี่แถว</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, major
+FROM   student
+WHERE  major &lt;&gt; &#x27;CS&#x27; OR major IS NULL;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (15 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th></tr><tr><td>60005</td><td class="null">NULL</td><td>Math</td></tr><tr><td>60006</td><td>Nobita</td><td>Math</td></tr><tr><td>60007</td><td>L</td><td>Art</td></tr><tr><td>60008</td><td>Kira</td><td>Art</td></tr><tr><td>60009</td><td>Killua</td><td>English</td></tr><tr><td>60010</td><td>Gon</td><td>English</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td></tr><tr><td>60014</td><td>Light</td><td>Physics</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td></tr><tr><td>60016</td><td>Mello</td><td>Physics</td></tr><tr><td>70022</td><td class="null">NULL</td><td>English</td></tr><tr><td>70033</td><td>Zoro</td><td class="null">NULL</td></tr><tr><td>70034</td><td>Luffy</td><td class="null">NULL</td></tr><tr><td>70035</td><td>Nami</td><td class="null">NULL</td></tr><tr><td>70037</td><td>Chopper</td><td class="null">NULL</td></tr></table></div>
+<p>นิสิตทั้งหมด 22 คน อยู่ CS 7 คน จึงควรได้ <b>15</b> แถว — ถ้าลืม <code>OR major IS NULL</code> จะได้แค่ 11 แถว</p></div></div></div>
+
+<h3>5.5.2 การค้นหาด้วยรูปแบบข้อความ LIKE</h3>
+<table class="tbl"><tr><th>รูปแบบ</th><th>ความหมาย</th><th>ค่าที่ตรง (ในกรณีศึกษา)</th></tr>
+<tr><td><code>'S%'</code></td><td>ขึ้นต้นด้วย S</td><td>Sakuragi, Sendoh, Sanji</td></tr>
+<tr><td><code>'%a'</code></td><td>ลงท้ายด้วย a</td><td>Rukawa, Nobita, Kira, Killua, Kurapika, Hisoka</td></tr>
+<tr><td><code>'%it%'</code></td><td>มี it ตรงไหนก็ได้</td><td>Mitsui, Nobita</td></tr>
+<tr><td><code>'_o%'</code></td><td>ตัวที่ 2 เป็น o</td><td>Nobita, Gon, Zoro</td></tr>
+<tr><td><code>'CS00_'</code></td><td>CS00 + อักขระ 1 ตัว</td><td>CS001–CS009 (ไม่รวม CS010)</td></tr>
+</table>
+<p><code>%</code> = อักขระกี่ตัวก็ได้ (รวม 0 ตัว), <code>_</code> = อักขระ 1 ตัวพอดี</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.14 — ชื่อขึ้นต้นด้วย S</span></div><pre class="sql">SELECT stdid, name, major
+FROM   student
+WHERE  name LIKE &#x27;S%&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th></tr><tr><td>60002</td><td>Sakuragi</td><td>CS</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td></tr><tr><td>70036</td><td>Sanji</td><td>CS</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.15 — ชื่อวิชามีคำว่า Math</span></div><pre class="sql">SELECT subid, name, credit
+FROM   subject
+WHERE  name LIKE &#x27;%Math%&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>credit</th></tr><tr><td>MA001</td><td>Mathematics</td><td>3</td></tr><tr><td>MA002</td><td>Discrete Math</td><td>4</td></tr></table></div>
+<div class="box note"><div class="box-t">📝 ผลต่อประสิทธิภาพ</div><p>LIKE ที่ขึ้นต้นด้วย <code>%</code> ใช้ดัชนีไม่ได้ ต้องอ่านทั้งตาราง ถ้าตารางใหญ่ควรพิจารณา Full-Text Index</p></div>
+
+<div class="ex" id="ex5.6"><div class="ex-head"><span class="ex-badge">ฝึก 5.6</span><span class="ex-title">LIKE</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>(ก) จงแสดงรายวิชาของสาขาภาษาอังกฤษโดยใช้รหัสวิชา (ขึ้นต้น EN)<br>(ข) จงแสดงนิสิตที่ชื่อมีตัวอักษรตัวที่สามเป็น <code>k</code></p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย (ก)</span></div><pre class="sql">SELECT subid, name FROM subject WHERE subid LIKE &#x27;EN%&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th></tr><tr><td>EN001</td><td>English</td></tr><tr><td>EN002</td><td>Reading</td></tr><tr><td>EN003</td><td>Conversation</td></tr><tr><td>EN004</td><td>Writing</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย (ข)</span></div><pre class="sql">SELECT stdid, name FROM student WHERE name LIKE &#x27;__k%&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th></tr><tr><td>60001</td><td>Rukawa</td></tr><tr><td>60002</td><td>Sakuragi</td></tr></table></div>
+<p>MySQL เปรียบเทียบข้อความแบบไม่สนตัวพิมพ์ (collation ลงท้าย <code>_ci</code>) จึงได้ทั้ง <code>k</code> และ <code>K</code></p></div></div></div>
+
+<h2 id="s6"><span class="sec">5.6</span> การจัดเรียงและจำกัดจำนวนแถว</h2>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.16 — เรียง gpa จากมากไปน้อย</span></div><pre class="sql">SELECT stdid, name, gpa
+FROM   student
+WHERE  gpa IS NOT NULL
+ORDER  BY gpa DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (19 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>gpa</th></tr><tr><td>60015</td><td>Near</td><td>4.00</td></tr><tr><td>60004</td><td>Sendoh</td><td>3.98</td></tr><tr><td>60007</td><td>L</td><td>3.98</td></tr><tr><td>60009</td><td>Killua</td><td>3.98</td></tr><tr><td>60011</td><td>Kurapika</td><td>3.98</td></tr><tr><td>70033</td><td>Zoro</td><td>3.98</td></tr><tr><td>60001</td><td>Rukawa</td><td>3.75</td></tr><tr><td>60008</td><td>Kira</td><td>3.05</td></tr><tr><td>70035</td><td>Nami</td><td>2.85</td></tr><tr><td>60005</td><td class="null">NULL</td><td>2.78</td></tr><tr><td>60013</td><td>Gon</td><td>2.78</td></tr><tr><td>70036</td><td>Sanji</td><td>2.78</td></tr><tr><td>60014</td><td>Light</td><td>2.55</td></tr><tr><td>60003</td><td>Mitsui</td><td>2.00</td></tr><tr><td>60012</td><td>Hisoka</td><td>2.00</td></tr><tr><td>60006</td><td>Nobita</td><td>1.55</td></tr><tr><td>60010</td><td>Gon</td><td>1.55</td></tr><tr><td>60016</td><td>Mello</td><td>1.55</td></tr><tr><td>70034</td><td>Luffy</td><td>1.55</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.17 — เรียงหลายคอลัมน์</span></div><pre class="sql">SELECT stdid, name, major, gpa
+FROM   student
+WHERE  major IS NOT NULL
+ORDER  BY major ASC, gpa DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (18 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td></tr><tr><td>60008</td><td>Kira</td><td>Art</td><td>3.05</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td></tr><tr><td>60013</td><td>Gon</td><td>CS</td><td>2.78</td></tr><tr><td>70036</td><td>Sanji</td><td>CS</td><td>2.78</td></tr><tr><td>60003</td><td>Mitsui</td><td>CS</td><td>2.00</td></tr><tr><td>60012</td><td>Hisoka</td><td>CS</td><td>2.00</td></tr><tr><td>60002</td><td>Sakuragi</td><td>CS</td><td class="null">NULL</td></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>3.98</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>3.98</td></tr><tr><td>60010</td><td>Gon</td><td>English</td><td>1.55</td></tr><tr><td>70022</td><td class="null">NULL</td><td>English</td><td class="null">NULL</td></tr><tr><td>60005</td><td class="null">NULL</td><td>Math</td><td>2.78</td></tr><tr><td>60006</td><td>Nobita</td><td>Math</td><td>1.55</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td><td>4.00</td></tr><tr><td>60014</td><td>Light</td><td>Physics</td><td>2.55</td></tr><tr><td>60016</td><td>Mello</td><td>Physics</td><td>1.55</td></tr></table></div>
+<div class="box note"><div class="box-t">📝 NULL กับการเรียง</div><p>ใน MySQL ค่า NULL ถือว่าน้อยที่สุด — อยู่<b>บนสุด</b>เมื่อ ASC และ<b>ล่างสุด</b>เมื่อ DESC (สังเกต Sakuragi ในผลข้างบน)</p></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.18 — เงินเดือนสูงสุด 5 อันดับ</span></div><pre class="sql">SELECT lecid, name, salary
+FROM   lecturer
+WHERE  salary IS NOT NULL
+ORDER  BY salary DESC
+LIMIT  5;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th></tr><tr><td>t14</td><td>Yoda</td><td>80000</td></tr><tr><td>t03</td><td>Yoda</td><td>80000</td></tr><tr><td>t08</td><td>Cell</td><td>70000</td></tr><tr><td>t05</td><td>IronMan</td><td>65000</td></tr><tr><td>t09</td><td>Frieza</td><td>60000</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.19 — ข้าม 3 แถวแรก แล้วแสดง 4 แถว (ระบบแบ่งหน้า)</span></div><pre class="sql">SELECT lecid, name, salary
+FROM   lecturer
+WHERE  salary IS NOT NULL
+ORDER  BY salary DESC
+LIMIT  4 OFFSET 3;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th></tr><tr><td>t05</td><td>IronMan</td><td>65000</td></tr><tr><td>t09</td><td>Frieza</td><td>60000</td></tr><tr><td>t13</td><td>Thor</td><td>60000</td></tr><tr><td>t02</td><td>Steve Roger</td><td>50000</td></tr></table></div>
+<div class="box warn"><div class="box-t">⚠️ LIMIT กับค่าที่เท่ากัน</div><p>Yoda (t03) และ Yoda (t14) มีเงินเดือน 80,000 เท่ากัน ถ้าจะเอา “อันดับ 1” ด้วย LIMIT 1 จะได้แค่คนเดียวแบบสุ่ม — วิธีที่ถูกคือใช้ Subquery (บทที่ 6)</p></div>
+
+<div class="ex" id="ex5.7"><div class="ex-head"><span class="ex-badge">ฝึก 5.7</span><span class="ex-title">ORDER BY + LIMIT</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงแสดงรายวิชา 3 วิชาที่มีหน่วยกิตมากที่สุด ถ้าหน่วยกิตเท่ากันให้เรียงตามรหัสวิชา</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT subid, name, credit
+FROM   subject
+ORDER  BY credit DESC, subid
+LIMIT  3;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>credit</th></tr><tr><td>CS009</td><td>Project</td><td>6</td></tr><tr><td>CS007</td><td>Robotics</td><td>4</td></tr><tr><td>MA002</td><td>Discrete Math</td><td>4</td></tr></table></div></div></div></div>
+
+<h2 id="s7"><span class="sec">5.7</span> ฟังก์ชันรวม การจัดกลุ่ม และ HAVING</h2>
+<h3>5.7.1 ฟังก์ชันรวม (Aggregate Function)</h3>
+<table class="tbl"><tr><th>ฟังก์ชัน</th><th>หน้าที่</th><th>กับค่าว่าง</th></tr>
+<tr><td>COUNT(*)</td><td>นับแถวทั้งหมด</td><td>นับรวม NULL</td></tr>
+<tr><td>COUNT(คอลัมน์)</td><td>นับค่าที่ไม่ใช่ NULL</td><td>ไม่นับ</td></tr>
+<tr><td>COUNT(DISTINCT คอลัมน์)</td><td>นับค่าที่ไม่ซ้ำ</td><td>ไม่นับ</td></tr>
+<tr><td>SUM / AVG</td><td>ผลรวม / ค่าเฉลี่ย</td><td>ข้าม NULL (ตัวหารของ AVG = จำนวนที่ไม่ NULL)</td></tr>
+<tr><td>MAX / MIN</td><td>ค่าสูงสุด / ต่ำสุด</td><td>ข้าม NULL</td></tr>
+</table>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.20 — COUNT(*) vs COUNT(คอลัมน์)</span></div><pre class="sql">SELECT COUNT(*)              AS all_rows,
+       COUNT(gpa)            AS has_gpa,
+       COUNT(DISTINCT major) AS n_major
+FROM   student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>all_rows</th><th>has_gpa</th><th>n_major</th></tr><tr><td>22</td><td>19</td><td>5</td></tr></table></div>
+<p>นิสิต 22 คน มี gpa แค่ 19 คน และมีสาขาที่ระบุค่าแตกต่างกัน 5 สาขา (ไม่นับ NULL)</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.21 — สถิติเงินเดือนอาจารย์</span></div><pre class="sql">SELECT COUNT(*)              AS n_lecturer,
+       COUNT(salary)         AS has_salary,
+       SUM(salary)           AS total_salary,
+       ROUND(AVG(salary), 2) AS avg_salary,
+       MAX(salary)           AS max_salary,
+       MIN(salary)           AS min_salary
+FROM   lecturer;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_lecturer</th><th>has_salary</th><th>total_salary</th><th>avg_salary</th><th>max_salary</th><th>min_salary</th></tr><tr><td>16</td><td>13</td><td>632000</td><td>48615.38</td><td>80000</td><td>15000</td></tr></table></div>
+
+<div class="ex" id="ex5.8"><div class="ex-head"><span class="ex-badge">ฝึก 5.8</span><span class="ex-title">AVG กับ NULL</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงหาค่าเฉลี่ย gpa สองแบบ<br>(ก) แบบปกติด้วย AVG<br>(ข) แบบนับคนที่ไม่มี gpa เป็น 0 — ผลต่างกันเพราะอะไร</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT ROUND(AVG(gpa), 4)                      AS avg_skip_null,
+       ROUND(SUM(IFNULL(gpa, 0)) / COUNT(*), 4) AS avg_null_as_zero
+FROM   student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>avg_skip_null</th><th>avg_null_as_zero</th></tr><tr><td>2.8758</td><td>2.4836</td></tr></table></div>
+<p>AVG ข้าม NULL ตัวหารคือ 19 คน ส่วนแบบ<br>(ข) ตัวหารคือ 22 คน</p></div></div></div>
+
+<h3>5.7.2 การจัดกลุ่มด้วย GROUP BY</h3>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.22 — จำนวนนิสิตและ gpa เฉลี่ยแต่ละสาขา</span></div><pre class="sql">SELECT major,
+       COUNT(*)           AS n_student,
+       ROUND(AVG(gpa), 2) AS avg_gpa
+FROM   student
+GROUP  BY major
+ORDER  BY major;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_student</th><th>avg_gpa</th></tr><tr><td class="null">NULL</td><td>4</td><td>2.79</td></tr><tr><td>Art</td><td>2</td><td>3.52</td></tr><tr><td>CS</td><td>7</td><td>2.88</td></tr><tr><td>English</td><td>4</td><td>3.17</td></tr><tr><td>Math</td><td>2</td><td>2.17</td></tr><tr><td>Physics</td><td>3</td><td>2.70</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.23 — จำนวนกลุ่มเรียนแต่ละภาคเรียน</span></div><pre class="sql">SELECT term, COUNT(*) AS n_section
+FROM   section
+GROUP  BY term
+ORDER  BY term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (10 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>term</th><th>n_section</th></tr><tr><td>2023-1</td><td>5</td></tr><tr><td>2023-2</td><td>2</td></tr><tr><td>2023-3</td><td>3</td></tr><tr><td>2024-1</td><td>7</td></tr><tr><td>2024-2</td><td>9</td></tr><tr><td>2024-3</td><td>7</td></tr><tr><td>2025-1</td><td>5</td></tr><tr><td>2025-2</td><td>4</td></tr><tr><td>2025-3</td><td>8</td></tr><tr><td>2026-1</td><td>2</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.24 — จำนวนการลงทะเบียนแต่ละเกรด</span></div><pre class="sql">SELECT grade, COUNT(*) AS n_enroll
+FROM   enroll
+GROUP  BY grade
+ORDER  BY grade;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>grade</th><th>n_enroll</th></tr><tr><td class="null">NULL</td><td>9</td></tr><tr><td>A</td><td>32</td></tr><tr><td>B</td><td>22</td></tr><tr><td>C</td><td>12</td></tr><tr><td>D</td><td>6</td></tr><tr><td>F</td><td>19</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.25 — จัดกลุ่มหลายคอลัมน์</span></div><pre class="sql">SELECT lecid, term, COUNT(*) AS n_section
+FROM   section
+GROUP  BY lecid, term
+ORDER  BY lecid, term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 37 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>term</th><th>n_section</th></tr><tr><td>t01</td><td>2023-1</td><td>3</td></tr><tr><td>t01</td><td>2023-2</td><td>2</td></tr><tr><td>t01</td><td>2023-3</td><td>1</td></tr><tr><td>t01</td><td>2024-1</td><td>2</td></tr><tr><td>t01</td><td>2024-2</td><td>3</td></tr><tr><td>t01</td><td>2024-3</td><td>1</td></tr><tr><td>t01</td><td>2025-1</td><td>1</td></tr><tr><td>t01</td><td>2026-1</td><td>1</td></tr><tr><td>t02</td><td>2023-1</td><td>2</td></tr><tr><td>t02</td><td>2024-1</td><td>3</td></tr></table></div>
+<div class="box warn"><div class="box-t">⚠️ กฎสำคัญของ GROUP BY</div><p>คอลัมน์ใน SELECT ต้อง<b>อยู่ใน GROUP BY</b> หรือ<b>อยู่ในฟังก์ชันรวม</b>เท่านั้น — MySQL 8 (โหมด ONLY_FULL_GROUP_BY) จะแจ้ง error</p></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ผิด — name ไม่อยู่ในกลุ่ม</span></div><pre class="sql">SELECT major, name, COUNT(*)
+FROM   student
+GROUP  BY major;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1055.</b> Expression #2 of SELECT list is not in GROUP BY clause and contains nonaggregated column &#x27;std_66011200.student.name&#x27; which is not functionally dependent on columns in GROUP BY clause; this is incompatible with sql_mode=only_full_group_by</div>
+
+<h3>5.7.3 การคัดเลือกกลุ่มด้วย HAVING</h3>
+<p>WHERE คัด<b>แถว</b>ก่อนจัดกลุ่ม · HAVING คัด<b>กลุ่ม</b>หลังคำนวณฟังก์ชันรวม — จึงเป็นที่เดียวที่เขียนเงื่อนไขกับฟังก์ชันรวมได้</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.26 — สาขาที่มีนิสิตตั้งแต่ 3 คน</span></div><pre class="sql">SELECT major, COUNT(*) AS n_student
+FROM   student
+GROUP  BY major
+HAVING COUNT(*) &gt;= 3
+ORDER  BY n_student DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_student</th></tr><tr><td>CS</td><td>7</td></tr><tr><td>English</td><td>4</td></tr><tr><td class="null">NULL</td><td>4</td></tr><tr><td>Physics</td><td>3</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.27 — WHERE + HAVING</span></div><pre class="sql">SELECT major,
+       COUNT(*)           AS n_student,
+       ROUND(AVG(gpa), 2) AS avg_gpa
+FROM   student
+WHERE  gpa IS NOT NULL
+GROUP  BY major
+HAVING AVG(gpa) &gt; 2.50
+ORDER  BY avg_gpa DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_student</th><th>avg_gpa</th></tr><tr><td>Art</td><td>2</td><td>3.52</td></tr><tr><td>English</td><td>3</td><td>3.17</td></tr><tr><td>CS</td><td>6</td><td>2.88</td></tr><tr><td class="null">NULL</td><td>3</td><td>2.79</td></tr><tr><td>Physics</td><td>3</td><td>2.70</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.28 — กลุ่มเรียนที่มีนิสิตตั้งแต่ 4 คน</span></div><pre class="sql">SELECT secid, COUNT(*) AS n_student
+FROM   enroll
+GROUP  BY secid
+HAVING COUNT(*) &gt;= 4
+ORDER  BY n_student DESC, secid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (8 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>n_student</th></tr><tr><td>1</td><td>5</td></tr><tr><td>19</td><td>5</td></tr><tr><td>2</td><td>4</td></tr><tr><td>5</td><td>4</td></tr><tr><td>6</td><td>4</td></tr><tr><td>12</td><td>4</td></tr><tr><td>15</td><td>4</td></tr><tr><td>34</td><td>4</td></tr></table></div>
+
+<div class="ex" id="ex5.9"><div class="ex-head"><span class="ex-badge">ฝึก 5.9</span><span class="ex-title">GROUP BY + HAVING</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงรหัสนิสิตและจำนวนรายการลงทะเบียน เฉพาะนิสิตที่ลงทะเบียนตั้งแต่ 8 รายการขึ้นไป เรียงจากมากไปน้อย</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, COUNT(*) AS n_enroll
+FROM   enroll
+GROUP  BY stdid
+HAVING COUNT(*) &gt;= 8
+ORDER  BY n_enroll DESC, stdid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>n_enroll</th></tr><tr><td>60001</td><td>9</td></tr><tr><td>60004</td><td>9</td></tr><tr><td>60010</td><td>9</td></tr><tr><td>60005</td><td>8</td></tr></table></div></div></div></div>
+<div class="ex" id="ex5.10"><div class="ex-head"><span class="ex-badge">ฝึก 5.10</span><span class="ex-title">นับเกรด A ในแต่ละกลุ่ม</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงรหัสกลุ่มเรียนและจำนวนนิสิตที่ได้เกรด A เฉพาะกลุ่มที่มีคนได้ A ตั้งแต่ 2 คน</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT secid, COUNT(*) AS n_A
+FROM   enroll
+WHERE  grade = &#x27;A&#x27;
+GROUP  BY secid
+HAVING COUNT(*) &gt;= 2
+ORDER  BY secid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>n_A</th></tr><tr><td>12</td><td>2</td></tr><tr><td>15</td><td>2</td></tr><tr><td>19</td><td>3</td></tr><tr><td>34</td><td>2</td></tr><tr><td>40</td><td>2</td></tr><tr><td>43</td><td>2</td></tr></table></div>
+<p>เงื่อนไข <code>grade = 'A'</code> ไม่เกี่ยวกับฟังก์ชันรวม จึงวางใน WHERE (คัดแถวก่อนนับ)</p></div></div></div>
+
+<h2 id="s8"><span class="sec">5.8</span> ฟังก์ชันสเกลาร์ และคำสั่ง CASE</h2>
+<p>ฟังก์ชันสเกลาร์ทำงานทีละแถว คืนค่า 1 ค่าต่อ 1 แถว</p>
+<table class="tbl"><tr><th>กลุ่ม</th><th>ฟังก์ชัน</th><th>หน้าที่</th></tr>
+<tr><td rowspan="6">ข้อความ</td><td>UPPER / LOWER</td><td>ตัวพิมพ์ใหญ่ / เล็ก</td></tr>
+<tr><td>CONCAT(s1, s2, …)</td><td>ต่อข้อความ</td></tr>
+<tr><td>CHAR_LENGTH(s) / LENGTH(s)</td><td>จำนวนตัวอักษร / จำนวนไบต์</td></tr>
+<tr><td>SUBSTRING(s, pos, len)</td><td>ตัดบางส่วน (ตำแหน่งแรก = 1)</td></tr>
+<tr><td>LEFT(s, n) / RIGHT(s, n)</td><td>ตัดจากซ้าย / ขวา</td></tr>
+<tr><td>TRIM / REPLACE</td><td>ตัดช่องว่าง / แทนที่</td></tr>
+<tr><td rowspan="3">ตัวเลข</td><td>ROUND(x, n)</td><td>ปัดเศษ</td></tr>
+<tr><td>CEIL / FLOOR</td><td>ปัดขึ้น / ปัดลง</td></tr>
+<tr><td>ABS / MOD</td><td>ค่าสัมบูรณ์ / เศษจากการหาร</td></tr>
+<tr><td rowspan="4">วันที่</td><td>CURDATE() / NOW()</td><td>วันนี้ / วันเวลาปัจจุบัน</td></tr>
+<tr><td>YEAR / MONTH / DAY</td><td>ดึงส่วนของวันที่</td></tr>
+<tr><td>DATEDIFF(d1, d2)</td><td>จำนวนวันระหว่างสองวัน</td></tr>
+<tr><td>TIMESTAMPDIFF(YEAR, d1, d2)</td><td>ผลต่างตามหน่วย เช่น คำนวณอายุ</td></tr>
+</table>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.29 — ฟังก์ชันข้อความ</span></div><pre class="sql">SELECT stdid,
+       UPPER(name)               AS name_upper,
+       CHAR_LENGTH(name)         AS name_length,
+       CONCAT(stdid, &#x27; - &#x27;, name) AS label
+FROM   student
+WHERE  major = &#x27;CS&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name_upper</th><th>name_length</th><th>label</th></tr><tr><td>60001</td><td>RUKAWA</td><td>6</td><td>60001 - Rukawa</td></tr><tr><td>60002</td><td>SAKURAGI</td><td>8</td><td>60002 - Sakuragi</td></tr><tr><td>60003</td><td>MITSUI</td><td>6</td><td>60003 - Mitsui</td></tr><tr><td>60004</td><td>SENDOH</td><td>6</td><td>60004 - Sendoh</td></tr><tr><td>60012</td><td>HISOKA</td><td>6</td><td>60012 - Hisoka</td></tr><tr><td>60013</td><td>GON</td><td>3</td><td>60013 - Gon</td></tr><tr><td>70036</td><td>SANJI</td><td>5</td><td>70036 - Sanji</td></tr></table></div>
+<div class="box note"><div class="box-t">📝 CONCAT กับ NULL</div><p>ถ้าค่าใดใน CONCAT เป็น NULL ผลทั้งก้อนเป็น NULL — ใช้ <code>CONCAT(stdid, ' - ', IFNULL(name, '?'))</code> ถ้าต้องการกันไว้</p></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.30 — LEFT / SUBSTRING แยกรหัสวิชา</span></div><pre class="sql">SELECT subid,
+       LEFT(subid, 2)         AS major_code,
+       SUBSTRING(subid, 3, 3) AS running_no,
+       name
+FROM   subject;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 20 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>major_code</th><th>running_no</th><th>name</th></tr><tr><td>CS001</td><td>CS</td><td>001</td><td>Programming</td></tr><tr><td>CS002</td><td>CS</td><td>002</td><td>Java</td></tr><tr><td>CS003</td><td>CS</td><td>003</td><td>Web Design</td></tr><tr><td>CS004</td><td>CS</td><td>004</td><td>Database</td></tr><tr><td>CS005</td><td>CS</td><td>005</td><td>Graphics</td></tr><tr><td>CS006</td><td>CS</td><td>006</td><td>Mobile Apps</td></tr><tr><td>CS007</td><td>CS</td><td>007</td><td>Robotics</td></tr><tr><td>CS008</td><td>CS</td><td>008</td><td>AI</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.31 — วันที่ และอายุ (คำนวณ ณ วันที่สร้างเว็บ)</span></div><pre class="sql">SELECT stdid, name, birthday,
+       YEAR(birthday)                           AS birth_year,
+       TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age
+FROM   student
+WHERE  birthday IS NOT NULL
+ORDER  BY birthday;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (18 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>birthday</th><th>birth_year</th><th>age</th></tr><tr><td>60002</td><td>Sakuragi</td><td>2010-01-15</td><td>2010</td><td>16</td></tr><tr><td>70034</td><td>Luffy</td><td>2010-02-11</td><td>2010</td><td>16</td></tr><tr><td>60001</td><td>Rukawa</td><td>2010-05-13</td><td>2010</td><td>16</td></tr><tr><td>60007</td><td>L</td><td>2011-01-31</td><td>2011</td><td>15</td></tr><tr><td>60005</td><td class="null">NULL</td><td>2011-09-02</td><td>2011</td><td>15</td></tr><tr><td>70037</td><td>Chopper</td><td>2011-12-24</td><td>2011</td><td>14</td></tr><tr><td>70033</td><td>Zoro</td><td>2012-02-29</td><td>2012</td><td>14</td></tr><tr><td>60004</td><td>Sendoh</td><td>2012-12-08</td><td>2012</td><td>13</td></tr><tr><td>60003</td><td>Mitsui</td><td>2013-06-25</td><td>2013</td><td>13</td></tr><tr><td>60015</td><td>Near</td><td>2014-08-24</td><td>2014</td><td>12</td></tr><tr><td>60008</td><td>Kira</td><td>2015-02-25</td><td>2015</td><td>11</td></tr><tr><td>60009</td><td>Killua</td><td>2015-03-31</td><td>2015</td><td>11</td></tr><tr><td>60012</td><td>Hisoka</td><td>2015-06-06</td><td>2015</td><td>11</td></tr><tr><td>60016</td><td>Mello</td><td>2015-12-13</td><td>2015</td><td>10</td></tr><tr><td>60010</td><td>Gon</td><td>2016-02-20</td><td>2016</td><td>10</td></tr><tr><td>60011</td><td>Kurapika</td><td>2016-02-20</td><td>2016</td><td>10</td></tr><tr><td>60014</td><td>Light</td><td>2016-10-10</td><td>2016</td><td>9</td></tr><tr><td>60013</td><td>Gon</td><td>2017-07-07</td><td>2017</td><td>9</td></tr></table></div>
+<div class="box note"><div class="box-t">📝 ข้อสังเกต</div><p>ค่า age เปลี่ยนตามวันที่รันจริง — นี่คือเหตุผลที่เก็บ <code>birthday</code> ไม่เก็บ age (Derived Attribute ในบทที่ 2)</p></div>
+
+<div class="ex" id="ex5.11"><div class="ex-head"><span class="ex-badge">ฝึก 5.11</span><span class="ex-title">ฟังก์ชันสเกลาร์</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงรหัสนิสิต ชื่อ และเดือนเกิด (ตัวเลข) ของนิสิตที่เกิดในปี ค.ศ. 2015 เรียงตามวันเกิด</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, MONTH(birthday) AS birth_month
+FROM   student
+WHERE  YEAR(birthday) = 2015
+ORDER  BY birthday;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>birth_month</th></tr><tr><td>60008</td><td>Kira</td><td>2</td></tr><tr><td>60009</td><td>Killua</td><td>3</td></tr><tr><td>60012</td><td>Hisoka</td><td>6</td></tr><tr><td>60016</td><td>Mello</td><td>12</td></tr></table></div></div></div></div>
+
+<h3>5.8.1 คำสั่ง CASE</h3>
+<div class="code"><div class="code-head"><span>รูปแบบคำสั่ง</span></div><pre>CASE
+    WHEN เงื่อนไข1 THEN ค่าที่คืน1
+    WHEN เงื่อนไข2 THEN ค่าที่คืน2
+    ELSE ค่าปริยาย
+END</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.32 — จัดระดับผลการเรียน</span></div><pre class="sql">SELECT stdid, name, gpa,
+       CASE
+           WHEN gpa IS NULL  THEN &#x27;ยังไม่มีข้อมูล&#x27;
+           WHEN gpa &gt;= 3.50  THEN &#x27;ดีเยี่ยม&#x27;
+           WHEN gpa &gt;= 2.50  THEN &#x27;ดี&#x27;
+           WHEN gpa &gt;= 2.00  THEN &#x27;พอใช้&#x27;
+           ELSE &#x27;ต้องปรับปรุง&#x27;
+       END AS level
+FROM   student
+ORDER  BY gpa DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (22 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>gpa</th><th>level</th></tr><tr><td>60015</td><td>Near</td><td>4.00</td><td>ดีเยี่ยม</td></tr><tr><td>60004</td><td>Sendoh</td><td>3.98</td><td>ดีเยี่ยม</td></tr><tr><td>60007</td><td>L</td><td>3.98</td><td>ดีเยี่ยม</td></tr><tr><td>60009</td><td>Killua</td><td>3.98</td><td>ดีเยี่ยม</td></tr><tr><td>60011</td><td>Kurapika</td><td>3.98</td><td>ดีเยี่ยม</td></tr><tr><td>70033</td><td>Zoro</td><td>3.98</td><td>ดีเยี่ยม</td></tr><tr><td>60001</td><td>Rukawa</td><td>3.75</td><td>ดีเยี่ยม</td></tr><tr><td>60008</td><td>Kira</td><td>3.05</td><td>ดี</td></tr><tr><td>70035</td><td>Nami</td><td>2.85</td><td>ดี</td></tr><tr><td>60005</td><td class="null">NULL</td><td>2.78</td><td>ดี</td></tr><tr><td>60013</td><td>Gon</td><td>2.78</td><td>ดี</td></tr><tr><td>70036</td><td>Sanji</td><td>2.78</td><td>ดี</td></tr><tr><td>60014</td><td>Light</td><td>2.55</td><td>ดี</td></tr><tr><td>60003</td><td>Mitsui</td><td>2.00</td><td>พอใช้</td></tr><tr><td>60012</td><td>Hisoka</td><td>2.00</td><td>พอใช้</td></tr><tr><td>60006</td><td>Nobita</td><td>1.55</td><td>ต้องปรับปรุง</td></tr><tr><td>60010</td><td>Gon</td><td>1.55</td><td>ต้องปรับปรุง</td></tr><tr><td>60016</td><td>Mello</td><td>1.55</td><td>ต้องปรับปรุง</td></tr><tr><td>70034</td><td>Luffy</td><td>1.55</td><td>ต้องปรับปรุง</td></tr><tr><td>60002</td><td>Sakuragi</td><td class="null">NULL</td><td>ยังไม่มีข้อมูล</td></tr><tr><td>70022</td><td class="null">NULL</td><td class="null">NULL</td><td>ยังไม่มีข้อมูล</td></tr><tr><td>70037</td><td>Chopper</td><td class="null">NULL</td><td>ยังไม่มีข้อมูล</td></tr></table></div>
+<p>CASE + ฟังก์ชันรวม = ตารางไขว้ (Pivot)</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.33 — จำนวนสอบผ่าน/ตกในแต่ละกลุ่มเรียน</span></div><pre class="sql">SELECT secid,
+       COUNT(*)                                       AS total,
+       SUM(CASE WHEN grade = &#x27;F&#x27;  THEN 1 ELSE 0 END)  AS n_fail,
+       SUM(CASE WHEN grade &lt;&gt; &#x27;F&#x27; THEN 1 ELSE 0 END)  AS n_pass
+FROM   enroll
+WHERE  grade IS NOT NULL
+GROUP  BY secid
+ORDER  BY secid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 40 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>total</th><th>n_fail</th><th>n_pass</th></tr><tr><td>1</td><td>5</td><td>2</td><td>3</td></tr><tr><td>2</td><td>4</td><td>1</td><td>3</td></tr><tr><td>4</td><td>1</td><td>1</td><td>0</td></tr><tr><td>5</td><td>4</td><td>1</td><td>3</td></tr><tr><td>6</td><td>4</td><td>1</td><td>3</td></tr><tr><td>7</td><td>2</td><td>0</td><td>2</td></tr><tr><td>8</td><td>2</td><td>0</td><td>2</td></tr><tr><td>9</td><td>2</td><td>0</td><td>2</td></tr><tr><td>10</td><td>3</td><td>1</td><td>2</td></tr><tr><td>11</td><td>1</td><td>0</td><td>1</td></tr></table></div>
+
+<div class="ex" id="ex5.12"><div class="ex-head"><span class="ex-badge">ฝึก 5.12</span><span class="ex-title">CASE จัดประเภทวิชา</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงรหัสวิชา ชื่อวิชา และคอลัมน์ <code>credit_type</code> = “วิชาน้อยหน่วยกิต” เมื่อ &lt; 3, “วิชาปกติ” เมื่อ = 3, “วิชาหนัก” เมื่อ &gt; 3</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT subid, name, credit,
+       CASE
+           WHEN credit &lt; 3 THEN &#x27;วิชาน้อยหน่วยกิต&#x27;
+           WHEN credit = 3 THEN &#x27;วิชาปกติ&#x27;
+           ELSE &#x27;วิชาหนัก&#x27;
+       END AS credit_type
+FROM   subject;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (20 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>credit</th><th>credit_type</th></tr><tr><td>CS001</td><td>Programming</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>CS002</td><td>Java</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>CS003</td><td>Web Design</td><td>2</td><td>วิชาน้อยหน่วยกิต</td></tr><tr><td>CS004</td><td>Database</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>CS005</td><td>Graphics</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>CS006</td><td>Mobile Apps</td><td>2</td><td>วิชาน้อยหน่วยกิต</td></tr><tr><td>CS007</td><td>Robotics</td><td>4</td><td>วิชาหนัก</td></tr><tr><td>CS008</td><td>AI</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>CS009</td><td>Project</td><td>6</td><td>วิชาหนัก</td></tr><tr><td>CS010</td><td>Security</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>EN001</td><td>English</td><td>2</td><td>วิชาน้อยหน่วยกิต</td></tr><tr><td>EN002</td><td>Reading</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>EN003</td><td>Conversation</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>EN004</td><td>Writing</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>MA001</td><td>Mathematics</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>MA002</td><td>Discrete Math</td><td>4</td><td>วิชาหนัก</td></tr><tr><td>MA003</td><td>Statistics</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>PH001</td><td>Physics</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>TH001</td><td>Thai</td><td>1</td><td>วิชาน้อยหน่วยกิต</td></tr><tr><td>TH002</td><td>Thai Writing</td><td>1</td><td>วิชาน้อยหน่วยกิต</td></tr></table></div></div></div></div>
+<div class="ex" id="ex5.13"><div class="ex-head"><span class="ex-badge">ฝึก 5.13</span><span class="ex-title">Pivot นับเกรดรายสาขา</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>จากตาราง student จงนับจำนวนนิสิตในแต่ละสาขาที่มี gpa ≥ 3.00 และ &lt; 3.00 แยกเป็นสองคอลัมน์ (ไม่นับคนที่ gpa เป็น NULL)</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT major,
+       SUM(CASE WHEN gpa &gt;= 3.00 THEN 1 ELSE 0 END) AS gpa_3_up,
+       SUM(CASE WHEN gpa &lt;  3.00 THEN 1 ELSE 0 END) AS gpa_below_3
+FROM   student
+WHERE  gpa IS NOT NULL
+GROUP  BY major
+ORDER  BY major;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>gpa_3_up</th><th>gpa_below_3</th></tr><tr><td class="null">NULL</td><td>1</td><td>2</td></tr><tr><td>Art</td><td>2</td><td>0</td></tr><tr><td>CS</td><td>2</td><td>4</td></tr><tr><td>English</td><td>2</td><td>1</td></tr><tr><td>Math</td><td>0</td><td>2</td></tr><tr><td>Physics</td><td>1</td><td>2</td></tr></table></div></div></div></div>
+
+<h2 id="s9"><span class="sec">5.9</span> ข้อผิดพลาดที่พบบ่อยในการเขียน SELECT</h2>
+<table class="tbl"><tr><th>คำสั่งที่ผิด</th><th>ปัญหา</th><th>ที่ถูกต้อง</th></tr>
+<tr><td><code>WHERE gpa = NULL</code></td><td>ไม่คืนแถวใดเลย</td><td><code>WHERE gpa IS NULL</code></td></tr>
+<tr><td><code>WHERE major = CS</code></td><td>CS ถูกตีความเป็นชื่อคอลัมน์</td><td><code>WHERE major = 'CS'</code></td></tr>
+<tr><td><code>WHERE major = 'CS' OR 'Math'</code></td><td>เงื่อนไขหลัง OR ไม่สมบูรณ์</td><td><code>WHERE major IN ('CS','Math')</code></td></tr>
+<tr><td><code>WHERE COUNT(*) &gt; 3</code></td><td>ใช้ฟังก์ชันรวมใน WHERE ไม่ได้</td><td><code>HAVING COUNT(*) &gt; 3</code></td></tr>
+<tr><td><code>SELECT major, name … GROUP BY major</code></td><td>name ไม่อยู่ในกลุ่ม</td><td><code>SELECT major, COUNT(*) … GROUP BY major</code></td></tr>
+<tr><td>ORDER BY อยู่ก่อน GROUP BY</td><td>ผิดไวยากรณ์</td><td>WHERE → GROUP BY → HAVING → ORDER BY</td></tr>
+<tr><td><code>AVG(gpa)</code> แล้วคิดว่าตัวหาร 22</td><td>AVG ข้าม NULL ตัวหารจริงคือ 19</td><td><code>SUM(IFNULL(gpa,0))/COUNT(*)</code></td></tr>
+</table>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ลองดู error ของ WHERE COUNT(*)</span></div><pre class="sql">SELECT major, COUNT(*) FROM student WHERE COUNT(*) &gt; 2 GROUP BY major;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1111.</b> Invalid use of group function</div>
+
+<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
+<li class="part">WHERE, LIKE, NULL (Lab 4.1)</li>
+<li>แสดงข้อมูลนิสิตทุกคนที่อยู่สาขา CS หรือ Math <span class="hint">(IN)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT * FROM student WHERE major IN (&#x27;CS&#x27;, &#x27;Math&#x27;);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (9 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2010-05-13</td></tr><tr><td>60002</td><td>Sakuragi</td><td>CS</td><td class="null">NULL</td><td>2010-01-15</td></tr><tr><td>60003</td><td>Mitsui</td><td>CS</td><td>2.00</td><td>2013-06-25</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2012-12-08</td></tr><tr><td>60005</td><td class="null">NULL</td><td>Math</td><td>2.78</td><td>2011-09-02</td></tr><tr><td>60006</td><td>Nobita</td><td>Math</td><td>1.55</td><td class="null">NULL</td></tr><tr><td>60012</td><td>Hisoka</td><td>CS</td><td>2.00</td><td>2015-06-06</td></tr><tr><td>60013</td><td>Gon</td><td>CS</td><td>2.78</td><td>2017-07-07</td></tr><tr><td>70036</td><td>Sanji</td><td>CS</td><td>2.78</td><td class="null">NULL</td></tr></table></div></div></li>
+<li>แสดงข้อมูลนิสิตทุกคนที่ไม่ได้อยู่สาขา CS, English, Math (คิดด้วยว่านิสิตที่ไม่มีสาขาควรแสดงหรือไม่) <span class="hint">(NOT IN … OR major IS NULL)</span><div class="rv-ans"><p><code>NOT IN</code> อย่างเดียวจะไม่ได้นิสิตที่ major เป็น NULL (เปรียบเทียบกับ NULL ได้ UNKNOWN) ถ้าต้องการรวมคนที่ไม่มีสาขาด้วยต้องเพิ่ม <code>OR major IS NULL</code></p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT *
+FROM   student
+WHERE  major NOT IN (&#x27;CS&#x27;, &#x27;English&#x27;, &#x27;Math&#x27;)
+   OR  major IS NULL;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (9 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>2011-01-31</td></tr><tr><td>60008</td><td>Kira</td><td>Art</td><td>3.05</td><td>2015-02-25</td></tr><tr><td>60014</td><td>Light</td><td>Physics</td><td>2.55</td><td>2016-10-10</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td><td>4.00</td><td>2014-08-24</td></tr><tr><td>60016</td><td>Mello</td><td>Physics</td><td>1.55</td><td>2015-12-13</td></tr><tr><td>70033</td><td>Zoro</td><td class="null">NULL</td><td>3.98</td><td>2012-02-29</td></tr><tr><td>70034</td><td>Luffy</td><td class="null">NULL</td><td>1.55</td><td>2010-02-11</td></tr><tr><td>70035</td><td>Nami</td><td class="null">NULL</td><td>2.85</td><td class="null">NULL</td></tr><tr><td>70037</td><td>Chopper</td><td class="null">NULL</td><td class="null">NULL</td><td>2011-12-24</td></tr></table></div></div></li>
+<li>แสดงข้อมูลนิสิตที่ชื่อขึ้นต้นด้วย S และลงท้ายด้วย h <span class="hint">(LIKE 'S%h')</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT * FROM student WHERE name LIKE &#x27;S%h&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2012-12-08</td></tr></table></div></div></li>
+<li>แสดงข้อมูลนิสิตที่ gpa อยู่ระหว่าง 2.00 ถึง 3.00 <span class="hint">(BETWEEN)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT * FROM student WHERE gpa BETWEEN 2.00 AND 3.00;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60003</td><td>Mitsui</td><td>CS</td><td>2.00</td><td>2013-06-25</td></tr><tr><td>60005</td><td class="null">NULL</td><td>Math</td><td>2.78</td><td>2011-09-02</td></tr><tr><td>60012</td><td>Hisoka</td><td>CS</td><td>2.00</td><td>2015-06-06</td></tr><tr><td>60013</td><td>Gon</td><td>CS</td><td>2.78</td><td>2017-07-07</td></tr><tr><td>60014</td><td>Light</td><td>Physics</td><td>2.55</td><td>2016-10-10</td></tr><tr><td>70035</td><td>Nami</td><td class="null">NULL</td><td>2.85</td><td class="null">NULL</td></tr><tr><td>70036</td><td>Sanji</td><td>CS</td><td>2.78</td><td class="null">NULL</td></tr></table></div></div></li>
+<li>แสดงข้อมูลนิสิตที่ไม่มีข้อมูลวันเกิด <span class="hint">(IS NULL)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT * FROM student WHERE birthday IS NULL;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60006</td><td>Nobita</td><td>Math</td><td>1.55</td><td class="null">NULL</td></tr><tr><td>70022</td><td class="null">NULL</td><td>English</td><td class="null">NULL</td><td class="null">NULL</td></tr><tr><td>70035</td><td>Nami</td><td class="null">NULL</td><td>2.85</td><td class="null">NULL</td></tr><tr><td>70036</td><td>Sanji</td><td>CS</td><td>2.78</td><td class="null">NULL</td></tr></table></div></div></li>
+<li>แสดงข้อมูลนิสิตที่ทั้งชื่อและสาขาไม่เป็นค่าว่าง <span class="hint">(IS NOT NULL AND)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT * FROM student WHERE name IS NOT NULL AND major IS NOT NULL;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 16 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2010-05-13</td></tr><tr><td>60002</td><td>Sakuragi</td><td>CS</td><td class="null">NULL</td><td>2010-01-15</td></tr><tr><td>60003</td><td>Mitsui</td><td>CS</td><td>2.00</td><td>2013-06-25</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2012-12-08</td></tr><tr><td>60006</td><td>Nobita</td><td>Math</td><td>1.55</td><td class="null">NULL</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>2011-01-31</td></tr><tr><td>60008</td><td>Kira</td><td>Art</td><td>3.05</td><td>2015-02-25</td></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>3.98</td><td>2015-03-31</td></tr><tr><td>60010</td><td>Gon</td><td>English</td><td>1.55</td><td>2016-02-20</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>3.98</td><td>2016-02-20</td></tr></table></div></div></li>
+<li>แสดงข้อมูลนิสิตที่ไม่ได้อยู่ CS หรือ Math เรียงตาม gpa จากมากไปน้อย <span class="hint">(ORDER BY gpa DESC)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT *
+FROM   student
+WHERE  major NOT IN (&#x27;CS&#x27;, &#x27;Math&#x27;) OR major IS NULL
+ORDER  BY gpa DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 13 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60015</td><td>Near</td><td>Physics</td><td>4.00</td><td>2014-08-24</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>2011-01-31</td></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>3.98</td><td>2015-03-31</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>3.98</td><td>2016-02-20</td></tr><tr><td>70033</td><td>Zoro</td><td class="null">NULL</td><td>3.98</td><td>2012-02-29</td></tr><tr><td>60008</td><td>Kira</td><td>Art</td><td>3.05</td><td>2015-02-25</td></tr><tr><td>70035</td><td>Nami</td><td class="null">NULL</td><td>2.85</td><td class="null">NULL</td></tr><tr><td>60014</td><td>Light</td><td>Physics</td><td>2.55</td><td>2016-10-10</td></tr><tr><td>60010</td><td>Gon</td><td>English</td><td>1.55</td><td>2016-02-20</td></tr><tr><td>60016</td><td>Mello</td><td>Physics</td><td>1.55</td><td>2015-12-13</td></tr></table></div></div></li>
+<li>แสดงข้อมูลนิสิตเรียงตามสาขาและ gpa จากน้อยไปมาก โดยไม่แสดงแถวที่สาขาหรือ gpa เป็นค่าว่าง <span class="hint">(ORDER BY major, gpa)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT *
+FROM   student
+WHERE  major IS NOT NULL AND gpa IS NOT NULL
+ORDER  BY major, gpa;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 16 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60008</td><td>Kira</td><td>Art</td><td>3.05</td><td>2015-02-25</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>2011-01-31</td></tr><tr><td>60003</td><td>Mitsui</td><td>CS</td><td>2.00</td><td>2013-06-25</td></tr><tr><td>60012</td><td>Hisoka</td><td>CS</td><td>2.00</td><td>2015-06-06</td></tr><tr><td>60013</td><td>Gon</td><td>CS</td><td>2.78</td><td>2017-07-07</td></tr><tr><td>70036</td><td>Sanji</td><td>CS</td><td>2.78</td><td class="null">NULL</td></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2010-05-13</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2012-12-08</td></tr><tr><td>60010</td><td>Gon</td><td>English</td><td>1.55</td><td>2016-02-20</td></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>3.98</td><td>2015-03-31</td></tr></table></div></div></li>
+<li>แสดงรหัสวิชาที่เป็น prerequisite ของวิชา Graphics <span class="hint">(WHERE name = 'Graphics')</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT pre FROM subject WHERE name = &#x27;Graphics&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>pre</th></tr><tr><td>CS002</td></tr></table></div></div></li>
+<li>แสดงรหัสและชื่อวิชาที่ไม่มีวิชา prerequisite <span class="hint">(pre IS NULL)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT subid, name FROM subject WHERE pre IS NULL;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th></tr><tr><td>CS001</td><td>Programming</td></tr><tr><td>EN001</td><td>English</td></tr><tr><td>MA001</td><td>Mathematics</td></tr><tr><td>PH001</td><td>Physics</td></tr><tr><td>TH001</td><td>Thai</td></tr></table></div></div></li>
+<li>แสดงวิชาที่มี CS001 เป็นวิชา prerequisite และนับว่ามีกี่วิชา <span class="hint">(COUNT(*))</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT subid, name FROM subject WHERE pre = &#x27;CS001&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th></tr><tr><td>CS002</td><td>Java</td></tr><tr><td>CS003</td><td>Web Design</td></tr><tr><td>CS004</td><td>Database</td></tr></table></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT COUNT(*) AS n_subject FROM subject WHERE pre = &#x27;CS001&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_subject</th></tr><tr><td>3</td></tr></table></div></div></li>
+<li>แสดงอาจารย์ในสาขา English ที่ได้เงินเดือนต่ำกว่า 40000 บาท <span class="hint">(AND)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT * FROM lecturer WHERE major = &#x27;English&#x27; AND salary &lt; 40000;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th><th>major</th></tr><tr><td>t06</td><td>Goku</td><td>20000</td><td>English</td></tr><tr><td>t07</td><td>Vegeta</td><td>25000</td><td>English</td></tr></table></div></div></li>
+<li>แสดงข้อมูลอาจารย์ที่อยู่สาขาอื่นที่ไม่ใช่ CS หรือ Math <span class="hint">(NOT IN)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT * FROM lecturer WHERE major NOT IN (&#x27;CS&#x27;, &#x27;Math&#x27;);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (11 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th><th>major</th></tr><tr><td>t04</td><td>Post Malone</td><td>47000</td><td>Thai</td></tr><tr><td>t05</td><td>IronMan</td><td>65000</td><td>Thai</td></tr><tr><td>t06</td><td>Goku</td><td>20000</td><td>English</td></tr><tr><td>t07</td><td>Vegeta</td><td>25000</td><td>English</td></tr><tr><td>t08</td><td>Cell</td><td>70000</td><td>English</td></tr><tr><td>t09</td><td>Frieza</td><td>60000</td><td>English</td></tr><tr><td>t10</td><td>Piccolo</td><td>15000</td><td>Art</td></tr><tr><td>t11</td><td>Batman</td><td class="null">NULL</td><td>DC</td></tr><tr><td>t12</td><td>Wolverine</td><td class="null">NULL</td><td>DC</td></tr><tr><td>t13</td><td>Thor</td><td>60000</td><td>DC</td></tr><tr><td>t16</td><td>Levi</td><td class="null">NULL</td><td>Physics</td></tr></table></div></div></li>
+<li class="part">ฟังก์ชันรวม (Lab 4.1)</li>
+<li>แสดง gpa สูงสุดและต่ำสุดของนิสิตทั้งหมดเป็นคอลัมน์ชื่อ max_gpa และ min_gpa และของสาขา CS เป็น max_cs และ min_cs <span class="hint">(MAX, MIN, AS)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT MAX(gpa) AS max_gpa, MIN(gpa) AS min_gpa FROM student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>max_gpa</th><th>min_gpa</th></tr><tr><td>4.00</td><td>1.55</td></tr></table></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT MAX(gpa) AS max_cs, MIN(gpa) AS min_cs FROM student WHERE major = &#x27;CS&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>max_cs</th><th>min_cs</th></tr><tr><td>3.98</td><td>2.00</td></tr></table></div></div></li>
+<li>แสดงเงินเดือนรวม สูงสุด ต่ำสุด และค่าเฉลี่ยของอาจารย์ (total_salary, max_salary, min_salary, average_salary) และของสาขา English <span class="hint">(SUM, MAX, MIN, AVG)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT SUM(salary) AS total_salary, MAX(salary) AS max_salary,
+       MIN(salary) AS min_salary,   AVG(salary) AS average_salary
+FROM   lecturer;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>total_salary</th><th>max_salary</th><th>min_salary</th><th>average_salary</th></tr><tr><td>632000</td><td>80000</td><td>15000</td><td>48615.3846</td></tr></table></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT SUM(salary) AS total_salary, MAX(salary) AS max_salary,
+       MIN(salary) AS min_salary,   AVG(salary) AS average_salary
+FROM   lecturer
+WHERE  major = &#x27;English&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>total_salary</th><th>max_salary</th><th>min_salary</th><th>average_salary</th></tr><tr><td>175000</td><td>70000</td><td>20000</td><td>43750.0000</td></tr></table></div></div></li>
+<li>แสดงรหัสอาจารย์ที่สอนวิชา CS001 ในเทอม 2023-1 และแสดง secid ทั้งหมดที่เปิดสอนวิชา CS001 <span class="hint">(WHERE subid = … AND term = …)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT lecid FROM section WHERE subid = &#x27;CS001&#x27; AND term = &#x27;2023-1&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th></tr><tr><td>t01</td></tr></table></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT secid FROM section WHERE subid = &#x27;CS001&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th></tr><tr><td>1</td></tr><tr><td>11</td></tr><tr><td>15</td></tr><tr><td>35</td></tr><tr><td>24</td></tr><tr><td>39</td></tr><tr><td>49</td></tr></table></div></div></li>
+<li>แสดงจำนวนวิชา (ไม่นับซ้ำ) ที่เปิดสอนในเทอม 2024-1 และในปี 2024 ทั้งปี <span class="hint">(COUNT(DISTINCT subid), LIKE '2024-%')</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT COUNT(DISTINCT subid) AS n_2024_1 FROM section WHERE term = &#x27;2024-1&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_2024_1</th></tr><tr><td>6</td></tr></table></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT COUNT(DISTINCT subid) AS n_2024 FROM section WHERE term LIKE &#x27;2024-%&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_2024</th></tr><tr><td>10</td></tr></table></div></div></li>
+<li>แสดง secid, subid, lecid, term ของกลุ่มเรียนทุกเทอมในปี 2024 และรหัสวิชาที่เปิดในปี 2024 โดยไม่ซ้ำ <span class="hint">(DISTINCT)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT secid, subid, lecid, term FROM section WHERE term LIKE &#x27;2024-%&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 23 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>subid</th><th>lecid</th><th>term</th></tr><tr><td>11</td><td>CS001</td><td>t01</td><td>2024-1</td></tr><tr><td>15</td><td>CS001</td><td>t01</td><td>2024-2</td></tr><tr><td>24</td><td>CS001</td><td>t02</td><td>2024-1</td></tr><tr><td>16</td><td>CS002</td><td>t01</td><td>2024-2</td></tr><tr><td>29</td><td>CS002</td><td>t02</td><td>2024-2</td></tr><tr><td>30</td><td>CS002</td><td>t04</td><td>2024-2</td></tr><tr><td>33</td><td>CS002</td><td>t05</td><td>2024-3</td></tr><tr><td>32</td><td>CS002</td><td>t13</td><td>2024-3</td></tr><tr><td>12</td><td>CS004</td><td>t01</td><td>2024-1</td></tr><tr><td>20</td><td>CS004</td><td>t01</td><td>2024-3</td></tr></table></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT DISTINCT subid FROM section WHERE term LIKE &#x27;2024-%&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (10 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th></tr><tr><td>CS001</td></tr><tr><td>CS002</td></tr><tr><td>CS004</td></tr><tr><td>CS005</td></tr><tr><td>CS006</td></tr><tr><td>CS007</td></tr><tr><td>CS008</td></tr><tr><td>CS009</td></tr><tr><td>MA001</td></tr><tr><td>MA002</td></tr></table></div></div></li>
+<li>แสดงจำนวนครั้งที่อาจารย์ t02 เคยสอน และจำนวนครั้งที่เปิดสอนวิชา CS005 <span class="hint">(COUNT(*))</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT COUNT(*) AS n_t02 FROM section WHERE lecid = &#x27;t02&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_t02</th></tr><tr><td>11</td></tr></table></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT COUNT(*) AS n_cs005 FROM section WHERE subid = &#x27;CS005&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_cs005</th></tr><tr><td>3</td></tr></table></div></div></li>
+<li>แสดงจำนวนนิสิตที่ลงทะเบียน section 5 และเกรดไม่เป็น F (ระวังแถวที่เกรดเป็น NULL) <span class="hint">(grade &lt;&gt; 'F')</span><div class="rv-ans"><p><code>grade &lt;&gt; 'F'</code> ไม่นับแถวที่เกรดเป็น NULL (ยังไม่มีเกรด) — ถ้าต้องการนับคนที่ยังไม่มีเกรดด้วยให้เพิ่ม <code>OR grade IS NULL</code></p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT COUNT(*) AS n_not_f
+FROM   enroll
+WHERE  secid = 5 AND grade &lt;&gt; &#x27;F&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_not_f</th></tr><tr><td>3</td></tr></table></div></div></li>
+<li>แสดงจำนวนครั้งที่นิสิต 60001 ลงทะเบียน และจำนวนครั้งที่นิสิต 60006 ได้เกรด F <span class="hint">(COUNT(*))</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT COUNT(*) AS n_enroll FROM enroll WHERE stdid = &#x27;60001&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_enroll</th></tr><tr><td>9</td></tr></table></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT COUNT(*) AS n_f FROM enroll WHERE stdid = &#x27;60006&#x27; AND grade = &#x27;F&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_f</th></tr><tr><td>4</td></tr></table></div></div></li>
+<li class="part">ฟังก์ชันวันที่ (Lab 4.1)</li>
+<li>แสดงข้อมูลนิสิตที่เกิดปี 2010 และนิสิตที่เกิดเดือน February <span class="hint">(YEAR(), MONTH() / MONTHNAME())</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT * FROM student WHERE YEAR(birthday) = 2010;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2010-05-13</td></tr><tr><td>60002</td><td>Sakuragi</td><td>CS</td><td class="null">NULL</td><td>2010-01-15</td></tr><tr><td>70034</td><td>Luffy</td><td class="null">NULL</td><td>1.55</td><td>2010-02-11</td></tr></table></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT * FROM student WHERE MONTHNAME(birthday) = &#x27;February&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60008</td><td>Kira</td><td>Art</td><td>3.05</td><td>2015-02-25</td></tr><tr><td>60010</td><td>Gon</td><td>English</td><td>1.55</td><td>2016-02-20</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>3.98</td><td>2016-02-20</td></tr><tr><td>70033</td><td>Zoro</td><td class="null">NULL</td><td>3.98</td><td>2012-02-29</td></tr><tr><td>70034</td><td>Luffy</td><td class="null">NULL</td><td>1.55</td><td>2010-02-11</td></tr></table></div></div></li>
+<li>แสดงข้อมูลนิสิตที่มีอายุ 15 ปีขึ้นไป <span class="hint">(TIMESTAMPDIFF(YEAR, birthday, CURDATE()))</span><div class="rv-ans"><p>ผลลัพธ์ขึ้นกับวันที่รันคำสั่ง (CURDATE())</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT *
+FROM   student
+WHERE  TIMESTAMPDIFF(YEAR, birthday, CURDATE()) &gt;= 15;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2010-05-13</td></tr><tr><td>60002</td><td>Sakuragi</td><td>CS</td><td class="null">NULL</td><td>2010-01-15</td></tr><tr><td>60005</td><td class="null">NULL</td><td>Math</td><td>2.78</td><td>2011-09-02</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>2011-01-31</td></tr><tr><td>70034</td><td>Luffy</td><td class="null">NULL</td><td>1.55</td><td>2010-02-11</td></tr></table></div></div></li>
+<li>แสดงรหัส ชื่อ และอายุของนิสิตที่เกิดวันจันทร์ <span class="hint">(DAYNAME() = 'Monday')</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age
+FROM   student
+WHERE  DAYNAME(birthday) = &#x27;Monday&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>age</th></tr><tr><td>60007</td><td>L</td><td>15</td></tr><tr><td>60014</td><td>Light</td><td>9</td></tr></table></div></div></li>
+<li>แสดงรหัส ชื่อ ปีเกิด และอายุของนิสิตทุกคน <span class="hint">(YEAR(birthday))</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, YEAR(birthday) AS birth_year,
+       TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age
+FROM   student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 22 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>birth_year</th><th>age</th></tr><tr><td>60001</td><td>Rukawa</td><td>2010</td><td>16</td></tr><tr><td>60002</td><td>Sakuragi</td><td>2010</td><td>16</td></tr><tr><td>60003</td><td>Mitsui</td><td>2013</td><td>13</td></tr><tr><td>60004</td><td>Sendoh</td><td>2012</td><td>13</td></tr><tr><td>60005</td><td class="null">NULL</td><td>2011</td><td>15</td></tr><tr><td>60006</td><td>Nobita</td><td class="null">NULL</td><td class="null">NULL</td></tr><tr><td>60007</td><td>L</td><td>2011</td><td>15</td></tr><tr><td>60008</td><td>Kira</td><td>2015</td><td>11</td></tr><tr><td>60009</td><td>Killua</td><td>2015</td><td>11</td></tr><tr><td>60010</td><td>Gon</td><td>2016</td><td>10</td></tr></table></div></div></li>
+<li>แสดงรหัส ชื่อ สาขา ปีเกิด อายุ ของนิสิตที่อายุน้อยกว่า 15 ปี และไม่ได้อยู่สาขา CS <span class="hint">(AND (major &lt;&gt; 'CS' OR major IS NULL))</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, major, YEAR(birthday) AS birth_year,
+       TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age
+FROM   student
+WHERE  TIMESTAMPDIFF(YEAR, birthday, CURDATE()) &lt; 15
+  AND  (major &lt;&gt; &#x27;CS&#x27; OR major IS NULL);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (9 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>birth_year</th><th>age</th></tr><tr><td>60008</td><td>Kira</td><td>Art</td><td>2015</td><td>11</td></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>2015</td><td>11</td></tr><tr><td>60010</td><td>Gon</td><td>English</td><td>2016</td><td>10</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>2016</td><td>10</td></tr><tr><td>60014</td><td>Light</td><td>Physics</td><td>2016</td><td>9</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td><td>2014</td><td>12</td></tr><tr><td>60016</td><td>Mello</td><td>Physics</td><td>2015</td><td>10</td></tr><tr><td>70033</td><td>Zoro</td><td class="null">NULL</td><td>2012</td><td>14</td></tr><tr><td>70037</td><td>Chopper</td><td class="null">NULL</td><td>2011</td><td>14</td></tr></table></div></div></li>
+<li class="part">IFNULL, GROUP BY, HAVING (Lab 4.2)</li>
+<li>แสดงรหัสอาจารย์และจำนวนครั้งที่เคยสอน และแสดงเฉพาะอาจารย์ที่สอนมากที่สุด 3 คน <span class="hint">(GROUP BY lecid ORDER BY … LIMIT 3)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT lecid, COUNT(*) AS n_teach
+FROM   section
+GROUP  BY lecid
+ORDER  BY n_teach DESC
+LIMIT  3;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>n_teach</th></tr><tr><td>t01</td><td>14</td></tr><tr><td>t02</td><td>11</td></tr><tr><td>t03</td><td>8</td></tr></table></div></div></li>
+<li>แสดงรหัสวิชา ชื่อวิชา และรหัสวิชาเงื่อนไข ถ้าไม่มีให้แสดงข้อความ “ไม่มีวิชาเงื่อนไข” <span class="hint">(IFNULL(pre, '…'))</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT subid, name, IFNULL(pre, &#x27;ไม่มีวิชาเงื่อนไข&#x27;) AS pre
+FROM   subject;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 20 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>pre</th></tr><tr><td>CS001</td><td>Programming</td><td>ไม่มีวิชาเงื่อนไข</td></tr><tr><td>CS002</td><td>Java</td><td>CS001</td></tr><tr><td>CS003</td><td>Web Design</td><td>CS001</td></tr><tr><td>CS004</td><td>Database</td><td>CS001</td></tr><tr><td>CS005</td><td>Graphics</td><td>CS002</td></tr><tr><td>CS006</td><td>Mobile Apps</td><td>CS002</td></tr><tr><td>CS007</td><td>Robotics</td><td>CS002</td></tr><tr><td>CS008</td><td>AI</td><td>CS002</td></tr><tr><td>CS009</td><td>Project</td><td>CS004</td></tr><tr><td>CS010</td><td>Security</td><td>CS004</td></tr></table></div></div></li>
+<li>แสดงชื่อ major, gpa สูงสุด และ gpa ต่ำสุดของแต่ละ major โดยไม่แสดง major ที่เป็น NULL <span class="hint">(WHERE major IS NOT NULL GROUP BY)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT major, MAX(gpa) AS max_gpa, MIN(gpa) AS min_gpa
+FROM   student
+WHERE  major IS NOT NULL
+GROUP  BY major;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>max_gpa</th><th>min_gpa</th></tr><tr><td>CS</td><td>3.98</td><td>2.00</td></tr><tr><td>Math</td><td>2.78</td><td>1.55</td></tr><tr><td>Art</td><td>3.98</td><td>3.05</td></tr><tr><td>English</td><td>3.98</td><td>1.55</td></tr><tr><td>Physics</td><td>4.00</td><td>1.55</td></tr></table></div></div></li>
+<li>แสดง major, gpa สูงสุด และต่ำสุด เฉพาะ major ที่มี gpa ต่ำสุดมากกว่า 2.00 <span class="hint">(HAVING MIN(gpa) &gt; 2.00)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT major, MAX(gpa) AS max_gpa, MIN(gpa) AS min_gpa
+FROM   student
+GROUP  BY major
+HAVING MIN(gpa) &gt; 2.00;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>max_gpa</th><th>min_gpa</th></tr><tr><td>Art</td><td>3.98</td><td>3.05</td></tr></table></div></div></li>
+<li>แสดง major, จำนวนนิสิต, gpa สูงสุด, gpa ต่ำสุด เฉพาะ major ที่มีนิสิตมากกว่า 1 คน gpa สูงสุดมากกว่า 3.00 และ major ไม่เป็น NULL เรียงตามจำนวนนิสิตจากมากไปน้อย <span class="hint">(HAVING COUNT(*) &gt; 1 AND MAX(gpa) &gt; 3)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT major, COUNT(*) AS n_student, MAX(gpa) AS max_gpa, MIN(gpa) AS min_gpa
+FROM   student
+WHERE  major IS NOT NULL
+GROUP  BY major
+HAVING COUNT(*) &gt; 1 AND MAX(gpa) &gt; 3.00
+ORDER  BY n_student DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_student</th><th>max_gpa</th><th>min_gpa</th></tr><tr><td>CS</td><td>7</td><td>3.98</td><td>2.00</td></tr><tr><td>English</td><td>4</td><td>3.98</td><td>1.55</td></tr><tr><td>Physics</td><td>3</td><td>4.00</td><td>1.55</td></tr><tr><td>Art</td><td>2</td><td>3.98</td><td>3.05</td></tr></table></div></div></li>
+<li>แสดงปีเกิดและจำนวนนิสิตที่เกิดปีนั้น เฉพาะปีที่ไม่เป็น NULL เรียงตามจำนวนจากมากไปน้อย <span class="hint">(GROUP BY YEAR(birthday))</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT YEAR(birthday) AS birth_year, COUNT(*) AS n_student
+FROM   student
+WHERE  birthday IS NOT NULL
+GROUP  BY YEAR(birthday)
+ORDER  BY n_student DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (8 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>birth_year</th><th>n_student</th></tr><tr><td>2015</td><td>4</td></tr><tr><td>2010</td><td>3</td></tr><tr><td>2011</td><td>3</td></tr><tr><td>2016</td><td>3</td></tr><tr><td>2012</td><td>2</td></tr><tr><td>2013</td><td>1</td></tr><tr><td>2017</td><td>1</td></tr><tr><td>2014</td><td>1</td></tr></table></div></div></li>
+<li>แสดงรหัสนิสิตและจำนวนครั้งที่เคยลงเรียน และรหัสวิชากับจำนวนครั้งที่เคยเปิดสอน <span class="hint">(GROUP BY stdid / subid)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, COUNT(*) AS n_enroll FROM enroll GROUP BY stdid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 18 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>n_enroll</th></tr><tr><td>60001</td><td>9</td></tr><tr><td>60002</td><td>6</td></tr><tr><td>60003</td><td>6</td></tr><tr><td>60004</td><td>9</td></tr><tr><td>60005</td><td>8</td></tr><tr><td>60006</td><td>7</td></tr><tr><td>60007</td><td>7</td></tr><tr><td>60008</td><td>3</td></tr></table></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT subid, COUNT(*) AS n_open FROM section GROUP BY subid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 17 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>n_open</th></tr><tr><td>CS001</td><td>7</td></tr><tr><td>CS002</td><td>7</td></tr><tr><td>CS003</td><td>3</td></tr><tr><td>CS004</td><td>7</td></tr><tr><td>CS005</td><td>3</td></tr><tr><td>CS006</td><td>2</td></tr><tr><td>CS007</td><td>2</td></tr><tr><td>CS008</td><td>3</td></tr></table></div></div></li>
+<li>แสดงเกรดและจำนวนครั้งที่ได้เกรดนั้นของนิสิต 60001 <span class="hint">(WHERE stdid = … GROUP BY grade)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT grade, COUNT(*) AS n
+FROM   enroll
+WHERE  stdid = &#x27;60001&#x27;
+GROUP  BY grade;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>grade</th><th>n</th></tr><tr><td>A</td><td>5</td></tr><tr><td>C</td><td>1</td></tr><tr><td>B</td><td>3</td></tr></table></div></div></li>
+<li>แสดงรหัสนิสิตและจำนวนครั้งที่ได้ F เฉพาะคนที่ได้ F มากกว่า 1 ครั้ง <span class="hint">(WHERE grade = 'F' … HAVING)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, COUNT(*) AS n_f
+FROM   enroll
+WHERE  grade = &#x27;F&#x27;
+GROUP  BY stdid
+HAVING COUNT(*) &gt; 1;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>n_f</th></tr><tr><td>60003</td><td>2</td></tr><tr><td>60006</td><td>4</td></tr><tr><td>60008</td><td>2</td></tr><tr><td>60010</td><td>4</td></tr><tr><td>70034</td><td>3</td></tr></table></div></div></li>
+<li>แสดงรหัสอาจารย์ที่เคยสอนมากกว่า 3 ครั้ง และอาจารย์ที่เคยสอน CS001 มากกว่า 1 ครั้ง <span class="hint">(HAVING COUNT(*) &gt; 3)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT lecid, COUNT(*) AS n_teach
+FROM   section
+GROUP  BY lecid
+HAVING COUNT(*) &gt; 3;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>n_teach</th></tr><tr><td>t01</td><td>14</td></tr><tr><td>t02</td><td>11</td></tr><tr><td>t03</td><td>8</td></tr><tr><td>t04</td><td>4</td></tr><tr><td>t05</td><td>6</td></tr></table></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT lecid, COUNT(*) AS n_cs001
+FROM   section
+WHERE  subid = &#x27;CS001&#x27;
+GROUP  BY lecid
+HAVING COUNT(*) &gt; 1;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>n_cs001</th></tr><tr><td>t01</td><td>4</td></tr><tr><td>t02</td><td>2</td></tr></table></div></div></li>
+<li class="part">CASE (Lab 4.3)</li>
+<li>แสดงข้อมูลนิสิตที่ผ่านเกณฑ์: สาขา CS gpa &gt; 3.00, Math gpa &gt; 3.20, Art gpa &gt; 3.50 <span class="hint">(CASE ใน WHERE หรือ OR หลายชุด)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT *
+FROM   student
+WHERE  gpa &gt; CASE major
+                 WHEN &#x27;CS&#x27;   THEN 3.00
+                 WHEN &#x27;Math&#x27; THEN 3.20
+                 WHEN &#x27;Art&#x27;  THEN 3.50
+             END;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2010-05-13</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2012-12-08</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>2011-01-31</td></tr></table></div><p>สาขาอื่น CASE คืน NULL ทำให้เงื่อนไขไม่เป็นจริง จึงไม่ถูกเลือก (เขียนแบบ <code>(major = 'CS' AND gpa &gt; 3.00) OR …</code> ก็ได้)</p></div></li>
+<li>แสดงข้อมูลการลงทะเบียน ชื่อ และอายุของนิสิตที่ผ่านเกณฑ์: CS อายุ &gt; 18, Art &gt; 19, English &gt; 17, สาขาอื่น &gt; 20 <span class="hint">(CASE major WHEN … THEN … END)</span><div class="rv-ans"><p>ใช้ subquery ดึงชื่อและอายุจาก student (ยังไม่ใช้ JOIN) — ผลลัพธ์อาจว่าง เพราะนิสิตในกรณีศึกษาส่วนใหญ่อายุไม่ถึงเกณฑ์</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT e.*,
+       (SELECT name FROM student s WHERE s.stdid = e.stdid) AS name,
+       (SELECT TIMESTAMPDIFF(YEAR, birthday, CURDATE()) FROM student s WHERE s.stdid = e.stdid) AS age
+FROM   enroll e
+WHERE  (SELECT TIMESTAMPDIFF(YEAR, birthday, CURDATE()) FROM student s WHERE s.stdid = e.stdid) &gt;
+       (SELECT CASE major WHEN &#x27;CS&#x27;      THEN 18
+                          WHEN &#x27;Art&#x27;     THEN 19
+                          WHEN &#x27;English&#x27; THEN 17
+                          ELSE 20 END
+        FROM   student s
+        WHERE  s.stdid = e.stdid);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (0 แถว — ไม่มีข้อมูลที่ตรงเงื่อนไข)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>stdid</th><th>grade</th><th>name</th><th>age</th></tr></table></div></div></li>
+<li>แสดงรหัส ชื่อ gpa และคอลัมน์ level (ดีเยี่ยม / ดี / พอใช้ / ต้องปรับปรุง / ยังไม่มีข้อมูล) <span class="hint">(CASE WHEN gpa IS NULL …)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, gpa,
+       CASE
+           WHEN gpa IS NULL THEN &#x27;ยังไม่มีข้อมูล&#x27;
+           WHEN gpa &gt;= 3.50 THEN &#x27;ดีเยี่ยม&#x27;
+           WHEN gpa &gt;= 2.50 THEN &#x27;ดี&#x27;
+           WHEN gpa &gt;= 2.00 THEN &#x27;พอใช้&#x27;
+           ELSE &#x27;ต้องปรับปรุง&#x27;
+       END AS level
+FROM   student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 22 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>gpa</th><th>level</th></tr><tr><td>60001</td><td>Rukawa</td><td>3.75</td><td>ดีเยี่ยม</td></tr><tr><td>60002</td><td>Sakuragi</td><td class="null">NULL</td><td>ยังไม่มีข้อมูล</td></tr><tr><td>60003</td><td>Mitsui</td><td>2.00</td><td>พอใช้</td></tr><tr><td>60004</td><td>Sendoh</td><td>3.98</td><td>ดีเยี่ยม</td></tr><tr><td>60005</td><td class="null">NULL</td><td>2.78</td><td>ดี</td></tr><tr><td>60006</td><td>Nobita</td><td>1.55</td><td>ต้องปรับปรุง</td></tr><tr><td>60007</td><td>L</td><td>3.98</td><td>ดีเยี่ยม</td></tr><tr><td>60008</td><td>Kira</td><td>3.05</td><td>ดี</td></tr><tr><td>60009</td><td>Killua</td><td>3.98</td><td>ดีเยี่ยม</td></tr><tr><td>60010</td><td>Gon</td><td>1.55</td><td>ต้องปรับปรุง</td></tr></table></div></div></li>
+<li>แสดงจำนวนนิสิตในแต่ละสาขาที่มี gpa ≥ 3.00 และ &lt; 3.00 แยกเป็นสองคอลัมน์ <span class="hint">(SUM(CASE WHEN … THEN 1 ELSE 0 END))</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT major,
+       SUM(CASE WHEN gpa &gt;= 3.00 THEN 1 ELSE 0 END) AS n_high,
+       SUM(CASE WHEN gpa &lt;  3.00 THEN 1 ELSE 0 END) AS n_low
+FROM   student
+GROUP  BY major;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_high</th><th>n_low</th></tr><tr><td>CS</td><td>2</td><td>4</td></tr><tr><td>Math</td><td>0</td><td>2</td></tr><tr><td>Art</td><td>2</td><td>0</td></tr><tr><td>English</td><td>2</td><td>1</td></tr><tr><td>Physics</td><td>1</td><td>2</td></tr><tr><td class="null">NULL</td><td>1</td><td>2</td></tr></table></div></div></li>
+<li>เหตุใด <code>SELECT major, COUNT(*) FROM student WHERE COUNT(*) &gt; 2 GROUP BY major;</code> จึงเกิด error และแก้อย่างไร <span class="hint">(HAVING)</span><div class="rv-ans"><p>WHERE กรองทีละแถว<b>ก่อน</b>จัดกลุ่ม ขณะนั้นยังไม่มีค่า COUNT(*) จึงใช้ฟังก์ชันรวมใน WHERE ไม่ได้ (Error 1111) ต้องย้ายเงื่อนไขไปไว้ที่ <b>HAVING</b> ซึ่งกรองหลัง GROUP BY</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT major, COUNT(*) FROM student WHERE COUNT(*) &gt; 2 GROUP BY major;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1111.</b> Invalid use of group function</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT major, COUNT(*) AS n FROM student GROUP BY major HAVING COUNT(*) &gt; 2;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n</th></tr><tr><td>CS</td><td>7</td></tr><tr><td>English</td><td>4</td></tr><tr><td>Physics</td><td>3</td></tr><tr><td class="null">NULL</td><td>4</td></tr></table></div></div></li>
+<li>เขียนคำสั่งเดียวที่นับจำนวนนิสิตทั้งหมด จำนวนที่มี gpa และจำนวนสาขาที่ไม่ซ้ำ แล้วอธิบายว่าทำไมตัวเลขทั้งสามไม่เท่ากัน <span class="hint">(COUNT(*), COUNT(gpa), COUNT(DISTINCT major))</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT COUNT(*) AS n_all, COUNT(gpa) AS n_has_gpa, COUNT(DISTINCT major) AS n_major
+FROM   student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_all</th><th>n_has_gpa</th><th>n_major</th></tr><tr><td>22</td><td>19</td><td>5</td></tr></table></div><p><code>COUNT(*)</code> นับทุกแถว · <code>COUNT(gpa)</code> ไม่นับแถวที่ gpa เป็น NULL · <code>COUNT(DISTINCT major)</code> นับเฉพาะค่าที่ไม่ซ้ำและไม่นับ NULL</p></div></li>
+</ol></div>
+
+<div class="pager"><a class="pg" href="04-sql-ddl-dml.html">← 04 · สร้างตาราง &amp; INSERT/UPDATE/DELETE</a><a class="pg next" href="06-join.html">06 · JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง →</a></div>
+<footer>Lecture Note · 1204202 การออกแบบและการจัดการฐานข้อมูล · อ.ดร.พรทิวา ปะวะระ · ภาควิชาวิทยาการคอมพิวเตอร์ คณะวิทยาการสารสนเทศ มหาวิทยาลัยมหาสารคาม</footer>
+</main>
+<script src="assets/password.js"></script>
+<script src="assets/nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 4 · ภาษา SQL: การสร้างตารางและคำสั่งจัดการข้อมูลพื้นฐาน — Database Lecture Note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
+  <nav>
+<div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
+<a href="index.html"><span class="no">🏠</span>หน้าแรก / ภาพรวม</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 1 · ออกแบบฐานข้อมูล</div>
+<a href="01-intro.html"><span class="no">01</span>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</a>
+<a href="02-er-model.html"><span class="no">02</span>แบบจำลอง ER</a>
+<a href="03-relational-normalization.html"><span class="no">03</span>แปลง ER เป็นตาราง &amp; Normalization</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 2 · ภาษา SQL</div>
+<a href="04-sql-ddl-dml.html" class="active"><span class="no">04</span>สร้างตาราง &amp; INSERT/UPDATE/DELETE</a>
+<div class="subnav"><a href="#s1"><span class="sno">4.1</span>ความเป็นมาและประเภทของคำสั่ง SQL</a><a href="#s2"><span class="sno">4.2</span>ชนิดข้อมูลใน MySQL</a><a href="#s3"><span class="sno">4.3</span>การสร้างฐานข้อมูลและตาราง</a><a href="#s4"><span class="sno">4.4</span>ข้อกำหนดบังคับ (Constraint)</a><a href="#s5"><span class="sno">4.5</span>สคริปต์สร้างตารางของกรณีศึกษา</a><a href="#s6"><span class="sno">4.6</span>การแก้ไขและลบโครงสร้างตาราง</a><a href="#s7"><span class="sno">4.7</span>คำสั่งเพิ่มข้อมูล INSERT</a><a href="#s8"><span class="sno">4.8</span>คำสั่งแก้ไขข้อมูล UPDATE</a><a href="#s9"><span class="sno">4.9</span>คำสั่งลบข้อมูล DELETE</a><a href="#review"><span class="sno">✎</span>คำถามท้ายบท</a></div>
+<a href="05-select.html"><span class="no">05</span>การแสดงข้อมูลด้วยคำสั่ง SELECT</a>
+<a href="06-join.html"><span class="no">06</span>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 3 · ขั้นสูง</div>
+<a href="07-view.html"><span class="no">07</span>วิว (View)</a>
+<a href="08-index.html"><span class="no">08</span>ดัชนี (Index)</a>
+<a href="09-transaction.html"><span class="no">09</span>ทรานแซกชัน (Transaction)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม</div>
+<a href="10-security.html"><span class="no">10</span>ความปลอดภัยของฐานข้อมูล</a>
+<a href="11-stored-procedure.html"><span class="no">11</span>Stored Procedure &amp; Function</a>
+<a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
+<a href="appendix-a-script.html"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">ง</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+</div>
+  </nav>
+  <img src="icon/electricity.png" alt="" class="sidebar-img">
+</aside>
+<main class="content">
+<div class="page-head"><span class="kicker">CHAPTER 04 · สัปดาห์ที่ 4–5</span><h1>บทที่ 4 · ภาษา SQL: การสร้างตารางและคำสั่งจัดการข้อมูลพื้นฐาน</h1><p class="sub">ประเภทคำสั่ง SQL ชนิดข้อมูล CREATE TABLE ข้อกำหนดบังคับ คีย์นอก ALTER/DROP และ INSERT · UPDATE · DELETE</p></div>
+
+
+<div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
+<li>อธิบายประเภทของคำสั่ง SQL และเลือกชนิดข้อมูลได้เหมาะสม</li>
+<li>เขียน CREATE TABLE พร้อมข้อกำหนดบังคับ และอธิบายผลของคีย์นอก + ON DELETE ได้</li>
+<li>เขียน ALTER TABLE, DROP TABLE, TRUNCATE ได้</li>
+<li>เขียน INSERT, UPDATE, DELETE ได้อย่างถูกต้องและปลอดภัย</li>
+</ol></div>
+
+<div class="box tip"><div class="box-t">✅ ก่อนเริ่ม</div><p>สร้างตารางและข้อมูลกรณีศึกษาให้พร้อมก่อน โดยรันสคริปต์ใน <a href="appendix-a-script.html">ภาคผนวก ก</a> (หรือดาวน์โหลด <a href="prymania_DBLabScript.sql" download>prymania_DBLabScript.sql</a>) — ทุกตัวอย่างในบทนี้รันบนข้อมูลชุดนั้น <b>ผลลัพธ์ที่แสดงเป็นผลจริงจาก MySQL 8.4</b></p></div>
+
+<div class="pagetoc"><div class="pagetoc-t">📑 ในบทนี้</div><ul><li><a href="#s1">4.1  ความเป็นมาและประเภทของคำสั่ง SQL</a></li><li><a href="#s2">4.2  ชนิดข้อมูลใน MySQL</a></li><li><a href="#s3">4.3  การสร้างฐานข้อมูลและตาราง</a></li><li><a href="#s4">4.4  ข้อกำหนดบังคับ (Constraint)</a></li><li><a href="#s5">4.5  สคริปต์สร้างตารางของกรณีศึกษา</a></li><li><a href="#s6">4.6  การแก้ไขและลบโครงสร้างตาราง</a></li><li><a href="#s7">4.7  คำสั่งเพิ่มข้อมูล INSERT</a></li><li><a href="#s8">4.8  คำสั่งแก้ไขข้อมูล UPDATE</a></li><li><a href="#s9">4.9  คำสั่งลบข้อมูล DELETE</a></li></ul></div>
+
+<h2 id="s1"><span class="sec">4.1</span> ความเป็นมาและประเภทของคำสั่ง SQL</h2>
+<p><b>SQL (Structured Query Language)</b> พัฒนาที่ IBM ต้นทศวรรษ 1970 (ชื่อเดิม SEQUEL) เป็นมาตรฐาน ANSI (1986) และ ISO (1987) ล่าสุด ISO/IEC 9075:2023 — เป็น<b>ภาษาเชิงประกาศ (Declarative)</b> บอกแค่ “ต้องการอะไร” ไม่ต้องบอก “หาอย่างไร”</p>
+<figure class="shot"><img src="image/fig4-1.jpg" alt="ภาพที่ 4.1" loading="lazy"><figcaption><b>ภาพที่ 4.1</b> การแบ่งกลุ่มคำสั่ง SQL ตามหน้าที่</figcaption></figure>
+<table class="tbl"><tr><th>กลุ่ม</th><th>ชื่อเต็ม</th><th>คำสั่งหลัก</th><th>หน้าที่</th></tr>
+<tr><td><b>DDL</b></td><td>Data Definition Language</td><td>CREATE, ALTER, DROP, TRUNCATE</td><td>นิยาม/แก้โครงสร้าง</td></tr>
+<tr><td><b>DML</b></td><td>Data Manipulation Language</td><td>INSERT, UPDATE, DELETE</td><td>เพิ่ม แก้ ลบข้อมูล</td></tr>
+<tr><td><b>DQL</b></td><td>Data Query Language</td><td>SELECT</td><td>แสดงข้อมูล</td></tr>
+<tr><td><b>DCL</b></td><td>Data Control Language</td><td>GRANT, REVOKE</td><td>กำหนดสิทธิ์</td></tr>
+<tr><td><b>TCL</b></td><td>Transaction Control Language</td><td>COMMIT, ROLLBACK, SAVEPOINT</td><td>ควบคุมทรานแซกชัน</td></tr>
+</table>
+<div class="box note"><div class="box-t">📝 ข้อสังเกต</div><p>คำสั่ง SQL ไม่สนตัวพิมพ์เล็ก/ใหญ่ แต่<b>ชื่อตารางบน MySQL ลินุกซ์แยกตัวพิมพ์</b> (<code>student</code> ≠ <code>STUDENT</code>) — เซิร์ฟเวอร์ของมหาวิทยาลัยเป็นลินุกซ์ จึงควรพิมพ์ชื่อตารางเป็นตัวเล็กตามที่สร้างไว้เสมอ</p></div>
+
+<div class="ex" id="ex4.1"><div class="ex-head"><span class="ex-badge">ฝึก 4.1</span><span class="ex-title">คำสั่งนี้อยู่กลุ่มไหน</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จัดกลุ่ม:<br>(ก) <code>TRUNCATE TABLE enroll</code><br>(ข) <code>DELETE FROM enroll</code><br>(ค) <code>GRANT SELECT ...</code><br>(ง) <code>ROLLBACK</code><br>(จ) <code>ALTER TABLE student ADD ...</code></p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) DDL<br>(ข) DML<br>(ค) DCL<br>(ง) TCL<br>(จ) DDL — สังเกตว่า TRUNCATE เป็น DDL แม้จะลบข้อมูลเหมือน DELETE</p></div></div></div>
+
+<h2 id="s2"><span class="sec">4.2</span> ชนิดข้อมูลใน MySQL</h2>
+<table class="tbl"><tr><th>กลุ่ม</th><th>ชนิด</th><th>คำอธิบาย</th><th>ตัวอย่างในกรณีศึกษา</th></tr>
+<tr><td rowspan="3">จำนวนเต็ม</td><td>TINYINT</td><td>-128 ถึง 127 (1 ไบต์)</td><td>—</td></tr>
+<tr><td>INT</td><td>±2,147,483,647</td><td><code>credit</code>, <code>salary</code>, <code>secid</code></td></tr>
+<tr><td>BIGINT</td><td>8 ไบต์</td><td>—</td></tr>
+<tr><td rowspan="2">ทศนิยม</td><td>DECIMAL(p,s) / NUMERIC</td><td>ทศนิยมแบบตายตัว p หลักทั้งหมด s หลักหลังจุด</td><td><code>gpa numeric(3,2)</code></td></tr>
+<tr><td>FLOAT / DOUBLE</td><td>ทศนิยมลอยตัว คลาดเคลื่อนได้</td><td>—</td></tr>
+<tr><td rowspan="3">ข้อความ</td><td>CHAR(n)</td><td>ยาวคงที่</td><td><code>grade char</code> (= CHAR(1))</td></tr>
+<tr><td>VARCHAR(n)</td><td>ยาวไม่เกิน n ใช้เนื้อที่ตามจริง</td><td><code>name varchar(50)</code></td></tr>
+<tr><td>TEXT</td><td>ข้อความยาวมาก</td><td>—</td></tr>
+<tr><td rowspan="3">วันเวลา</td><td>DATE</td><td>YYYY-MM-DD</td><td><code>birthday</code></td></tr>
+<tr><td>DATETIME</td><td>YYYY-MM-DD HH:MM:SS</td><td>—</td></tr>
+<tr><td>TIMESTAMP</td><td>อ้างอิงเขตเวลา ปรับอัตโนมัติได้</td><td>—</td></tr>
+<tr><td rowspan="2">อื่น ๆ</td><td>BOOLEAN</td><td>เก็บเป็น TINYINT(1)</td><td>—</td></tr>
+<tr><td>ENUM('a','b')</td><td>เลือกได้ค่าเดียวจากรายการ</td><td>—</td></tr>
+</table>
+<div class="box warn"><div class="box-t">⚠️ ข้อควรระวัง</div><p>ใช้ <b>DECIMAL</b> แทน FLOAT สำหรับเกรดเฉลี่ยและจำนวนเงินเสมอ เพราะ FLOAT เก็บค่าโดยประมาณ ผลรวมอาจคลาดเคลื่อน</p></div>
+
+<div class="ex" id="ex4.2"><div class="ex-head"><span class="ex-badge">ฝึก 4.2</span><span class="ex-title">เลือกชนิดข้อมูล</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>เลือกชนิดข้อมูล<br>(ก) เลขบัตรประชาชน 13 หลัก<br>(ข) ราคาสินค้า<br>(ค) วันเวลาที่บันทึกรายการ<br>(ง) เพศ<br>(จ) รายละเอียดสินค้า</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <code>CHAR(13)</code> — ยาวคงที่ และไม่ใช้ตัวเลขเพราะไม่เอาไปคำนวณ และอาจขึ้นต้นด้วย 0<br>(ข) <code>DECIMAL(10,2)</code><br>(ค) <code>DATETIME</code> หรือ <code>TIMESTAMP</code><br>(ง) <code>ENUM('male','female','other')</code> หรือ <code>CHAR(1)</code> + CHECK<br>(จ) <code>TEXT</code></p></div></div></div>
+
+<h2 id="s3"><span class="sec">4.3</span> การสร้างฐานข้อมูลและตาราง</h2>
+<figure class="shot"><img src="image/fig4-2.jpg" alt="ภาพที่ 4.2" loading="lazy"><figcaption><b>ภาพที่ 4.2</b> ส่วนประกอบหลักของโปรแกรม DBeaver — Database Navigator (ซ้าย), SQL Editor (กลาง), Results/Statistics (ล่าง)</figcaption></figure>
+<div class="box note"><div class="box-t">📝 ก่อนรันคำสั่งใน DBeaver</div><p>ต้องเลือกฐานข้อมูลของตนเองก่อนเสมอ (คลิกขวา → <b>Set active</b> หรือเลือกจากช่องด้านบน SQL Editor) ไม่เช่นนั้นจะได้ error <code>No database selected</code> — รันคำสั่งด้วย <b>Ctrl+Enter</b> หรือรันทั้งสคริปต์ด้วย <b>Alt+X</b></p></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>สร้างฐานข้อมูล (เครื่องตัวเอง — บนเซิร์ฟเวอร์มหาวิทยาลัยอาจารย์สร้างให้แล้ว)</span></div><pre class="sql">CREATE DATABASE IF NOT EXISTS std_66011200
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE std_66011200;</pre></div>
+<p><code>utf8mb4</code> รองรับภาษาไทยและอิโมจิครบถ้วน รูปแบบทั่วไปของ CREATE TABLE:</p>
+<div class="code"><div class="code-head"><span>รูปแบบคำสั่ง</span></div><pre>CREATE TABLE ชื่อตาราง (
+    ชื่อคอลัมน์1   ชนิดข้อมูล   [ข้อกำหนดระดับคอลัมน์],
+    ชื่อคอลัมน์2   ชนิดข้อมูล   [ข้อกำหนดระดับคอลัมน์],
+    ...
+    [CONSTRAINT ชื่อข้อกำหนด  ข้อกำหนดระดับตาราง]
+);</pre></div>
+<p>ตาราง <code>student</code> ในสคริปต์กรณีศึกษา:</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>prymania_DBLabScript.sql · student</span></div><pre class="sql">create table student(
+    stdid     varchar(10),
+    name      varchar(50),
+    major     varchar(20),
+    gpa       numeric(3,2),
+    birthday  date,
+constraint std_pk   primary key (stdid),
+constraint std_gpa  check (gpa between 0.0 and 4.0));</pre></div>
+<p>ตรวจโครงสร้างที่สร้างแล้วด้วย <code>DESCRIBE</code></p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ดูโครงสร้างตาราง</span></div><pre class="sql">DESCRIBE student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>Field</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Extra</th></tr><tr><td>stdid</td><td>varchar(10)</td><td>NO</td><td>PRI</td><td class="null">NULL</td><td></td></tr><tr><td>name</td><td>varchar(50)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>major</td><td>varchar(20)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>gpa</td><td>decimal(3,2)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>birthday</td><td>date</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr></table></div>
+
+<div class="ex" id="ex4.3"><div class="ex-head"><span class="ex-badge">ฝึก 4.3</span><span class="ex-title">อ่านผล DESCRIBE</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จากผล DESCRIBE ข้างบน<br>(ก) ทำไมคอลัมน์ <code>stdid</code> มี Null = NO ทั้งที่ไม่ได้เขียน NOT NULL<br>(ข) <code>gpa</code> แสดงเป็นชนิดอะไร</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) เพราะเป็น <b>PRIMARY KEY</b> ซึ่งห้าม NULL โดยอัตโนมัติ (Entity Integrity)<br>(ข) <code>decimal(3,2)</code> — MySQL ถือว่า NUMERIC เป็นชื่อเดียวกับ DECIMAL</p></div></div></div>
+
+<h2 id="s4"><span class="sec">4.4</span> ข้อกำหนดบังคับ (Constraint)</h2>
+<p>กฎที่ DBMS ตรวจทุกครั้งที่เพิ่มหรือแก้ข้อมูล — บังคับใช้กับทุกช่องทาง จึงน่าเชื่อถือกว่าตรวจในโปรแกรม</p>
+<table class="tbl"><tr><th>ข้อกำหนด</th><th>ความหมาย</th><th>ตัวอย่าง</th></tr>
+<tr><td>PRIMARY KEY</td><td>ห้ามซ้ำ ห้าม NULL</td><td><code>constraint std_pk primary key (stdid)</code></td></tr>
+<tr><td>NOT NULL</td><td>ห้ามว่าง</td><td><code>name varchar(30) not null</code> (subject)</td></tr>
+<tr><td>UNIQUE</td><td>ห้ามซ้ำ (NULL ได้)</td><td><code>unique (subid, lecid, term)</code> (section)</td></tr>
+<tr><td>DEFAULT</td><td>ค่าปริยาย</td><td><code>credit int default 3</code></td></tr>
+<tr><td>CHECK</td><td>ตรวจเงื่อนไข</td><td><code>check (grade in ('A','B','C','D','F'))</code></td></tr>
+<tr><td>FOREIGN KEY</td><td>อ้างอิง PK ตารางอื่น</td><td><code>foreign key (subid) references subject(subid)</code></td></tr>
+<tr><td>AUTO_INCREMENT</td><td>รันเลขอัตโนมัติ</td><td><code>secid int auto_increment</code></td></tr>
+</table>
+<div class="box warn"><div class="box-t">⚠️ CHECK กับรุ่นของ MySQL</div><p>CHECK มีผลจริงตั้งแต่ <b>MySQL 8.0.16</b> รุ่นก่อนหน้ารับคำสั่งแต่ไม่ตรวจ — ตรวจรุ่นด้วย <code>SELECT VERSION();</code></p></div>
+
+<h3>4.4.1 คีย์นอกและการกระทำเมื่อข้อมูลต้นทางเปลี่ยน</h3>
+<table class="tbl"><tr><th>ตัวเลือก</th><th>เมื่อลบ/แก้ข้อมูลต้นทาง</th><th>เหมาะกับ</th></tr>
+<tr><td>RESTRICT (ค่าปริยาย)</td><td>ปฏิเสธ ถ้ายังมีข้อมูลอ้างอิง</td><td>ข้อมูลหลัก เช่น รายวิชา (<code>subject.pre</code>)</td></tr>
+<tr><td>CASCADE</td><td>ลบ/แก้ตามไปด้วย</td><td>ข้อมูลลูก เช่น การลงทะเบียน</td></tr>
+<tr><td>SET NULL</td><td>ตั้งค่า FK เป็น NULL</td><td>ความสัมพันธ์ไม่บังคับ เช่น อาจารย์ที่ปรึกษา</td></tr>
+<tr><td>NO ACTION</td><td>เหมือน RESTRICT ใน MySQL</td><td>ตามมาตรฐาน SQL</td></tr>
+</table>
+<p>ตาราง <code>section</code> และ <code>enroll</code> ในสคริปต์ของเรา:</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>prymania_DBLabScript.sql · section, enroll</span></div><pre class="sql">create table section(
+    secid  int AUTO_INCREMENT,
+    subid  varchar(10),
+    lecid  varchar(10),
+    term   varchar(6),
+constraint sec_pk     primary key (secid),
+constraint sec_fk_sub foreign key (subid) references subject(subid)  on delete cascade,
+constraint sec_fk_lec foreign key (lecid) references lecturer(lecid) on delete cascade,
+constraint sec_uk     unique (subid, lecid, term));
+
+create table enroll(
+    secid  int,
+    stdid  varchar(10),
+    grade  char,
+constraint enroll_pk     primary key (secid, stdid),
+constraint enroll_fk_sec foreign key (secid) references section(secid) on delete cascade,
+constraint enroll_fk_std foreign key (stdid) references student(stdid) on delete cascade,
+constraint enroll_grade  check (grade in (&#x27;A&#x27;, &#x27;B&#x27;, &#x27;C&#x27;, &#x27;D&#x27;, &#x27;F&#x27;)));</pre></div>
+<div class="box idea"><div class="box-t">💡 ลำดับการสร้าง/ลบตาราง</div><p>ต้องสร้างตารางที่<b>ถูกอ้างอิงก่อน</b>: student, subject, lecturer → section → enroll และลบในลำดับ<b>ย้อนกลับ</b>: enroll → section → lecturer, subject, student</p></div>
+
+<div class="ex" id="ex4.4"><div class="ex-head"><span class="ex-badge">ฝึก 4.4</span><span class="ex-title">เขียน CREATE TABLE เอง</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงสร้างตาราง <code>category(cid, cname)</code> และ <code>product</code> ที่มี <code>pid</code> (PK ตัวอักษร 8 ตัว), <code>pname</code> (ห้ามว่าง), <code>price</code> (ทศนิยม 2 ตำแหน่ง ต้องมากกว่า 0), <code>stock</code> (จำนวนเต็ม ค่าปริยาย 0), <code>cid</code> (FK → category, ห้ามลบหมวดที่ยังมีสินค้า) แล้วทดลองเพิ่มสินค้าราคา 0</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE category (
+    cid    INT PRIMARY KEY,
+    cname  VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE product (
+    pid    CHAR(8) PRIMARY KEY,
+    pname  VARCHAR(100) NOT NULL,
+    price  DECIMAL(10,2),
+    stock  INT DEFAULT 0,
+    cid    INT,
+    CONSTRAINT chk_price  CHECK (price &gt; 0),
+    CONSTRAINT fk_prod_cat FOREIGN KEY (cid) REFERENCES category(cid)
+        ON DELETE RESTRICT
+);</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ทดสอบ — ราคา 0 ต้องถูกปฏิเสธ</span></div><pre class="sql">INSERT INTO category VALUES (1, &#x27;Drink&#x27;);
+INSERT INTO product (pid, pname, price, cid) VALUES (&#x27;P0000001&#x27;, &#x27;Water&#x27;, 0, 1);</pre></div>
+<div class="run-err"><b>✖ Error Code: 3819.</b> Check constraint &#x27;chk_price&#x27; is violated.</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ทดสอบ — ไม่ระบุ stock ได้ค่าปริยาย 0</span></div><pre class="sql">INSERT INTO product (pid, pname, price, cid) VALUES (&#x27;P0000001&#x27;, &#x27;Water&#x27;, 7.00, 1);
+SELECT * FROM product;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>pid</th><th>pname</th><th>price</th><th>stock</th><th>cid</th></tr><tr><td>P0000001</td><td>Water</td><td>7.00</td><td>0</td><td>1</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ลบตารางทดลองทิ้ง (ลำดับย้อนกลับ)</span></div><pre class="sql">DROP TABLE product;
+DROP TABLE category;</pre></div></div></div></div>
+
+<h2 id="s5"><span class="sec">4.5</span> สคริปต์สร้างตารางของกรณีศึกษา</h2>
+<figure class="shot"><img src="image/fig2-28.jpg" alt="ภาพที่ 2.28" loading="lazy"><figcaption><b>ภาพที่ 2.28</b> แผนภาพ ER ของกรณีศึกษาระบบลงทะเบียนเรียน</figcaption></figure>
+<figure class="shot"><img src="image/fig4-4.jpg" alt="ภาพที่ 4.4" loading="lazy" style="max-width:640px"><figcaption><b>ภาพที่ 4.4</b> โครงสร้างตารางเชิงสัมพันธ์ที่ได้จากการแปลง</figcaption></figure>
+<p>สคริปต์ฉบับเต็มทั้ง CREATE และ INSERT อยู่ที่ <a href="appendix-a-script.html">ภาคผนวก ก</a> — ถ้าต้องการเริ่มใหม่ทั้งหมด ให้ลบตารางเดิมก่อนตามลำดับนี้</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ลบตารางทั้งหมด (ลำดับย้อนกลับ)</span></div><pre class="sql">drop table if exists enroll;
+drop table if exists section;
+drop table if exists subject;
+drop table if exists lecturer;
+drop table if exists student;</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตรวจว่ามีตารางอะไรบ้าง</span></div><pre class="sql">SHOW TABLES;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>Tables_in_zz_lecture_build</th></tr><tr><td>enroll</td></tr><tr><td>lecturer</td></tr><tr><td>section</td></tr><tr><td>student</td></tr><tr><td>subject</td></tr></table></div>
+
+<h2 id="s6"><span class="sec">4.6</span> การแก้ไขและลบโครงสร้างตาราง</h2>
+<h3>4.6.1 ALTER TABLE</h3>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เพิ่มคอลัมน์</span></div><pre class="sql">-- เพิ่มคอลัมน์ใหม่
+ALTER TABLE student ADD COLUMN email VARCHAR(60);
+
+-- เพิ่มหลายคอลัมน์พร้อมกัน
+ALTER TABLE student ADD COLUMN phone  VARCHAR(15),
+                    ADD COLUMN status VARCHAR(10) DEFAULT &#x27;active&#x27;;</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตรวจผล</span></div><pre class="sql">DESCRIBE student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (8 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>Field</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Extra</th></tr><tr><td>stdid</td><td>varchar(10)</td><td>NO</td><td>PRI</td><td class="null">NULL</td><td></td></tr><tr><td>name</td><td>varchar(50)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>major</td><td>varchar(20)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>gpa</td><td>decimal(3,2)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>birthday</td><td>date</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>email</td><td>varchar(60)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>phone</td><td>varchar(15)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>status</td><td>varchar(10)</td><td>YES</td><td></td><td>active</td><td></td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>แก้ไข / เปลี่ยนชื่อ / ลบคอลัมน์</span></div><pre class="sql">-- แก้ชนิดข้อมูลคอลัมน์เดิม
+ALTER TABLE student MODIFY COLUMN email VARCHAR(100);
+
+-- เปลี่ยนชื่อคอลัมน์ (ต้องระบุชนิดข้อมูลด้วย)
+ALTER TABLE student CHANGE COLUMN phone tel VARCHAR(15);
+
+-- เพิ่มข้อกำหนด UNIQUE
+ALTER TABLE student ADD CONSTRAINT uk_student_email UNIQUE (email);
+
+-- ลบคอลัมน์
+ALTER TABLE student DROP COLUMN status;</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตรวจผลอีกครั้ง</span></div><pre class="sql">DESCRIBE student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>Field</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Extra</th></tr><tr><td>stdid</td><td>varchar(10)</td><td>NO</td><td>PRI</td><td class="null">NULL</td><td></td></tr><tr><td>name</td><td>varchar(50)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>major</td><td>varchar(20)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>gpa</td><td>decimal(3,2)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>birthday</td><td>date</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>email</td><td>varchar(100)</td><td>YES</td><td>UNI</td><td class="null">NULL</td><td></td></tr><tr><td>tel</td><td>varchar(15)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr></table></div>
+<div class="box note"><div class="box-t">📝 เปลี่ยนชื่อตาราง</div><p><code>ALTER TABLE student RENAME TO student_2026;</code> — ระวัง! คำสั่งอื่นที่อ้างชื่อ student จะใช้ไม่ได้ทันที</p></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>คืนตาราง student กลับเหมือนเดิม</span></div><pre class="sql">ALTER TABLE student DROP INDEX uk_student_email;
+ALTER TABLE student DROP COLUMN email, DROP COLUMN tel;</pre></div>
+
+<h3>4.6.2 DROP TABLE และ TRUNCATE TABLE</h3>
+<table class="tbl"><tr><th>ประเด็น</th><th>DROP TABLE</th><th>TRUNCATE TABLE</th><th>DELETE FROM</th></tr>
+<tr><td>กลุ่มคำสั่ง</td><td>DDL</td><td>DDL</td><td>DML</td></tr>
+<tr><td>โครงสร้างตาราง</td><td>ถูกลบ</td><td>ยังอยู่</td><td>ยังอยู่</td></tr>
+<tr><td>ระบุเงื่อนไข</td><td>ไม่ได้</td><td>ไม่ได้</td><td>ได้ (WHERE)</td></tr>
+<tr><td>AUTO_INCREMENT</td><td>หายไปพร้อมตาราง</td><td>รีเซ็ต</td><td>ไม่รีเซ็ต</td></tr>
+<tr><td>ROLLBACK ได้</td><td>ไม่ได้</td><td>ไม่ได้</td><td>ได้</td></tr>
+<tr><td>ความเร็ว (ข้อมูลมาก)</td><td>เร็วที่สุด</td><td>เร็วมาก</td><td>ช้ากว่า</td></tr>
+</table>
+
+<div class="ex" id="ex4.5"><div class="ex-head"><span class="ex-badge">ฝึก 4.5</span><span class="ex-title">ALTER TABLE ตามโจทย์</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงเขียนคำสั่ง<br>(ก) เพิ่มคอลัมน์ <code>advisor_id</code> ในตาราง student<br>(ข) ให้ advisor_id เป็น FK อ้างอิง lecturer(lecid) โดยถ้าลบอาจารย์ให้ค่าเป็น NULL<br>(ค) ลบคอลัมน์ advisor_id ออก</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย (ก) + (ข)</span></div><pre class="sql">ALTER TABLE student ADD COLUMN advisor_id VARCHAR(10);
+
+ALTER TABLE student
+    ADD CONSTRAINT fk_std_advisor FOREIGN KEY (advisor_id)
+        REFERENCES lecturer(lecid) ON DELETE SET NULL;</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย (ค) — ต้องลบ FK ก่อน แล้วจึงลบคอลัมน์</span></div><pre class="sql">ALTER TABLE student DROP FOREIGN KEY fk_std_advisor;
+ALTER TABLE student DROP COLUMN advisor_id;</pre></div>
+<p>ถ้าลบคอลัมน์ทันทีโดยไม่ลบ FK ก่อน MySQL จะแจ้ง error เพราะคอลัมน์ยังถูกใช้ใน constraint</p></div></div></div>
+
+<h2 id="s7"><span class="sec">4.7</span> คำสั่งเพิ่มข้อมูล INSERT</h2>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>แบบที่ 1 ระบุชื่อคอลัมน์ (แนะนำ)</span></div><pre class="sql">INSERT INTO student (stdid, name, major, gpa, birthday)
+VALUES (&#x27;80001&#x27;, &#x27;Tanjiro&#x27;, &#x27;CS&#x27;, 3.20, &#x27;2008-07-14&#x27;);</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>80001</td><td>Tanjiro</td><td>CS</td><td>3.20</td><td>2008-07-14</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>แบบที่ 2 ไม่ระบุชื่อคอลัมน์ — ต้องใส่ครบทุกคอลัมน์ตามลำดับที่สร้าง</span></div><pre class="sql">INSERT INTO student
+VALUES (&#x27;80002&#x27;, &#x27;Nezuko&#x27;, &#x27;Art&#x27;, NULL, &#x27;2010-12-28&#x27;);</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<p>เพิ่มหลายแถวพร้อมกัน — เร็วกว่าสั่งทีละแถวมาก</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เพิ่มหลายแถว</span></div><pre class="sql">INSERT INTO lecturer (lecid, name, salary, major) VALUES
+    (&#x27;t17&#x27;, &#x27;Doraemon&#x27;, 45000, &#x27;CS&#x27;),
+    (&#x27;t18&#x27;, &#x27;Conan&#x27;,    52000, &#x27;Math&#x27;);</pre></div>
+<div class="run-msg">✔ Query OK · 2 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th><th>major</th></tr><tr><td>t17</td><td>Doraemon</td><td>45000</td><td>CS</td></tr><tr><td>t18</td><td>Conan</td><td>52000</td><td>Math</td></tr></table></div>
+<p>คอลัมน์ AUTO_INCREMENT ไม่ต้องระบุค่า ระบบสร้างให้ต่อจากเลขล่าสุด (52) — ดูเลขที่เพิ่งสร้างได้ด้วย <code>LAST_INSERT_ID()</code></p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>AUTO_INCREMENT</span></div><pre class="sql">INSERT INTO section (subid, lecid, term) VALUES (&#x27;CS004&#x27;, &#x27;t17&#x27;, &#x27;2026-1&#x27;);
+SELECT LAST_INSERT_ID();</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>LAST_INSERT_ID()</th></tr><tr><td>53</td></tr></table></div>
+<h3>ข้อผิดพลาดจากการละเมิดข้อกำหนด</h3>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>PK ซ้ำ</span></div><pre class="sql">INSERT INTO student VALUES (&#x27;60001&#x27;, &#x27;Rukawa2&#x27;, &#x27;CS&#x27;, 3.00, NULL);</pre></div>
+<div class="run-err"><b>✖ Error Code: 1062.</b> Duplicate entry &#x27;60001&#x27; for key &#x27;student.PRIMARY&#x27;</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>CHECK — gpa เกินขอบเขต</span></div><pre class="sql">INSERT INTO student (stdid, gpa) VALUES (&#x27;80003&#x27;, 5.00);</pre></div>
+<div class="run-err"><b>✖ Error Code: 3819.</b> Check constraint &#x27;std_gpa&#x27; is violated.</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>FK — ไม่มีรหัสวิชา CS999</span></div><pre class="sql">INSERT INTO section (subid, lecid, term) VALUES (&#x27;CS999&#x27;, &#x27;t01&#x27;, &#x27;2026-1&#x27;);</pre></div>
+<div class="run-err"><b>✖ Error Code: 1452.</b> Cannot add or update a child row: a foreign key constraint fails (`std_66011200`.`section`, CONSTRAINT `sec_fk_sub` FOREIGN KEY (`subid`) REFERENCES `subject` (`subid`) ON DELETE CASCADE)</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>CHECK — เกรด E ไม่อยู่ในรายการ</span></div><pre class="sql">INSERT INTO enroll VALUES (52, &#x27;60001&#x27;, &#x27;E&#x27;);</pre></div>
+<div class="run-err"><b>✖ Error Code: 3819.</b> Check constraint &#x27;enroll_grade&#x27; is violated.</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>NOT NULL — ชื่อวิชาห้ามว่าง</span></div><pre class="sql">INSERT INTO subject (subid, credit) VALUES (&#x27;CS011&#x27;, 3);</pre></div>
+<div class="run-err"><b>✖ Error Code: 1364.</b> Field &#x27;name&#x27; doesn&#x27;t have a default value</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>UNIQUE — เปิดกลุ่มซ้ำ (วิชา+อาจารย์+ภาคเดียวกัน)</span></div><pre class="sql">INSERT INTO section (subid, lecid, term) VALUES (&#x27;CS001&#x27;, &#x27;t01&#x27;, &#x27;2023-1&#x27;);</pre></div>
+<div class="run-err"><b>✖ Error Code: 1062.</b> Duplicate entry &#x27;CS001-t01-2023-1&#x27; for key &#x27;section.sec_uk&#x27;</div>
+
+<div class="ex" id="ex4.6"><div class="ex-head"><span class="ex-badge">ฝึก 4.6</span><span class="ex-title">เพิ่มรายวิชาใหม่ 3 วิชา</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงเพิ่ม CS011 Data Science 3 หน่วยกิต สาขา CS วิชาบังคับก่อน CS004 · CS012 Cloud Computing 3 หน่วยกิต สาขา CS ไม่มีวิชาบังคับก่อน · CS013 Cyber Security 2 หน่วยกิต สาขา CS วิชาบังคับก่อน CS001</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">INSERT INTO subject (subid, name, credit, major, pre) VALUES
+    (&#x27;CS011&#x27;, &#x27;Data Science&#x27;,    3, &#x27;CS&#x27;, &#x27;CS004&#x27;),
+    (&#x27;CS012&#x27;, &#x27;Cloud Computing&#x27;, 3, &#x27;CS&#x27;, NULL),
+    (&#x27;CS013&#x27;, &#x27;Cyber Security&#x27;,  2, &#x27;CS&#x27;, &#x27;CS001&#x27;);</pre></div>
+<div class="run-msg">✔ Query OK · 3 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>credit</th><th>major</th><th>pre</th></tr><tr><td>CS011</td><td>Data Science</td><td>3</td><td>CS</td><td>CS004</td></tr><tr><td>CS012</td><td>Cloud Computing</td><td>3</td><td>CS</td><td class="null">NULL</td></tr><tr><td>CS013</td><td>Cyber Security</td><td>2</td><td>CS</td><td>CS001</td></tr></table></div></div></div></div>
+
+<h2 id="s8"><span class="sec">4.8</span> คำสั่งแก้ไขข้อมูล UPDATE</h2>
+<div class="code"><div class="code-head"><span>รูปแบบคำสั่ง</span></div><pre>UPDATE ชื่อตาราง
+SET    คอลัมน์1 = ค่าใหม่1,
+       คอลัมน์2 = ค่าใหม่2
+WHERE  เงื่อนไข;</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 1 — ปรับ gpa ของนิสิต 60003</span></div><pre class="sql">UPDATE student
+SET    gpa = 2.10
+WHERE  stdid = &#x27;60003&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>gpa</th></tr><tr><td>60003</td><td>Mitsui</td><td>2.10</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 2 — ขึ้นเงินเดือนอาจารย์สาขา CS 10% (ใช้ค่าเดิมคำนวณ)</span></div><pre class="sql">UPDATE lecturer
+SET    salary = salary * 1.10
+WHERE  major = &#x27;CS&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 4 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th></tr><tr><td>t01</td><td>Peter Parker</td><td>44000</td></tr><tr><td>t02</td><td>Steve Roger</td><td>55000</td></tr><tr><td>t14</td><td>Yoda</td><td>88000</td></tr><tr><td>t17</td><td>Doraemon</td><td>49500</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 3 — แก้หลายคอลัมน์พร้อมกัน</span></div><pre class="sql">UPDATE student
+SET    major = &#x27;CS&#x27;,
+       gpa   = 3.25
+WHERE  stdid = &#x27;70033&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>70033</td><td>Zoro</td><td>CS</td><td>3.25</td><td>2012-02-29</td></tr></table></div>
+<div class="box warn"><div class="box-t">⚠️ ข้อควรระวังอย่างยิ่ง</div><p>UPDATE ที่<b>ลืม WHERE</b> จะแก้ข้อมูล<b>ทุกแถว</b> — วิธีป้องกัน: เขียน SELECT ด้วยเงื่อนไขเดียวกันดูก่อนเสมอ แล้วค่อยเปลี่ยนเป็น UPDATE</p></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 1 ตรวจก่อนว่าจะกระทบกี่แถว</span></div><pre class="sql">SELECT lecid, name, salary FROM lecturer WHERE salary &lt; 30000;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th></tr><tr><td>t06</td><td>Goku</td><td>20000</td></tr><tr><td>t07</td><td>Vegeta</td><td>25000</td></tr><tr><td>t10</td><td>Piccolo</td><td>15000</td></tr><tr><td>t15</td><td>Gohan</td><td>20000</td></tr></table></div>
+
+<div class="ex" id="ex4.7"><div class="ex-head"><span class="ex-badge">ฝึก 4.7</span><span class="ex-title">UPDATE ตามเงื่อนไข</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงขึ้นเงินเดือนอาจารย์ที่มีเงินเดือนต่ำกว่า 30,000 บาท คนละ 5,000 บาท แล้วแสดงผล</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">UPDATE lecturer
+SET    salary = salary + 5000
+WHERE  salary &lt; 30000;</pre></div>
+<div class="run-msg">✔ Query OK · 4 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th></tr><tr><td>t06</td><td>Goku</td><td>25000</td></tr><tr><td>t07</td><td>Vegeta</td><td>30000</td></tr><tr><td>t10</td><td>Piccolo</td><td>20000</td></tr><tr><td>t15</td><td>Gohan</td><td>25000</td></tr></table></div>
+<p>อาจารย์ที่ salary เป็น NULL (t11, t12, t16) ไม่ถูกปรับ เพราะ <code>NULL &lt; 30000</code> ไม่เป็นจริง</p></div></div></div>
+
+<h2 id="s9"><span class="sec">4.9</span> คำสั่งลบข้อมูล DELETE</h2>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ลบนิสิตที่เพิ่มในหัวข้อ 4.7</span></div><pre class="sql">DELETE FROM student WHERE stdid IN (&#x27;80001&#x27;, &#x27;80002&#x27;);</pre></div>
+<div class="run-msg">✔ Query OK · 2 row(s) affected</div>
+<h3>ผลต่อเนื่องของ ON DELETE CASCADE</h3>
+<p>ตาราง enroll มี <code>on delete cascade</code> อ้างอิง student — ลบนิสิต 1 คน การลงทะเบียนของคนนั้นหายตามไปด้วย</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ก่อนลบ — นิสิต 60001 ลงทะเบียนกี่รายการ</span></div><pre class="sql">SELECT COUNT(*) AS n_enroll_60001 FROM enroll WHERE stdid = &#x27;60001&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_enroll_60001</th></tr><tr><td>9</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ลบนิสิต 60001 แล้วนับใหม่ (ทดลองใน transaction แล้ว rollback)</span></div><pre class="sql">DELETE FROM student WHERE stdid = &#x27;60001&#x27;;
+SELECT COUNT(*) AS n_enroll_60001 FROM enroll WHERE stdid = &#x27;60001&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_enroll_60001</th></tr><tr><td>0</td></tr></table></div>
+<figure class="shot"><img src="image/fig4-5.jpg" alt="ภาพที่ 4.5" loading="lazy"><figcaption><b>ภาพที่ 4.5</b> ผลต่อเนื่องของการลบข้อมูลเมื่อกำหนด ON DELETE CASCADE</figcaption></figure>
+<p>แต่ <code>subject.pre</code> ไม่ได้กำหนด ON DELETE (= RESTRICT) — ลบวิชาที่เป็นวิชาบังคับก่อนของวิชาอื่นไม่ได้</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ลบ CS001 ซึ่งเป็น pre ของ CS002, CS003, CS004</span></div><pre class="sql">DELETE FROM subject WHERE subid = &#x27;CS001&#x27;;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1451.</b> Cannot delete or update a parent row: a foreign key constraint fails (`std_66011200`.`subject`, CONSTRAINT `sub_fk_pre` FOREIGN KEY (`pre`) REFERENCES `subject` (`subid`))</div>
+<table class="tbl"><tr><th>กรณี</th><th>ผลที่เกิดขึ้น</th></tr>
+<tr><td>ลบ student ที่มีการลงทะเบียน (CASCADE)</td><td>แถวใน enroll ของนิสิตคนนั้นถูกลบด้วย</td></tr>
+<tr><td>ลบ subject ที่เป็นวิชาบังคับก่อน (RESTRICT)</td><td>ระบบปฏิเสธ</td></tr>
+<tr><td>ลบ section ที่มีนิสิตลง (CASCADE)</td><td>แถวใน enroll ของกลุ่มนั้นถูกลบ</td></tr>
+<tr><td>ลบ lecturer ที่ยังมีกลุ่มเรียน (CASCADE)</td><td>section ถูกลบ และส่งผลต่อไปถึง enroll</td></tr>
+</table>
+<div class="box tip"><div class="box-t">✅ แนวปฏิบัติในงานจริง</div><p>ใช้ CASCADE อย่างระวัง ลบแถวเดียวอาจลบเป็นลูกโซ่ ระบบจริงหลายแห่งใช้ <b>Soft Delete</b> (เพิ่มคอลัมน์ เช่น <code>is_deleted</code>) แทนการลบจริง</p></div>
+
+<div class="ex" id="ex4.8"><div class="ex-head"><span class="ex-badge">ฝึก 4.8</span><span class="ex-title">ลบแล้วกระทบอะไร</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>จงเขียนคำสั่งลบกลุ่มเรียนทั้งหมดของภาคเรียน <code>2023-1</code> และอธิบายว่าส่งผลต่อตาราง enroll อย่างไร (ลองนับจำนวนแถวใน enroll ก่อนและหลัง)</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ก่อนลบ</span></div><pre class="sql">SELECT COUNT(*) AS enroll_rows FROM enroll;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>enroll_rows</th></tr><tr><td>100</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELETE FROM section WHERE term = &#x27;2023-1&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 5 row(s) affected</div>
+<div class="result-t">▸ หลังลบ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>enroll_rows</th></tr><tr><td>86</td></tr></table></div>
+<p>ลบ section ไป 5 กลุ่ม (secid 1–5) และเพราะ <code>enroll_fk_sec ... on delete cascade</code> การลงทะเบียนในกลุ่มเหล่านั้นถูกลบตามไปด้วย</p></div></div></div>
+
+<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
+<li class="part">ประเภทคำสั่งและชนิดข้อมูล</li>
+<li>จงอธิบายความแตกต่างระหว่าง DDL, DML, DQL, DCL และ TCL พร้อมยกตัวอย่างคำสั่งกลุ่มละ 2 คำสั่ง <span class="hint">(ตารางที่ 4.1)</span><div class="rv-ans"><ul><li><b>DDL</b> (นิยามโครงสร้าง) — CREATE TABLE, ALTER TABLE, DROP TABLE, TRUNCATE</li><li><b>DML</b> (จัดการข้อมูล) — INSERT, UPDATE, DELETE</li><li><b>DQL</b> (แสดงข้อมูล) — SELECT, SHOW / DESCRIBE</li><li><b>DCL</b> (ควบคุมสิทธิ์) — GRANT, REVOKE</li><li><b>TCL</b> (ควบคุมทรานแซกชัน) — START TRANSACTION, COMMIT, ROLLBACK, SAVEPOINT</li></ul></div></li>
+<li>จงเลือกชนิดข้อมูลที่เหมาะสม: เลขบัตรประชาชน, ราคาสินค้า, วันเวลาที่บันทึก, เพศ, รายละเอียดสินค้า, จำนวนหน่วยกิต <span class="hint">(CHAR / DECIMAL / DATETIME / ENUM / TEXT / TINYINT)</span><div class="rv-ans"><p>เลขบัตรประชาชน = <code>CHAR(13)</code> · ราคาสินค้า = <code>DECIMAL(10,2)</code> · วันเวลาที่บันทึก = <code>DATETIME</code> (หรือ TIMESTAMP) · เพศ = <code>ENUM('M','F','X')</code> หรือ <code>CHAR(1)</code> + CHECK · รายละเอียดสินค้า = <code>TEXT</code> · จำนวนหน่วยกิต = <code>TINYINT</code></p></div></li>
+<li>เหตุใดจึงควรใช้ DECIMAL แทน FLOAT สำหรับเกรดเฉลี่ยและจำนวนเงิน <span class="hint">(ค่าโดยประมาณ)</span><div class="rv-ans"><p>FLOAT/DOUBLE เก็บค่าแบบเลขฐานสองโดยประมาณ ทศนิยมบางค่า (เช่น 0.1) เก็บได้ไม่ตรง เมื่อบวกสะสมจะคลาดเคลื่อน ส่วน DECIMAL เก็บตัวเลขฐานสิบแบบ<b>ตรงทุกหลัก</b>ตามที่กำหนด จึงเหมาะกับเงินและเกรด</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT 0.1 + 0.2 = 0.3                                   AS decimal_equal,
+       CAST(0.1 AS DOUBLE) + CAST(0.2 AS DOUBLE) = 0.3   AS double_equal;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>decimal_equal</th><th>double_equal</th></tr><tr><td>1</td><td>0</td></tr></table></div></div></li>
+<li>CHAR(5) กับ VARCHAR(5) ต่างกันอย่างไร ถ้าเก็บรหัสนิสิต 5 หลักควรเลือกแบบใด <span class="hint">(ยาวคงที่)</span><div class="rv-ans"><p><code>CHAR(5)</code> ใช้พื้นที่คงที่ 5 ตัวอักษรเสมอ (เติมช่องว่างให้ครบ) ส่วน <code>VARCHAR(5)</code> ใช้พื้นที่ตามความยาวจริง + 1 ไบต์เก็บความยาว รหัสนิสิตยาว 5 หลักเท่ากันทุกคนจึงควรใช้ <b>CHAR(5)</b></p></div></li>
+<li class="part">CREATE TABLE (Lab 3)</li>
+<li>จงสร้างตาราง student โดย stdid CHAR(5) (PK ชื่อ std_pk), name VARCHAR(30), major CHAR(30), gpa NUMERIC(3,2) (CHECK 0.00–4.00 ชื่อ std_gpa), birthday DATE <span class="hint">(CONSTRAINT ชื่อ PRIMARY KEY)</span><div class="rv-ans"><p>เฉลยหมวด CREATE / ALTER / INSERT / UPDATE สร้างตารางตาม Lab 3 ใหม่ทั้งหมด จึงลบตารางของกรณีศึกษาเดิมก่อน</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ลบตารางเดิมของกรณีศึกษาก่อน (ลูกก่อนแม่)</span></div><pre class="sql">DROP TABLE IF EXISTS enroll, section, subject, lecturer, student;</pre></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE student (
+    stdid     CHAR(5),
+    name      VARCHAR(30),
+    major     CHAR(30),
+    gpa       NUMERIC(3,2),
+    birthday  DATE,
+    CONSTRAINT std_pk  PRIMARY KEY (stdid),
+    CONSTRAINT std_gpa CHECK (gpa BETWEEN 0.00 AND 4.00)
+);</pre></div></div></li>
+<li>จงสร้างตาราง subject (subid CHAR(5), name, credit, major, pre CHAR(5)) โดย pre อ้างอิง subject(subid) ชื่อ constraint sub_fk_pre <span class="hint">(FK อ้างอิงตัวเอง)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE subject (
+    subid   CHAR(5),
+    name    VARCHAR(30) NOT NULL,
+    credit  INT,
+    major   VARCHAR(20),
+    pre     CHAR(5),
+    CONSTRAINT sub_pk     PRIMARY KEY (subid),
+    CONSTRAINT sub_fk_pre FOREIGN KEY (pre) REFERENCES subject(subid)
+);</pre></div></div></li>
+<li>จงสร้างตาราง section ที่ secid เป็น AUTO_INCREMENT และมี <code>sec_uk UNIQUE (subid, lecid, term)</code> พร้อม FK ไปยัง subject และ lecturer <span class="hint">(AUTO_INCREMENT)</span><div class="rv-ans"><p>ต้องมีตาราง lecturer ก่อน (ข้อมูลอาจารย์ของ Lab 3 ใช้ในข้อ INSERT ถัดไป)</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตาราง lecturer</span></div><pre class="sql">CREATE TABLE lecturer (
+    lecid   VARCHAR(10) PRIMARY KEY,
+    name    VARCHAR(30),
+    salary  INT,
+    major   VARCHAR(30)
+);
+INSERT INTO lecturer VALUES
+    (&#x27;L01&#x27;, &#x27;Dumbledore&#x27;, 50000, &#x27;CS&#x27;),
+    (&#x27;L02&#x27;, &#x27;Juon&#x27;,       35000, &#x27;CS&#x27;),
+    (&#x27;L03&#x27;, &#x27;Peter&#x27;,      28000, &#x27;Thai&#x27;),
+    (&#x27;L04&#x27;, &#x27;Ryota&#x27;,      32000, &#x27;English&#x27;);</pre></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE section (
+    secid  INT AUTO_INCREMENT,
+    subid  CHAR(5),
+    lecid  VARCHAR(10),
+    term   VARCHAR(6),
+    CONSTRAINT sec_pk     PRIMARY KEY (secid),
+    CONSTRAINT sec_fk_sub FOREIGN KEY (subid) REFERENCES subject(subid)  ON DELETE CASCADE,
+    CONSTRAINT sec_fk_lec FOREIGN KEY (lecid) REFERENCES lecturer(lecid) ON DELETE CASCADE,
+    CONSTRAINT sec_uk     UNIQUE (subid, lecid, term)
+);</pre></div></div></li>
+<li>จงสร้างตาราง enroll ที่มี PK ผสม (secid, stdid) และ CHECK เกรดให้อยู่ใน A, B, C, D, F <span class="hint">(IN ('A','B','C','D','F'))</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE enroll (
+    secid  INT,
+    stdid  CHAR(5),
+    grade  CHAR(1),
+    CONSTRAINT enroll_pk     PRIMARY KEY (secid, stdid),
+    CONSTRAINT enroll_fk_sec FOREIGN KEY (secid) REFERENCES section(secid) ON DELETE CASCADE,
+    CONSTRAINT enroll_fk_std FOREIGN KEY (stdid) REFERENCES student(stdid) ON DELETE CASCADE,
+    CONSTRAINT enroll_grade  CHECK (grade IN (&#x27;A&#x27;, &#x27;B&#x27;, &#x27;C&#x27;, &#x27;D&#x27;, &#x27;F&#x27;))
+);</pre></div></div></li>
+<li>ถ้าต้องสร้างทั้ง 5 ตาราง ต้องสร้างตามลำดับใด และถ้าจะ DROP ทั้ง 5 ตาราง ต้องลบตามลำดับใด เพราะเหตุใด <span class="hint">(ตารางที่ถูกอ้างอิงก่อน)</span><div class="rv-ans"><p><b>สร้าง</b>: student, subject, lecturer (ไม่มี FK ไปตารางอื่น — ลำดับระหว่างสามตารางนี้สลับได้) → section (อ้าง subject, lecturer) → enroll (อ้าง section, student)</p><p><b>ลบ</b>: กลับลำดับ enroll → section → student, subject, lecturer เพราะ FK บังคับว่าตารางที่ถูกอ้างอิง (แม่) ต้องมีอยู่ก่อนตารางที่อ้างอิง (ลูก) และลบแม่ก่อนไม่ได้ขณะที่ลูกยังอ้างอยู่</p></div></li>
+<li>จงสร้างตาราง product ที่มี pid (PK 8 ตัวอักษร), pname (ห้ามว่าง), price (&gt; 0), stock (ค่าปริยาย 0) และ cid อ้างอิง category โดยห้ามลบหมวดที่ยังมีสินค้า <span class="hint">(ON DELETE RESTRICT)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE category (
+    cid    VARCHAR(5) PRIMARY KEY,
+    cname  VARCHAR(30) NOT NULL
+);
+CREATE TABLE product (
+    pid    CHAR(8)       PRIMARY KEY,
+    pname  VARCHAR(50)   NOT NULL,
+    price  DECIMAL(10,2) CHECK (price &gt; 0),
+    stock  INT           DEFAULT 0,
+    cid    VARCHAR(5),
+    CONSTRAINT prod_fk_cat FOREIGN KEY (cid) REFERENCES category(cid) ON DELETE RESTRICT
+);</pre></div></div></li>
+<li>จงอธิบายความแตกต่างของ ON DELETE CASCADE, SET NULL และ RESTRICT พร้อมยกตัวอย่างว่าคอลัมน์ใดในกรณีศึกษาควรใช้แบบใด <span class="hint">(ตารางที่ 4.4)</span><div class="rv-ans"><ul><li><b>CASCADE</b> — ลบแถวแม่แล้วลบแถวลูกตามอัตโนมัติ เช่น enroll.secid (ลบกลุ่มเรียน การลงทะเบียนของกลุ่มนั้นไม่มีความหมายแล้ว)</li><li><b>SET NULL</b> — ลบแถวแม่แล้วตั้ง FK ของลูกเป็น NULL เช่น subject.pre (ลบวิชาบังคับก่อน วิชาอื่นยังอยู่แต่ไม่มี pre) หรือ student.advisor_id</li><li><b>RESTRICT / NO ACTION</b> (ค่าปริยาย) — ไม่ยอมให้ลบแถวแม่ที่ยังมีลูกอ้างอยู่ เช่น section.lecid ในระบบจริงควรห้ามลบอาจารย์ที่มีประวัติการสอน เพื่อรักษาข้อมูลย้อนหลัง</li></ul></div></li>
+<li class="part">ALTER / DROP</li>
+<li>จงเขียนคำสั่ง<br>(ก) เพิ่มคอลัมน์ email ใน student<br>(ข) กำหนดให้ email ห้ามซ้ำ<br>(ค) ลบคอลัมน์ email <span class="hint">(ADD COLUMN / ADD CONSTRAINT UNIQUE)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">ALTER TABLE student ADD COLUMN email VARCHAR(60);              -- (ก)
+ALTER TABLE student ADD CONSTRAINT std_uk_email UNIQUE (email); -- (ข)
+ALTER TABLE student DROP COLUMN email;                          -- (ค) ดัชนี UNIQUE ถูกลบตามไปด้วย</pre></div></div></li>
+<li>จงเพิ่มคอลัมน์ advisor_id ใน student ให้เป็น FK อ้างอิง lecturer(lecid) โดยลบอาจารย์แล้วให้เป็น NULL จากนั้นลบคอลัมน์ออก <span class="hint">(ต้อง DROP FOREIGN KEY ก่อน)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">ALTER TABLE student ADD COLUMN advisor_id VARCHAR(10);
+ALTER TABLE student ADD CONSTRAINT std_fk_adv
+      FOREIGN KEY (advisor_id) REFERENCES lecturer(lecid) ON DELETE SET NULL;
+
+ALTER TABLE student DROP FOREIGN KEY std_fk_adv;   -- ต้องลบ FK ก่อน
+ALTER TABLE student DROP COLUMN advisor_id;</pre></div></div></li>
+<li>จงเปรียบเทียบ DROP TABLE, TRUNCATE TABLE และ DELETE FROM ในแง่โครงสร้าง เงื่อนไข AUTO_INCREMENT และ ROLLBACK <span class="hint">(ตารางที่ 4.5)</span><div class="rv-ans"><ul><li><b>DROP TABLE</b> — ลบทั้งโครงสร้างและข้อมูล ใช้เงื่อนไขไม่ได้ ROLLBACK ไม่ได้ (DDL)</li><li><b>TRUNCATE TABLE</b> — ลบข้อมูลทั้งหมดแต่เก็บโครงสร้าง ใช้ WHERE ไม่ได้ รีเซ็ต AUTO_INCREMENT กลับเป็น 1 ROLLBACK ไม่ได้ (DDL) เร็วมาก</li><li><b>DELETE FROM</b> — ลบเฉพาะแถวตาม WHERE ได้ โครงสร้างอยู่ AUTO_INCREMENT ไม่รีเซ็ต ROLLBACK ได้ (DML) ทำงานผ่าน FK/ทริกเกอร์ทีละแถว</li></ul></div></li>
+<li class="part">INSERT (Lab 3)</li>
+<li>จงเพิ่มนิสิต: 50001 Jim CS 3.25 2011-10-20 · 50002 Jack CS 2.25 2010-08-30 · 50003 Joe CS 3.00 2010-02-15 · 50004 Joy Thai (ไม่มี gpa และวันเกิด) · 50005 Jane MATH 2.78 2012-09-22 · 50006 Joey CS <span class="hint">(NULL)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">INSERT INTO student VALUES
+    (&#x27;50001&#x27;, &#x27;Jim&#x27;,  &#x27;CS&#x27;,   3.25, &#x27;2011-10-20&#x27;),
+    (&#x27;50002&#x27;, &#x27;Jack&#x27;, &#x27;CS&#x27;,   2.25, &#x27;2010-08-30&#x27;),
+    (&#x27;50003&#x27;, &#x27;Joe&#x27;,  &#x27;CS&#x27;,   3.00, &#x27;2010-02-15&#x27;),
+    (&#x27;50004&#x27;, &#x27;Joy&#x27;,  &#x27;Thai&#x27;, NULL, NULL),
+    (&#x27;50005&#x27;, &#x27;Jane&#x27;, &#x27;MATH&#x27;, 2.78, &#x27;2012-09-22&#x27;);
+INSERT INTO student (stdid, name, major) VALUES (&#x27;50006&#x27;, &#x27;Joey&#x27;, &#x27;CS&#x27;);</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>50001</td><td>Jim</td><td>CS</td><td>3.25</td><td>2011-10-20</td></tr><tr><td>50002</td><td>Jack</td><td>CS</td><td>2.25</td><td>2010-08-30</td></tr><tr><td>50003</td><td>Joe</td><td>CS</td><td>3.00</td><td>2010-02-15</td></tr><tr><td>50004</td><td>Joy</td><td>Thai</td><td class="null">NULL</td><td class="null">NULL</td></tr><tr><td>50005</td><td>Jane</td><td>MATH</td><td>2.78</td><td>2012-09-22</td></tr><tr><td>50006</td><td>Joey</td><td>CS</td><td class="null">NULL</td><td class="null">NULL</td></tr></table></div></div></li>
+<li>จงเพิ่มวิชา: CS001 Programming 3 หน่วยกิต ไม่มีวิชาเงื่อนไข · CS002 Java 3 (pre Programming) · CS003 Graphics 2 (pre Programming) · CS004 Database 3 (pre Java) · TH001 Thai Reading 3 · EN001 English 3 <span class="hint">(ต้องเพิ่มตามลำดับ pre)</span><div class="rv-ans"><p>ต้องเพิ่ม CS001 ก่อน CS002/CS003 และ CS002 ก่อน CS004 เพราะ pre เป็น FK อ้างอิงตารางเดียวกัน</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">INSERT INTO subject VALUES
+    (&#x27;CS001&#x27;, &#x27;Programming&#x27;,  3, &#x27;CS&#x27;,      NULL),
+    (&#x27;CS002&#x27;, &#x27;Java&#x27;,         3, &#x27;CS&#x27;,      &#x27;CS001&#x27;),
+    (&#x27;CS003&#x27;, &#x27;Graphics&#x27;,     2, &#x27;CS&#x27;,      &#x27;CS001&#x27;),
+    (&#x27;CS004&#x27;, &#x27;Database&#x27;,     3, &#x27;CS&#x27;,      &#x27;CS002&#x27;),
+    (&#x27;TH001&#x27;, &#x27;Thai Reading&#x27;, 3, &#x27;Thai&#x27;,    NULL),
+    (&#x27;EN001&#x27;, &#x27;English&#x27;,      3, &#x27;English&#x27;, NULL);</pre></div>
+<div class="run-msg">✔ Query OK · 6 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>credit</th><th>major</th><th>pre</th></tr><tr><td>CS001</td><td>Programming</td><td>3</td><td>CS</td><td class="null">NULL</td></tr><tr><td>CS002</td><td>Java</td><td>3</td><td>CS</td><td>CS001</td></tr><tr><td>CS003</td><td>Graphics</td><td>2</td><td>CS</td><td>CS001</td></tr><tr><td>CS004</td><td>Database</td><td>3</td><td>CS</td><td>CS002</td></tr><tr><td>EN001</td><td>English</td><td>3</td><td>English</td><td class="null">NULL</td></tr><tr><td>TH001</td><td>Thai Reading</td><td>3</td><td>Thai</td><td class="null">NULL</td></tr></table></div></div></li>
+<li>จงเพิ่มกลุ่มเรียน: Dumbledore สอน Programming 2025-1 · Dumbledore สอน Database 2025-3 · Juon สอน Database และ Graphics 2026-1 · Peter สอน Thai Reading 2026-1 · Ryota สอน English 2026-3 <span class="hint">(ไม่ต้องระบุ secid)</span><div class="rv-ans"><p>ไม่ระบุ secid — AUTO_INCREMENT กำหนดให้เป็น 1, 2, 3, … (รหัสอาจารย์ดูจากตาราง lecturer ที่สร้างไว้)</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">INSERT INTO section (subid, lecid, term) VALUES
+    (&#x27;CS001&#x27;, &#x27;L01&#x27;, &#x27;2025-1&#x27;),
+    (&#x27;CS004&#x27;, &#x27;L01&#x27;, &#x27;2025-3&#x27;),
+    (&#x27;CS004&#x27;, &#x27;L02&#x27;, &#x27;2026-1&#x27;),
+    (&#x27;CS003&#x27;, &#x27;L02&#x27;, &#x27;2026-1&#x27;),
+    (&#x27;TH001&#x27;, &#x27;L03&#x27;, &#x27;2026-1&#x27;),
+    (&#x27;EN001&#x27;, &#x27;L04&#x27;, &#x27;2026-3&#x27;);</pre></div>
+<div class="run-msg">✔ Query OK · 6 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>subid</th><th>lecid</th><th>term</th></tr><tr><td>1</td><td>CS001</td><td>L01</td><td>2025-1</td></tr><tr><td>4</td><td>CS003</td><td>L02</td><td>2026-1</td></tr><tr><td>2</td><td>CS004</td><td>L01</td><td>2025-3</td></tr><tr><td>3</td><td>CS004</td><td>L02</td><td>2026-1</td></tr><tr><td>6</td><td>EN001</td><td>L04</td><td>2026-3</td></tr><tr><td>5</td><td>TH001</td><td>L03</td><td>2026-1</td></tr></table></div></div></li>
+<li>นิสิต 50001 ลงทะเบียน section 1 ได้เกรด C แล้วลงซ้ำ section 1 ได้เกรด B จะเกิดอะไรขึ้น เพราะเหตุใด <span class="hint">(Duplicate entry)</span><div class="rv-ans"><p>คำสั่งแรกสำเร็จ คำสั่งที่สองเกิด <b>Error 1062 Duplicate entry</b> เพราะ (secid, stdid) = (1, '50001') ซ้ำกับ PK ที่มีอยู่ — ถ้าต้องการเปลี่ยนเกรดต้องใช้ UPDATE</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">INSERT INTO enroll VALUES (1, &#x27;50001&#x27;, &#x27;C&#x27;);</pre></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">INSERT INTO enroll VALUES (1, &#x27;50001&#x27;, &#x27;B&#x27;);</pre></div>
+<div class="run-err"><b>✖ Error Code: 1062.</b> Duplicate entry &#x27;1-50001&#x27; for key &#x27;enroll.PRIMARY&#x27;</div></div></li>
+<li>Joy ลงทะเบียน Database เทอม 2026-1 ยังไม่รู้เกรด จงเขียนคำสั่ง INSERT โดยไม่พิมพ์ secid เอง <span class="hint">(INSERT … SELECT secid FROM section WHERE …)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">INSERT INTO enroll (secid, stdid)
+SELECT secid, &#x27;50004&#x27;
+FROM   section
+WHERE  subid = &#x27;CS004&#x27; AND term = &#x27;2026-1&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>stdid</th><th>grade</th></tr><tr><td>1</td><td>50001</td><td>C</td></tr><tr><td>3</td><td>50004</td><td class="null">NULL</td></tr></table></div></div></li>
+<li class="part">UPDATE / DELETE (Lab 3)</li>
+<li>จงเขียนคำสั่ง: นิสิต 50001 เปลี่ยนชื่อเป็น Jimmy · นิสิต 50003 ได้ gpa เพิ่ม 0.25 · อาจารย์ Peter ได้เงินเดือนเพิ่ม 5000 · Dumbledore ได้เงินเดือนเพิ่ม 10% <span class="hint">(SET col = col + …)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">UPDATE student  SET name   = &#x27;Jimmy&#x27;        WHERE stdid = &#x27;50001&#x27;;
+UPDATE student  SET gpa    = gpa + 0.25     WHERE stdid = &#x27;50003&#x27;;
+UPDATE lecturer SET salary = salary + 5000  WHERE name  = &#x27;Peter&#x27;;
+UPDATE lecturer SET salary = salary * 1.10  WHERE name  = &#x27;Dumbledore&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th><th>major</th></tr><tr><td>L01</td><td>Dumbledore</td><td>55000</td><td>CS</td></tr><tr><td>L02</td><td>Juon</td><td>35000</td><td>CS</td></tr><tr><td>L03</td><td>Peter</td><td>33000</td><td>Thai</td></tr><tr><td>L04</td><td>Ryota</td><td>32000</td><td>English</td></tr></table></div></div></li>
+<li>นิสิตทุกคนที่เรียน section 1 ได้เกรดเป็น A จงเขียนคำสั่ง และระบุว่าต้องตรวจอะไรก่อนรัน <span class="hint">(SELECT ด้วยเงื่อนไขเดียวกันก่อน)</span><div class="rv-ans"><p>ตรวจก่อนด้วย SELECT ที่ใช้ WHERE เดียวกัน ว่าแถวที่จะถูกแก้ถูกต้องและจำนวนตรงตามที่คาด แล้วจึง UPDATE</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT * FROM enroll WHERE secid = 1;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>stdid</th><th>grade</th></tr><tr><td>1</td><td>50001</td><td>C</td></tr></table></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">UPDATE enroll SET grade = &#x27;A&#x27; WHERE secid = 1;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>stdid</th><th>grade</th></tr><tr><td>1</td><td>50001</td><td>A</td></tr></table></div></div></li>
+<li>จงเขียนคำสั่ง<br>(ก) ลบวิชา CS004<br>(ข) ลบ section รหัส 3<br>(ค) ลบอาจารย์ t04 แล้วอธิบายผลต่อตารางอื่นในกรณีศึกษา <span class="hint">(CASCADE / RESTRICT)</span><div class="rv-ans"><p>ข้อนี้และข้อถัดไปใช้ฐานข้อมูลกรณีศึกษา (โหลดใหม่)</p><p>(ก) <b>ลบไม่ได้</b> — CS004 เป็นวิชาบังคับก่อนของ CS009 และ CS010 ซึ่ง sub_fk_pre ไม่ได้กำหนด ON DELETE จึงเป็น RESTRICT (Error 1451)</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELETE FROM subject WHERE subid = &#x27;CS004&#x27;;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1451.</b> Cannot delete or update a parent row: a foreign key constraint fails (`std_66011200`.`subject`, CONSTRAINT `sub_fk_pre` FOREIGN KEY (`pre`) REFERENCES `subject` (`subid`))</div><p>(ข) ลบได้ — แถวใน enroll ของ section 3 ถูกลบตามด้วย CASCADE</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELETE FROM section WHERE secid = 3;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>enroll_left_in_sec3</th></tr><tr><td>0</td></tr></table></div><p>(ค) ลบได้ — section ทุกกลุ่มของ t04 ถูกลบ (CASCADE) และ enroll ของกลุ่มเหล่านั้นถูกลบต่อเป็นทอด ๆ</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELETE FROM lecturer WHERE lecid = &#x27;t04&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_section</th><th>n_enroll</th></tr><tr><td>48</td><td>95</td></tr></table></div></div></li>
+<li>ในฐานข้อมูลกรณีศึกษา ถ้าสั่ง <code>DELETE FROM subject WHERE subid = 'CS001';</code> จะเกิดอะไรขึ้น เพราะเหตุใด <span class="hint">(sub_fk_pre)</span><div class="rv-ans"><p>เกิด <b>Error 1451</b> ลบไม่ได้ เพราะ CS001 เป็นวิชาบังคับก่อน (pre) ของ CS002, CS003, CS004 — FK sub_fk_pre ไม่ได้กำหนด ON DELETE จึงห้ามลบแถวแม่ที่ยังถูกอ้างอิง</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELETE FROM subject WHERE subid = &#x27;CS001&#x27;;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1451.</b> Cannot delete or update a parent row: a foreign key constraint fails (`std_66011200`.`subject`, CONSTRAINT `sub_fk_pre` FOREIGN KEY (`pre`) REFERENCES `subject` (`subid`))</div></div></li>
+<li>ถ้าลบอาจารย์ t01 ออกจากฐานข้อมูลกรณีศึกษา จะมีกี่แถวใน section และ enroll ที่ถูกลบตามไปด้วย จงเขียนคำสั่งตรวจสอบก่อนลบ <span class="hint">(COUNT(*) + JOIN)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT (SELECT COUNT(*) FROM section WHERE lecid = &#x27;t01&#x27;)        AS section_rows,
+       (SELECT COUNT(*)
+        FROM   enroll e
+               JOIN section sec ON e.secid = sec.secid
+        WHERE  sec.lecid = &#x27;t01&#x27;)                                 AS enroll_rows;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>section_rows</th><th>enroll_rows</th></tr><tr><td>14</td><td>37</td></tr></table></div></div></li>
+<li>จงเขียนคำสั่ง UPDATE ที่ลืมใส่ WHERE แล้วอธิบายผลที่เกิดขึ้น และวิธีป้องกัน 2 วิธี <span class="hint">(SELECT ก่อน / START TRANSACTION)</span><div class="rv-ans"><p>คำสั่งด้านล่างตั้งใจขึ้นเงินเดือนให้ t01 คนเดียว แต่ลืม WHERE — <b>อาจารย์ทุกคน</b>ได้เงินเดือน 60000 เท่ากันหมด</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">UPDATE lecturer SET salary = 60000;</pre></div>
+<div class="run-msg">✔ Query OK · 14 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th></tr><tr><td>t01</td><td>Peter Parker</td><td>60000</td></tr><tr><td>t02</td><td>Steve Roger</td><td>60000</td></tr><tr><td>t03</td><td>Yoda</td><td>60000</td></tr><tr><td>t04</td><td>Post Malone</td><td>60000</td></tr><tr><td>t05</td><td>IronMan</td><td>60000</td></tr></table></div><ul><li>วิธีที่ 1: เขียน <code>SELECT … WHERE …</code> ตรวจแถวเป้าหมายก่อน แล้วค่อยเปลี่ยนเป็น UPDATE โดยใช้ WHERE เดิม</li><li>วิธีที่ 2: ทำใน <code>START TRANSACTION</code> ตรวจผล แล้วจึง COMMIT หรือ ROLLBACK ถ้าผิด</li><li>(เพิ่มเติม) เปิด <code>SET SQL_SAFE_UPDATES = 1</code> ให้ MySQL ปฏิเสธ UPDATE/DELETE ที่ไม่มี WHERE บนคีย์</li></ul></div></li>
+<li>ทดลองรันคำสั่งที่ผิดพลาดในหัวข้อ 4.7 บน DBeaver บันทึก Error Code ที่ได้ และอธิบายความหมาย <span class="hint">(1062, 3819, 1452, 1364)</span><div class="rv-ans"><ul><li><b>1062 Duplicate entry</b> — ค่า PK หรือ UNIQUE ซ้ำ</li><li><b>3819 Check constraint is violated</b> — ค่าไม่ผ่าน CHECK เช่น gpa = 4.50 หรือเกรด 'Z'</li><li><b>1452 Cannot add or update a child row</b> — ค่า FK ไม่มีในตารางแม่</li><li><b>1364 Field doesn't have a default value</b> — ไม่ได้ใส่ค่าให้คอลัมน์ NOT NULL ที่ไม่มีค่าปริยาย</li><li>(พบบ่อยเช่นกัน) <b>1451 Cannot delete or update a parent row</b> — ลบแถวแม่ที่ยังมีลูกอ้างอิง</li></ul></div></li>
+</ol></div>
+
+<div class="pager"><a class="pg" href="03-relational-normalization.html">← 03 · แปลง ER เป็นตาราง &amp; Normalization</a><a class="pg next" href="05-select.html">05 · การแสดงข้อมูลด้วยคำสั่ง SELECT →</a></div>
+<footer>Lecture Note · 1204202 การออกแบบและการจัดการฐานข้อมูล · อ.ดร.พรทิวา ปะวะระ · ภาควิชาวิทยาการคอมพิวเตอร์ คณะวิทยาการสารสนเทศ มหาวิทยาลัยมหาสารคาม</footer>
+</main>
+<script src="assets/password.js"></script>
+<script src="assets/nav.js"></script>
+</body>
+</html>

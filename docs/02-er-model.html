@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 2 · แบบจำลองความสัมพันธ์ระหว่างข้อมูล (ER Model) — Database Lecture Note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
+  <nav>
+<div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
+<a href="index.html"><span class="no">🏠</span>หน้าแรก / ภาพรวม</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 1 · ออกแบบฐานข้อมูล</div>
+<a href="01-intro.html"><span class="no">01</span>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</a>
+<a href="02-er-model.html" class="active"><span class="no">02</span>แบบจำลอง ER</a>
+<div class="subnav"><a href="#s1"><span class="sno">2.1</span>ความหมายและความสำคัญของแบบจำลองข้อมูล</a><a href="#s2"><span class="sno">2.2</span>สัญลักษณ์พื้นฐานของแผนภาพ ER</a><a href="#s3"><span class="sno">2.3</span>เอนทิตี</a><a href="#s4"><span class="sno">2.4</span>แอตทริบิวต์</a><a href="#s5"><span class="sno">2.5</span>ความสัมพันธ์</a><a href="#s6"><span class="sno">2.6</span>ขั้นตอนการเขียนแผนภาพ ER จากโจทย์</a><a href="#s7"><span class="sno">2.7</span>กรณีศึกษา: ระบบลงทะเบียนเรียน</a><a href="#s8"><span class="sno">2.8</span>ข้อผิดพลาดที่พบบ่อยในการเขียนแผนภาพ ER</a><a href="#review"><span class="sno">✎</span>คำถามท้ายบท</a></div>
+<a href="03-relational-normalization.html"><span class="no">03</span>แปลง ER เป็นตาราง &amp; Normalization</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 2 · ภาษา SQL</div>
+<a href="04-sql-ddl-dml.html"><span class="no">04</span>สร้างตาราง &amp; INSERT/UPDATE/DELETE</a>
+<a href="05-select.html"><span class="no">05</span>การแสดงข้อมูลด้วยคำสั่ง SELECT</a>
+<a href="06-join.html"><span class="no">06</span>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 3 · ขั้นสูง</div>
+<a href="07-view.html"><span class="no">07</span>วิว (View)</a>
+<a href="08-index.html"><span class="no">08</span>ดัชนี (Index)</a>
+<a href="09-transaction.html"><span class="no">09</span>ทรานแซกชัน (Transaction)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม</div>
+<a href="10-security.html"><span class="no">10</span>ความปลอดภัยของฐานข้อมูล</a>
+<a href="11-stored-procedure.html"><span class="no">11</span>Stored Procedure &amp; Function</a>
+<a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
+<a href="appendix-a-script.html"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">ง</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+</div>
+  </nav>
+  <img src="icon/worker.png" alt="" class="sidebar-img">
+</aside>
+<main class="content">
+<div class="page-head"><span class="kicker">CHAPTER 02 · สัปดาห์ที่ 2–3</span><h1>บทที่ 2 · แบบจำลองความสัมพันธ์ระหว่างข้อมูล (ER Model)</h1><p class="sub">เอนทิตี แอตทริบิวต์ ความสัมพันธ์ ภาวะความสัมพันธ์ และขั้นตอนการเขียนแผนภาพ ER จากโจทย์</p></div>
+
+
+<div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
+<li>อธิบายความหมายและความสำคัญของแบบจำลองข้อมูลได้</li>
+<li>อธิบายสัญลักษณ์ในแผนภาพ ER แบบเชน (Chen Notation) ได้ถูกต้อง</li>
+<li>แยกแยะเอนทิตีปกติกับเอนทิตีอ่อนแอ และจำแนกประเภทแอตทริบิวต์ได้</li>
+<li>ระบุระดับความสัมพันธ์และภาวะความสัมพันธ์ (1:1, 1:M, M:N) ได้</li>
+<li>เขียนแผนภาพ ER จากโจทย์ และตรวจหาข้อผิดพลาดที่พบบ่อยได้</li>
+</ol></div>
+
+<div class="pagetoc"><div class="pagetoc-t">📑 ในบทนี้</div><ul><li><a href="#s1">2.1  ความหมายและความสำคัญของแบบจำลองข้อมูล</a></li><li><a href="#s2">2.2  สัญลักษณ์พื้นฐานของแผนภาพ ER</a></li><li><a href="#s3">2.3  เอนทิตี</a></li><li><a href="#s4">2.4  แอตทริบิวต์</a></li><li><a href="#s5">2.5  ความสัมพันธ์</a></li><li><a href="#s6">2.6  ขั้นตอนการเขียนแผนภาพ ER จากโจทย์</a></li><li><a href="#s7">2.7  กรณีศึกษา: ระบบลงทะเบียนเรียน</a></li><li><a href="#s8">2.8  ข้อผิดพลาดที่พบบ่อยในการเขียนแผนภาพ ER</a></li></ul></div>
+
+<h2 id="s1"><span class="sec">2.1</span> ความหมายและความสำคัญของแบบจำลองข้อมูล</h2>
+<p>ก่อนสร้างตารางจริง ต้องเข้าใจก่อนว่าองค์กรต้องเก็บข้อมูลอะไร และข้อมูลสัมพันธ์กันอย่างไร การออกแบบนิยมแบ่งแบบจำลองเป็น 3 ระดับ</p>
+<div class="flow">
+<div class="st">Conceptual<small>แผนภาพ ER (บทนี้)</small></div><span class="ar">→</span>
+<div class="st">Logical<small>ตารางเชิงสัมพันธ์ (บทที่ 3)</small></div><span class="ar">→</span>
+<div class="st">Physical<small>CREATE TABLE ชนิดข้อมูล ดัชนี (บทที่ 4)</small></div>
+</div>
+<p>ประโยชน์ของการเขียนแบบจำลองก่อน: ผู้พัฒนากับผู้ใช้สื่อสารตรงกัน · พบความต้องการที่ขาดหายตั้งแต่ต้น · ลดต้นทุนแก้ไขภายหลัง · ได้ตารางที่ซ้ำซ้อนต่ำ</p>
+
+<h2 id="s2"><span class="sec">2.2</span> สัญลักษณ์พื้นฐานของแผนภาพ ER</h2>
+<p>แผนภาพ ER (Entity Relationship Diagram) เสนอโดย <b>Peter Chen (1976)</b> เอกสารนี้ใช้สัญลักษณ์แบบเชน</p>
+<table class="tbl"><tr><th>สัญลักษณ์</th><th>ชื่อ</th><th>ความหมาย</th></tr>
+<tr><td>▭ สี่เหลี่ยมผืนผ้า</td><td>Entity</td><td>สิ่งที่ต้องเก็บข้อมูล เช่น นิสิต รายวิชา</td></tr>
+<tr><td>▭▭ สี่เหลี่ยมสองชั้น</td><td>Weak Entity</td><td>ต้องอาศัยเอนทิตีอื่นจึงระบุตัวตนได้</td></tr>
+<tr><td>⬭ วงรี</td><td>Attribute</td><td>คุณสมบัติของเอนทิตี</td></tr>
+<tr><td>⬭ วงรี + <u>ขีดเส้นใต้</u></td><td>Key Attribute</td><td>ระบุตัวตนของสมาชิกแต่ละรายได้</td></tr>
+<tr><td>◎ วงรีสองชั้น</td><td>Multivalued Attribute</td><td>มีได้หลายค่า</td></tr>
+<tr><td>⬭ วงรีเส้นประ</td><td>Derived Attribute</td><td>คำนวณจากแอตทริบิวต์อื่น เช่น อายุ</td></tr>
+<tr><td>◇ ข้าวหลามตัด</td><td>Relationship</td><td>ความเกี่ยวข้องระหว่างเอนทิตี</td></tr>
+<tr><td>═ เส้นคู่</td><td>Total Participation</td><td>สมาชิกทุกรายต้องมีส่วนร่วมในความสัมพันธ์</td></tr>
+</table>
+<div class="box note"><div class="box-t">📝 ข้อสังเกต</div><p>นอกจากแบบเชนยังมี <b>Crow's Foot</b> (draw.io, Lucidchart ใช้เป็นค่าเริ่มต้น) และ <b>IDEF1X</b> (DBeaver ใช้) — สื่อความหมายเดียวกัน ต่างแค่รูปแบบการวาด ควรอ่านได้ทุกแบบ</p></div>
+
+<h2 id="s3"><span class="sec">2.3</span> เอนทิตี</h2>
+<p><span class="term">เอนทิตี (Entity)</span> คือสิ่งที่องค์กรสนใจเก็บข้อมูล อาจจับต้องได้ (นิสิต อาจารย์) หรือเป็นแนวคิด (รายวิชา การลงทะเบียน) ตั้งชื่อด้วย<b>คำนามเอกพจน์</b></p>
+<figure class="shot"><img src="image/fig2-1.jpg" alt="ภาพที่ 2.1" loading="lazy" style="max-width:160px"><figcaption><b>ภาพที่ 2.1</b> ตัวอย่างสัญลักษณ์เอนทิตี</figcaption></figure>
+<p><span class="term">เอนทิตีอ่อนแอ (Weak Entity)</span> ระบุตัวตนด้วยตนเองไม่ได้ ต้องอาศัย <b>เอนทิตีเจ้าของ (Owner Entity)</b> เช่น ที่นั่ง A1 — ทุกโรงภาพยนตร์ก็มี A1 จึงต้องระบุชื่อโรงด้วย</p>
+<figure class="shot"><img src="image/fig2-2.jpg" alt="ภาพที่ 2.2" loading="lazy" style="max-width:160px"><figcaption><b>ภาพที่ 2.2</b> ตัวอย่างเอนทิตีอ่อนแอ</figcaption></figure>
+<div class="box tip"><div class="box-t">✅ หลักการสังเกต</div><p>ถามว่า “<b>ถ้าลบเอนทิตีเจ้าของทิ้ง ข้อมูลนี้ยังมีความหมายอยู่หรือไม่</b>” — ถ้าไม่มีความหมาย แสดงว่าเป็นเอนทิตีอ่อนแอ</p></div>
+
+<div class="ex" id="ex2.1"><div class="ex-head"><span class="ex-badge">ฝึก 2.1</span><span class="ex-title">เอนทิตีปกติหรืออ่อนแอ</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงระบุว่าข้อใดเหมาะเป็นเอนทิตีอ่อนแอ พร้อมระบุเอนทิตีเจ้าของ<br>(ก) ห้องพักในโรงแรม<br>(ข) ลูกค้า<br>(ค) รายการสินค้าในใบสั่งซื้อ<br>(ง) ผู้อยู่ในอุปการะของพนักงาน (Dependent)</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) อ่อนแอ — เจ้าของคือ <b>โรงแรม</b> (ห้อง 101 มีทุกโรงแรม)<br>(ข) ปกติ<br>(ค) อ่อนแอ — เจ้าของคือ <b>ใบสั่งซื้อ</b> (รายการที่ 1, 2, 3 ของใบไหน)<br>(ง) อ่อนแอ — เจ้าของคือ <b>พนักงาน</b> (ถ้าพนักงานลาออก ข้อมูลผู้อยู่ในอุปการะก็ไม่มีความหมาย)</p></div></div></div>
+
+<h2 id="s4"><span class="sec">2.4</span> แอตทริบิวต์</h2>
+<figure class="shot"><img src="image/fig2-3.jpg" alt="ภาพที่ 2.3" loading="lazy" style="max-width:200px"><figcaption><b>ภาพที่ 2.3</b> สัญลักษณ์แอตทริบิวต์ทั่วไปและแอตทริบิวต์พหุค่า</figcaption></figure>
+<table class="tbl"><tr><th>ประเภท</th><th>ความหมาย</th><th>ตัวอย่าง</th></tr>
+<tr><td>Simple</td><td>แบ่งย่อยไม่ได้</td><td>เพศ, gpa</td></tr>
+<tr><td>Key</td><td>ค่าไม่ซ้ำ ใช้ระบุตัวตน</td><td>stdid, เลขบัตรประชาชน</td></tr>
+<tr><td>Composite</td><td>แบ่งย่อยได้</td><td>ที่อยู่ → บ้านเลขที่ ถนน จังหวัด</td></tr>
+<tr><td>Multivalued</td><td>1 สมาชิกมีหลายค่า</td><td>เบอร์โทร, ทักษะ</td></tr>
+<tr><td>Derived</td><td>คำนวณได้ ไม่ต้องเก็บ</td><td>อายุ (จาก birthday)</td></tr>
+<tr><td>Nullable</td><td>ยอมให้ยังไม่มีค่า</td><td>วันที่สำเร็จการศึกษา, เกรดที่ยังไม่ประกาศ</td></tr>
+</table>
+
+<h3>2.4.1 Key Attribute</h3>
+<p>ขีดเส้นใต้ชื่อแอตทริบิวต์</p>
+<figure class="shot"><img src="image/fig2-5.jpg" alt="ภาพที่ 2.5" loading="lazy" style="max-width:340px"><figcaption><b>ภาพที่ 2.5</b> เอนทิตีนิสิตพร้อมแอตทริบิวต์คีย์</figcaption></figure>
+<h3>2.4.2 Composite Attribute</h3>
+<p>แตกวงรีย่อยออกจากวงรีหลัก</p>
+<figure class="shot"><img src="image/fig2-8.jpg" alt="ภาพที่ 2.8" loading="lazy" style="max-width:380px"><figcaption><b>ภาพที่ 2.8</b> แอตทริบิวต์ประกอบ address ของเอนทิตีนิสิต</figcaption></figure>
+<h3>2.4.3 Multivalued Attribute</h3>
+<p>วงรีสองชั้น เช่น นิสิต 1 คนมีหลายทักษะ</p>
+<figure class="shot"><img src="image/fig2-10.jpg" alt="ภาพที่ 2.10" loading="lazy" style="max-width:380px"><figcaption><b>ภาพที่ 2.10</b> แอตทริบิวต์พหุค่า skills และแอตทริบิวต์ประกอบ address</figcaption></figure>
+<div class="box warn"><div class="box-t">⚠️ ข้อควรระวัง</div><p>ห้ามเก็บหลายค่าไว้ในช่องเดียว เช่น <code>phone = '081-1111111, 043-222222'</code> ค้นหาและแก้ไขยาก ผิดหลัก 1NF — วิธีที่ถูกคือแยกเป็นตารางใหม่ (บทที่ 3)</p></div>
+<h3>2.4.4 Derived Attribute</h3>
+<p>วงรีเส้นประ เช่น <code>age</code> คำนวณจาก <code>birthday</code> — ถ้าเก็บอายุไว้ต้องแก้ทุกปี ลืมแก้ข้อมูลผิดทันที ในบทที่ 5 เราจะคำนวณอายุด้วย <code>TIMESTAMPDIFF()</code></p>
+<figure class="shot"><img src="image/fig2-11.jpg" alt="ภาพที่ 2.11" loading="lazy" style="max-width:520px"><figcaption><b>ภาพที่ 2.11</b> ตัวอย่างแอตทริบิวต์ที่คำนวณได้</figcaption></figure>
+<h3>2.4.5 Nullable Attribute</h3>
+<p>ค่าว่าง (NULL) ไม่ใช่ 0 หรือช่องว่าง แต่หมายถึง “ยังไม่ทราบค่า” — ในฐานข้อมูลกรณีศึกษา มีนิสิตหลายคนที่ยังไม่มี gpa หรือ birthday และ<b>แอตทริบิวต์คีย์ห้ามเป็นค่าว่าง</b></p>
+
+<div class="ex" id="ex2.2"><div class="ex-head"><span class="ex-badge">ฝึก 2.2</span><span class="ex-title">จำแนกประเภทแอตทริบิวต์</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงจำแนกประเภทแอตทริบิวต์ (อาจมีได้มากกว่า 1 ประเภท)<br>(ก) เลขประจำตัวประชาชน<br>(ข) ที่อยู่<br>(ค) อายุ<br>(ง) ความสามารถพิเศษ<br>(จ) วันเกิด<br>(ฉ) ชื่อ-นามสกุล</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) Key / Simple<br>(ข) Composite<br>(ค) Derived<br>(ง) Multivalued<br>(จ) Simple (อาจเป็น Nullable)<br>(ฉ) Composite (ชื่อ + นามสกุล)</p></div></div></div>
+
+<h2 id="s5"><span class="sec">2.5</span> ความสัมพันธ์</h2>
+<p><span class="term">ความสัมพันธ์ (Relationship)</span> ใช้สี่เหลี่ยมข้าวหลามตัด ตั้งชื่อด้วย<b>คำกริยา</b> เช่น นิสิต <b>ลงทะเบียน</b> กลุ่มเรียน, อาจารย์ <b>สอน</b> กลุ่มเรียน</p>
+<figure class="shot"><img src="image/fig2-4.jpg" alt="ภาพที่ 2.4" loading="lazy" style="max-width:260px"><figcaption><b>ภาพที่ 2.4</b> สัญลักษณ์ความสัมพันธ์และความสัมพันธ์แบบวกกลับ</figcaption></figure>
+<h3>2.5.1 ระดับของความสัมพันธ์ (Degree)</h3>
+<ul>
+<li><b>Unary / Recursive</b> — ภายในเอนทิตีเดียว เช่น รายวิชาเป็นวิชาบังคับก่อนของรายวิชาอื่น (คอลัมน์ <code>pre</code>)</li>
+<li><b>Binary</b> — ระหว่าง 2 เอนทิตี (พบมากที่สุด)</li>
+<li><b>Ternary</b> — ระหว่าง 3 เอนทิตีพร้อมกัน ในทางปฏิบัติมักแปลงเป็น Binary หลายชุด</li>
+</ul>
+<h3>2.5.2 ภาวะความสัมพันธ์ (Cardinality)</h3>
+<div class="vs">
+<div><h4>1 : 1 (One-to-One)</h4><p>พนักงาน 1 คนมีห้องทำงาน 1 ห้อง และห้อง 1 ห้องเป็นของพนักงานคนเดียว</p></div>
+<div><h4>1 : M (One-to-Many)</h4><p>อาจารย์ 1 คนสอนได้หลายกลุ่มเรียน แต่กลุ่มเรียนหนึ่งมีผู้สอน 1 คน</p></div>
+</div>
+<div class="vs">
+<div><h4>M : N (Many-to-Many)</h4><p>นิสิต 1 คนลงได้หลายกลุ่มเรียน และกลุ่มเรียนหนึ่งมีนิสิตหลายคน</p></div>
+<div><h4>วิธีหาภาวะความสัมพันธ์</h4><p>ถาม<b>ทั้งสองฝั่ง</b>: “A 1 ตัว สัมพันธ์กับ B ได้กี่ตัว?” และ “B 1 ตัว สัมพันธ์กับ A ได้กี่ตัว?”</p></div>
+</div>
+<figure class="shot"><img src="image/fig2-13.jpg" alt="ภาพที่ 2.13" loading="lazy" style="max-width:460px"><figcaption><b>ภาพที่ 2.13</b> ความสัมพันธ์แบบหนึ่งต่อหนึ่งระหว่างพนักงานกับห้องทำงาน</figcaption></figure>
+<figure class="shot"><img src="image/fig2-15.jpg" alt="ภาพที่ 2.15" loading="lazy" style="max-width:460px"><figcaption><b>ภาพที่ 2.15</b> ตัวอย่างความสัมพันธ์แบบหนึ่งต่อกลุ่ม</figcaption></figure>
+<figure class="shot"><img src="image/fig2-17.jpg" alt="ภาพที่ 2.17" loading="lazy" style="max-width:460px"><figcaption><b>ภาพที่ 2.17</b> ตัวอย่างความสัมพันธ์แบบกลุ่มต่อกลุ่ม</figcaption></figure>
+<h3>2.5.3 ความสัมพันธ์แบบวกกลับ</h3>
+<figure class="shot"><img src="image/fig2-19.jpg" alt="ภาพที่ 2.19" loading="lazy" style="max-width:320px"><figcaption><b>ภาพที่ 2.19</b> รายวิชากับวิชาบังคับก่อน (ตรงกับคอลัมน์ pre ในตาราง subject)</figcaption></figure>
+<h3>2.5.4 แอตทริบิวต์ของความสัมพันธ์</h3>
+<p>เกรดไม่ใช่คุณสมบัติของนิสิต (นิสิตคนหนึ่งได้หลายเกรด) และไม่ใช่ของรายวิชา (วิชาหนึ่งให้หลายเกรด) จึงต้องเก็บไว้ที่<b>ความสัมพันธ์</b></p>
+<figure class="shot"><img src="image/fig2-20.jpg" alt="ภาพที่ 2.20" loading="lazy" style="max-width:460px"><figcaption><b>ภาพที่ 2.20</b> แอตทริบิวต์ของความสัมพันธ์ ได้แก่ ภาคเรียนและเกรด</figcaption></figure>
+<div class="box note"><div class="box-t">📝 ข้อสังเกต</div><p>แอตทริบิวต์ของความสัมพันธ์ M:N จะกลายเป็นคอลัมน์ใน<b>ตารางเชื่อม (Junction Table)</b> เสมอ เช่น <code>grade</code> ในตาราง <code>enroll</code></p></div>
+
+<div class="ex" id="ex2.3"><div class="ex-head"><span class="ex-badge">ฝึก 2.3</span><span class="ex-title">หาภาวะความสัมพันธ์</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงระบุภาวะความสัมพันธ์ (1:1, 1:M, M:N) พร้อมเหตุผล</p>
+<ol type="a"><li>รายวิชา — กลุ่มเรียน (section)</li><li>นิสิต — บัญชีผู้ใช้ระบบ (1 คน 1 บัญชี)</li><li>ลูกค้า — สินค้า (ในการสั่งซื้อ)</li><li>รายวิชา — รายวิชา (วิชาบังคับก่อน ตามกรณีศึกษา)</li></ol>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><ol type="a"><li><b>1:M</b> — 1 วิชาเปิดได้หลายกลุ่ม แต่กลุ่มหนึ่งเป็นของวิชาเดียว</li><li><b>1:1</b></li><li><b>M:N</b> — ลูกค้าซื้อได้หลายสินค้า สินค้าหนึ่งถูกซื้อโดยหลายลูกค้า</li><li><b>1:M แบบวกกลับ</b> — วิชาหนึ่งมีวิชาบังคับก่อนได้ไม่เกิน 1 วิชา แต่วิชาหนึ่งเป็นวิชาบังคับก่อนของหลายวิชาได้ (เช่น CS002 เป็น pre ของ CS005–CS008)</li></ol></div></div></div>
+
+<h2 id="s6"><span class="sec">2.6</span> ขั้นตอนการเขียนแผนภาพ ER จากโจทย์</h2>
+<ol>
+<li>ขีดเส้นใต้ <b>คำนาม</b> ที่มีข้อมูลของตัวเอง → มักเป็นเอนทิตี</li>
+<li>คำนามที่เป็นเพียงรายละเอียดของคำนามอื่น → แอตทริบิวต์</li>
+<li>ระบุแอตทริบิวต์คีย์ (ถ้าไม่มี ให้สร้างรหัสใหม่)</li>
+<li>ขีดเส้นใต้ <b>คำกริยา</b> ที่เชื่อมคำนาม → ความสัมพันธ์</li>
+<li>กำหนดภาวะความสัมพันธ์ โดยถามจากทั้งสองฝั่ง</li>
+<li>ตรวจว่ามีข้อมูลที่ต้องเก็บไว้ที่ความสัมพันธ์หรือไม่</li>
+<li>ตรวจเอนทิตีอ่อนแอ และแอตทริบิวต์พหุค่า</li>
+</ol>
+<h3>ตัวอย่างที่ 1 · เก็บข้อมูลนิสิต</h3>
+<p><b>โจทย์</b> เก็บรหัสนิสิต ชื่อ ที่อยู่ (บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์) และงานอดิเรก โดยนิสิต 1 คนมีงานอดิเรกได้หลายอย่าง</p>
+<figure class="shot"><img src="image/fig2-21.jpg" alt="ภาพที่ 2.21" loading="lazy" style="max-width:260px"><figcaption><b>ภาพที่ 2.21</b> ขั้นที่ 1 ระบุเอนทิตีและแอตทริบิวต์คีย์</figcaption></figure>
+<figure class="shot"><img src="image/fig2-23.jpg" alt="ภาพที่ 2.23" loading="lazy" style="max-width:420px"><figcaption><b>ภาพที่ 2.23</b> ขั้นที่ 3 แตกแอตทริบิวต์ประกอบ</figcaption></figure>
+<figure class="shot"><img src="image/fig2-24.jpg" alt="ภาพที่ 2.24" loading="lazy" style="max-width:440px"><figcaption><b>ภาพที่ 2.24</b> ขั้นที่ 4 เพิ่มแอตทริบิวต์พหุค่า Hobbies — แผนภาพที่สมบูรณ์</figcaption></figure>
+<h3>ตัวอย่างที่ 2 · ระบบข้อมูลบุคลากร</h3>
+<p><b>โจทย์</b> เก็บพนักงาน (รหัส ชื่อ เงินเดือน วันเกิด เบอร์โทร) แผนก (รหัส ชื่อ ห้องทำงาน) โครงการ (รหัส ชื่อ งบประมาณ วันเริ่ม วันสิ้นสุด) พนักงานสังกัด 1 แผนก แผนกมีหลายคน แต่ละแผนกมีหัวหน้า 1 คน พนักงานทำได้หลายโครงการ โครงการมีพนักงานหลายคน และต้องเก็บตำแหน่งหน้าที่ในโครงการ</p>
+<figure class="shot"><img src="image/fig2-25.jpg" alt="ภาพที่ 2.25" loading="lazy" style="max-width:560px"><figcaption><b>ภาพที่ 2.25</b> ขั้นที่ 1 เอนทิตีและแอตทริบิวต์</figcaption></figure>
+<figure class="shot"><img src="image/fig2-26.jpg" alt="ภาพที่ 2.26" loading="lazy" style="max-width:560px"><figcaption><b>ภาพที่ 2.26</b> ขั้นที่ 2 เพิ่ม work at (1:M) และ head of (1:1)</figcaption></figure>
+<figure class="shot"><img src="image/fig2-27.jpg" alt="ภาพที่ 2.27" loading="lazy" style="max-width:560px"><figcaption><b>ภาพที่ 2.27</b> ขั้นที่ 3 เพิ่ม work on (M:N) พร้อมแอตทริบิวต์ Position</figcaption></figure>
+
+<div class="ex" id="ex2.4"><div class="ex-head"><span class="ex-badge">ฝึก 2.4</span><span class="ex-title">แยกคำนาม / คำกริยา</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p><b>โจทย์</b> “ห้องสมุดเก็บข้อมูล <u>สมาชิก</u> (รหัส ชื่อ อีเมล) และ <u>หนังสือ</u> (ISBN ชื่อเรื่อง ผู้แต่ง ซึ่งเล่มหนึ่งมีผู้แต่งได้หลายคน) สมาชิกยืมหนังสือได้หลายเล่ม หนังสือเล่มหนึ่งถูกยืมโดยสมาชิกหลายคนในเวลาต่างกัน และต้องเก็บวันที่ยืมและวันที่คืน”<br>จงระบุ เอนทิตี, คีย์, แอตทริบิวต์พิเศษ, ความสัมพันธ์และภาวะความสัมพันธ์ และแอตทริบิวต์ของความสัมพันธ์</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><ul><li><b>เอนทิตี</b>: Member (คีย์ member_id), Book (คีย์ ISBN)</li>
+<li><b>แอตทริบิวต์พิเศษ</b>: ผู้แต่ง (author) เป็น <b>Multivalued</b> → วงรีสองชั้น</li>
+<li><b>ความสัมพันธ์</b>: Member <b>borrow</b> Book แบบ <b>M:N</b></li>
+<li><b>แอตทริบิวต์ของความสัมพันธ์</b>: borrow_date, return_date</li></ul></div></div></div>
+
+<h2 id="s7"><span class="sec">2.7</span> กรณีศึกษา: ระบบลงทะเบียนเรียน</h2>
+<p>กรณีศึกษาหลักที่ใช้ตลอดทั้งเล่ม มีข้อกำหนดดังนี้</p>
+<ol>
+<li>เก็บข้อมูล<b>นิสิต</b>: รหัส ชื่อ สาขา เกรดเฉลี่ยสะสม วันเกิด</li>
+<li>เก็บข้อมูล<b>รายวิชา</b>: รหัส ชื่อ หน่วยกิต สาขาที่รับผิดชอบ และวิชาบังคับก่อน (ไม่เกิน 1 วิชา)</li>
+<li>เก็บข้อมูล<b>อาจารย์</b>: รหัส ชื่อ เงินเดือน สาขา</li>
+<li>รายวิชาหนึ่งเปิดได้หลาย<b>กลุ่มเรียน</b>ในแต่ละภาคเรียน กลุ่มเรียนหนึ่งมีผู้สอน 1 คน อาจารย์ 1 คนสอนได้หลายกลุ่ม</li>
+<li>นิสิตลงทะเบียนได้หลายกลุ่มเรียน กลุ่มเรียนหนึ่งมีนิสิตหลายคน และต้องเก็บ<b>เกรด</b></li>
+</ol>
+<figure class="shot"><img src="image/fig2-28.jpg" alt="ภาพที่ 2.28" loading="lazy"><figcaption><b>ภาพที่ 2.28</b> แผนภาพ ER ของกรณีศึกษาระบบลงทะเบียนเรียน</figcaption></figure>
+<figure class="shot"><img src="image/fig2-29.jpg" alt="ภาพที่ 2.29" loading="lazy" style="max-width:620px"><figcaption><b>ภาพที่ 2.29</b> โครงสร้างตารางเชิงสัมพันธ์ที่ได้ (รายละเอียดการแปลงในบทที่ 3)</figcaption></figure>
+<div class="schema">
+  <div class="tb"><div class="tb-h">student · 22 แถว</div><div class="col pk">stdid</div><div class="col">name</div><div class="col">major</div><div class="col">gpa</div><div class="col">birthday</div></div>
+  <div class="tb"><div class="tb-h">subject · 20 แถว</div><div class="col pk">subid</div><div class="col">name</div><div class="col">credit</div><div class="col">major</div><div class="col fk">pre</div></div>
+  <div class="tb"><div class="tb-h">lecturer · 16 แถว</div><div class="col pk">lecid</div><div class="col">name</div><div class="col">salary</div><div class="col">major</div></div>
+  <div class="tb"><div class="tb-h">section · 52 แถว</div><div class="col pk">secid</div><div class="col fk">subid</div><div class="col fk">lecid</div><div class="col">term</div></div>
+  <div class="tb"><div class="tb-h">enroll · 100 แถว</div><div class="col pk">secid</div><div class="col pk">stdid</div><div class="col">grade</div></div>
+</div>
+
+<div class="ex" id="ex2.5"><div class="ex-head"><span class="ex-badge">ฝึก 2.5</span><span class="ex-title">ทำไมต้องมี SECTION</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>เหตุใดจึงต้องมีเอนทิตีกลุ่มเรียน (SECTION) แทนที่จะให้นิสิตลงทะเบียนกับรายวิชา (SUBJECT) โดยตรง</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>เพราะรายวิชาเดียวกัน<b>เปิดสอนได้หลายครั้ง</b> ต่างภาคเรียน ต่างผู้สอน เช่น CS001 เปิดถึง 7 กลุ่ม (secid 1, 11, 15, 24, 35, 39, 49) ถ้าลงทะเบียนกับรายวิชาตรง ๆ จะไม่รู้ว่านิสิตเรียนภาคไหน กับอาจารย์คนไหน และนิสิตที่สอบตกแล้วลงซ้ำ (เช่น 60010 Gon ลง CS001 ถึง 3 ครั้ง ใน secid 1, 15, 35) จะเก็บไม่ได้เพราะคีย์ซ้ำ</p></div></div></div>
+
+<h2 id="s8"><span class="sec">2.8</span> ข้อผิดพลาดที่พบบ่อยในการเขียนแผนภาพ ER</h2>
+<table class="tbl"><tr><th>ข้อผิดพลาด</th><th>ผลกระทบ</th><th>แนวทางแก้ไข</th></tr>
+<tr><td>ตั้งชื่อความสัมพันธ์เป็นคำนาม เช่น “การลงทะเบียน”</td><td>สับสนกับเอนทิตี</td><td>ใช้คำกริยา เช่น “ลงทะเบียน”</td></tr>
+<tr><td>เก็บค่าที่คำนวณได้เป็นแอตทริบิวต์ปกติ เช่น อายุ</td><td>ต้องแก้ทุกปี เสี่ยงไม่สอดคล้อง</td><td>เก็บวันเกิด แล้วคำนวณเมื่อใช้</td></tr>
+<tr><td>ใช้แอตทริบิวต์ธรรมดาแทนพหุค่า</td><td>เก็บได้ค่าเดียว / หลายค่าในช่องเดียว</td><td>ใช้วงรีสองชั้น แล้วแยกตารางตอนแปลง</td></tr>
+<tr><td>ลืมกำหนดภาวะความสัมพันธ์</td><td>แปลงเป็นตารางไม่ได้ ไม่รู้ว่า FK อยู่ฝั่งไหน</td><td>ระบุ 1:1, 1:M, M:N ทุกเส้น</td></tr>
+<tr><td>เชื่อมเอนทิตีกันโดยตรงด้วยเส้น</td><td>ไม่รู้ว่าสัมพันธ์กันอย่างไร</td><td>ต้องมีข้าวหลามตัดคั่นเสมอ</td></tr>
+<tr><td>สร้างเอนทิตีที่มีแอตทริบิวต์เดียว</td><td>ซับซ้อนโดยไม่จำเป็น</td><td>ยุบเป็นแอตทริบิวต์ของเอนทิตีอื่น</td></tr>
+</table>
+<figure class="shot"><img src="image/fig2-30.jpg" alt="ภาพที่ 2.30" loading="lazy" style="max-width:620px"><figcaption><b>ภาพที่ 2.30</b> ตัวอย่างแผนภาพ ER ของระบบสั่งอาหารออนไลน์ (ฝึกอ่านแผนภาพ)</figcaption></figure>
+
+<div class="ex" id="ex2.6"><div class="ex-head"><span class="ex-badge">ฝึก 2.6</span><span class="ex-title">อ่านแผนภาพระบบสั่งอาหาร</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>จากภาพที่ 2.30 จงตอบ<br>(ก) ความสัมพันธ์ใดเป็นแบบวกกลับ<br>(ข) <code>amount</code> เป็นแอตทริบิวต์ของอะไร และทำไมไม่อยู่ที่ FOOD<br>(ค) ความสัมพันธ์ <code>consist of</code> เป็นภาวะความสัมพันธ์แบบใด</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>manage</b> ของ EMPLOYEE (พนักงานเป็นหัวหน้าพนักงานคนอื่น)<br>(ข) เป็นแอตทริบิวต์ของความสัมพันธ์ <b>consist of</b> — จำนวนที่สั่งขึ้นกับทั้ง “คำสั่งซื้อใด” และ “อาหารใด” ไม่ใช่คุณสมบัติของอาหารอย่างเดียว<br>(ค) <b>M:N</b> — คำสั่งซื้อหนึ่งมีหลายอาหาร อาหารหนึ่งอยู่ในหลายคำสั่งซื้อ</p></div></div></div>
+
+<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
+<li class="part">สัญลักษณ์และองค์ประกอบ</li>
+<li>จงวาดสัญลักษณ์แบบเชนของ Entity, Weak Entity, Key Attribute, Multivalued Attribute, Derived Attribute และ Relationship <span class="hint">(ตารางที่ 2.1)</span><div class="rv-ans"><ul><li><b>Entity</b> — สี่เหลี่ยมผืนผ้า</li><li><b>Weak Entity</b> — สี่เหลี่ยมผืนผ้าเส้นคู่ (ความสัมพันธ์ที่ระบุตัวตนเป็นข้าวหลามตัดเส้นคู่)</li><li><b>Key Attribute</b> — วงรีที่ขีดเส้นใต้ชื่อแอตทริบิวต์</li><li><b>Multivalued Attribute</b> — วงรีเส้นคู่</li><li><b>Derived Attribute</b> — วงรีเส้นประ</li><li><b>Relationship</b> — รูปข้าวหลามตัด (สี่เหลี่ยมขนมเปียกปูน)</li></ul></div></li>
+<li>จงอธิบายความแตกต่างระหว่างเอนทิตีปกติกับเอนทิตีอ่อนแอ พร้อมยกตัวอย่างที่ไม่ซ้ำกับในเอกสาร 2 ตัวอย่าง <span class="hint">(ลบเจ้าของแล้วยังมีความหมายไหม)</span><div class="rv-ans"><p><b>เอนทิตีปกติ</b> มีคีย์ของตัวเอง ระบุตัวตนได้โดยลำพัง ส่วน<b>เอนทิตีอ่อนแอ</b>ไม่มีคีย์ของตัวเอง ต้องอาศัยคีย์ของเอนทิตีเจ้าของร่วมกับ Partial Key และถ้าลบเจ้าของ เอนทิตีอ่อนแอจะไม่มีความหมาย</p><p>ตัวอย่าง: (1) <b>ชั้นของอาคาร</b> (ชั้น 1, ชั้น 2 มีทุกอาคาร) เจ้าของคือ อาคาร (2) <b>งวดการผ่อนชำระ</b> (งวดที่ 1, 2, …) เจ้าของคือ สัญญาเงินกู้ (3) <b>บุตรของพนักงาน</b> สำหรับสวัสดิการ เจ้าของคือ พนักงาน</p></div></li>
+<li>จงจำแนกประเภทแอตทริบิวต์: เลขบัตรประชาชน, ที่อยู่, อายุ, ความสามารถพิเศษ, วันเกิด, ชื่อ-สกุล, เบอร์โทร (มีหลายเบอร์) <span class="hint">(Key / Composite / Derived / Multivalued)</span><div class="rv-ans"><p>เลขบัตรประชาชน = <b>Key</b> (Simple) · ที่อยู่ = <b>Composite</b> (บ้านเลขที่ ถนน จังหวัด รหัสไปรษณีย์) · อายุ = <b>Derived</b> (คำนวณจากวันเกิด) · ความสามารถพิเศษ = <b>Multivalued</b> · วันเกิด = <b>Simple</b> · ชื่อ-สกุล = <b>Composite</b> (ชื่อ + นามสกุล) · เบอร์โทรหลายเบอร์ = <b>Multivalued</b></p></div></li>
+<li>ตำแหน่งพนักงาน (leader, programmer, SA, HR) ควรเป็นเอนทิตี แอตทริบิวต์ หรือค่าของแอตทริบิวต์ เพราะเหตุใด <span class="hint">(ค่าที่เป็นไปได้ ≠ attribute)</span><div class="rv-ans"><p>leader, programmer, SA, HR เป็น<b>ค่าของแอตทริบิวต์</b> position ของเอนทิตี Employee ไม่ใช่แอตทริบิวต์แยกกัน 4 ตัว (ไม่ควรวาดวงรี leader, programmer, …) — แต่ถ้าต้องเก็บข้อมูลของตำแหน่งเพิ่ม เช่น เงินเดือนขั้นต่ำ หน้าที่ ก็ควรยกเป็นเอนทิตี Position แยก</p></div></li>
+<li>เหตุใดจึงไม่ควรเก็บ “อายุ” เป็นแอตทริบิวต์ปกติ และควรแสดงในแผนภาพอย่างไร <span class="hint">(Derived — วงรีเส้นประ)</span><div class="rv-ans"><p>อายุเปลี่ยนทุกวันตามเวลา ถ้าเก็บไว้ต้องคอยแก้ตลอด และอาจขัดกับวันเกิด (ไม่สอดคล้อง) ควรเก็บ<b>วันเกิด</b>แล้วคำนวณอายุเมื่อต้องการ ในแผนภาพแสดงอายุเป็น <b>Derived Attribute (วงรีเส้นประ)</b></p></div></li>
+<li>เหตุใดเกรดจึงต้องเป็นแอตทริบิวต์ของความสัมพันธ์ enroll ไม่ใช่ของ student หรือ subject <span class="hint">(ขึ้นกับทั้งสองฝั่ง)</span><div class="rv-ans"><p>เกรดขึ้นกับ<b>ทั้งนิสิตและกลุ่มเรียน</b>พร้อมกัน — นิสิตคนเดียวมีหลายเกรด (หลายวิชา) และวิชาเดียวมีหลายเกรด (หลายคน) ถ้าเก็บที่ student จะรู้ไม่ได้ว่าเป็นเกรดวิชาใด ถ้าเก็บที่ subject จะรู้ไม่ได้ว่าเป็นของใคร จึงเป็นแอตทริบิวต์ของความสัมพันธ์ M:N</p></div></li>
+<li class="part">ภาวะความสัมพันธ์</li>
+<li>จงระบุภาวะความสัมพันธ์: พนักงาน–ที่จอดรถ (1 คน 1 ช่อง), สาขาวิชา–นิสิต, อาจารย์–วิชา (สอน), นิสิต–วิชา (ลงทะเบียน) <span class="hint">(ถามทั้งสองฝั่ง)</span><div class="rv-ans"><p>พนักงาน–ที่จอดรถ = <b>1:1</b> · สาขาวิชา–นิสิต = <b>1:M</b> (สาขาหนึ่งมีนิสิตหลายคน นิสิตสังกัดสาขาเดียว) · อาจารย์–วิชา = <b>M:N</b> · นิสิต–วิชา = <b>M:N</b></p></div></li>
+<li>จงระบุภาวะความสัมพันธ์: ประเทศ–เมืองหลวง, ผู้ป่วย–แพทย์ (การนัดตรวจ), ลูกค้า–ใบสั่งซื้อ, ใบสั่งซื้อ–สินค้า <span class="hint">(1:1 / 1:M / M:N)</span><div class="rv-ans"><p>ประเทศ–เมืองหลวง = <b>1:1</b> · ผู้ป่วย–แพทย์ = <b>M:N</b> (มีแอตทริบิวต์วันเวลานัด) · ลูกค้า–ใบสั่งซื้อ = <b>1:M</b> · ใบสั่งซื้อ–สินค้า = <b>M:N</b> (มีแอตทริบิวต์จำนวนและราคา)</p></div></li>
+<li>ความสัมพันธ์ Person has email (คนหนึ่งมีหลายอีเมล) ควรเขียนเป็นเอนทิตีแยก หรือเป็นแอตทริบิวต์พหุค่า เปรียบเทียบข้อดีข้อเสีย <span class="hint">(Multivalued vs Entity)</span><div class="rv-ans"><p><b>แอตทริบิวต์พหุค่า</b> — แผนภาพเรียบง่าย เหมาะเมื่อเก็บเพียงที่อยู่อีเมล · <b>เอนทิตีแยก</b> — เหมาะเมื่ออีเมลมีข้อมูลประกอบ เช่น ประเภท (งาน/ส่วนตัว) วันยืนยัน อีเมลหลัก หรือมีความสัมพันธ์กับเอนทิตีอื่น แต่แผนภาพซับซ้อนกว่า</p><p>ทั้งสองแบบเมื่อแปลงเป็นตารางได้ผลคล้ายกัน คือ ตาราง <code>person_email(person_id, email)</code> แยกออกมา</p></div></li>
+<li>จงยกตัวอย่างความสัมพันธ์แบบวกกลับ 3 ตัวอย่าง พร้อมระบุภาวะความสัมพันธ์ <span class="hint">(supervise, pre, married to)</span><div class="rv-ans"><p>(1) Employee <b>supervise</b> Employee — 1:M (2) Subject <b>is prerequisite of</b> Subject — 1:M (ในกรณีศึกษา 1 วิชามี pre ได้ 1 วิชา) (3) Person <b>married to</b> Person — 1:1 (4) Member <b>refers</b> Member (ผู้แนะนำสมาชิก) — 1:M</p></div></li>
+<li>จงยกตัวอย่างความสัมพันธ์ระดับสาม (Ternary) 1 ตัวอย่าง และแสดงวิธีแปลงเป็นความสัมพันธ์ระดับสองหลายชุด <span class="hint">(เอนทิตีกลาง)</span><div class="rv-ans"><p>ตัวอย่าง: <b>Lecturer–Subject–Room</b> ผ่านความสัมพันธ์ <b>teach</b> (อาจารย์สอนวิชาใดในห้องใด) แปลงโดยยกความสัมพันธ์เป็นเอนทิตีกลาง <b>Class</b> (หรือ section) แล้วสร้างความสัมพันธ์ระดับสอง 3 ชุด: Lecturer 1:M Class, Subject 1:M Class, Room 1:M Class — ตรงกับที่กรณีศึกษาใช้เอนทิตี SECTION</p></div></li>
+<li class="part">เขียนแผนภาพ ER จากโจทย์</li>
+<li><b>Employee</b> เก็บรหัสพนักงาน ชื่อ ที่อยู่ เบอร์โทร เพศ วันเกิด และตำแหน่ง พนักงานมีเบอร์โทรได้หลายเบอร์แต่ห้ามซ้ำ ตำแหน่งมี 4 แบบ คือ หัวหน้าแผนก โปรแกรมเมอร์ เลขา และเจ้าหน้าที่ทั่วไป จงเขียน ER <span class="hint">(phone = Multivalued)</span><div class="rv-ans"><p>เอนทิตีเดียว <b>EMPLOYEE</b> แอตทริบิวต์: <u>emp_id</u> (Key), name, address (อาจเป็น Composite), <b>phone</b> (Multivalued — วงรีเส้นคู่), gender, birthday, position (Simple — ค่าเป็นหนึ่งใน 4 ตำแหน่ง ไม่ต้องวาดแยก) และอาจเพิ่ม age เป็น Derived</p></div></li>
+<li><b>โรงภาพยนตร์</b> มี 3 โรง (VIP, Honeymoon, BigHall) แต่ละโรงมีที่นั่ง A1, A2, …, B1, … ราคาไม่เท่ากัน เก็บจำนวนที่นั่ง ขนาดโรง (กว้าง×ยาว) และขนาดจอ จงเขียน ER และระบุเอนทิตีอ่อนแอ <span class="hint">(Seat = Weak Entity, size = Composite)</span><div class="rv-ans"><ul><li><b>THEATER</b>: <u>theater_name</u>, n_seat (อาจเป็น Derived จากจำนวน SEAT), size (Composite: width, length), screen_size</li><li><b>SEAT</b> (Weak Entity): seat_no เป็น Partial Key (ขีดเส้นใต้เส้นประ), price</li><li>ความสัมพันธ์ <b>has</b> (Identifying, ข้าวหลามตัดเส้นคู่) THEATER 1:M SEAT — SEAT มีส่วนร่วมแบบบังคับ (Total)</li></ul><p>SEAT เป็นเอนทิตีอ่อนแอ เพราะที่นั่ง A1 มีในทุกโรง ต้องใช้ชื่อโรง + เลขที่นั่งจึงระบุได้</p></div></li>
+<li><b>AmICrazy Software House</b> เก็บพนักงาน (รหัส ชื่อ เงินเดือน แผนก หัวหน้า) ลูกค้า (รหัส ชื่อ เบอร์โทร) ที่จ้างทำโปรเจคได้หลายครั้ง การประชุมลูกค้า–พนักงาน (วัน สถานที่) โปรเจค (รหัส ชื่อ งบ วันเริ่ม ระยะเวลา ≤ 100 วัน วันเสร็จจริง) พนักงานหลายคนทำโปรเจคเดียวโดยมีหน้าที่ต่างกัน และการลา (ประเภท วันที่ จำนวนวัน ≤ 5) จงเขียน ER <span class="hint">(6 เอนทิตี + supervise วกกลับ)</span><div class="rv-ans"><ul><li>เอนทิตี: <b>EMPLOYEE</b>(<u>emp_id</u>, name, salary) · <b>DEPARTMENT</b>(<u>dept_id</u>, name) · <b>CUSTOMER</b>(<u>cus_id</u>, name, phone {Multivalued}) · <b>PROJECT</b>(<u>proj_id</u>, name, budget, start_date, duration, finish_date) · <b>LEAVE</b>(Weak ของ EMPLOYEE: leave_date, type, days)</li><li>EMPLOYEE <b>work in</b> DEPARTMENT — M:1</li><li>EMPLOYEE <b>supervise</b> EMPLOYEE — วกกลับ 1:M</li><li>CUSTOMER <b>hire</b> PROJECT — 1:M</li><li>CUSTOMER <b>meet</b> EMPLOYEE — M:N แอตทริบิวต์ meet_date, place</li><li>EMPLOYEE <b>work on</b> PROJECT — M:N แอตทริบิวต์ role</li><li>EMPLOYEE <b>request</b> LEAVE — 1:M (Identifying)</li></ul><p>ข้อกำหนด duration ≤ 100 และ days ≤ 5 เขียนเป็นหมายเหตุบนแผนภาพ แล้วบังคับด้วย CHECK ตอนสร้างตาราง</p></div></li>
+<li><b>คณะวิทยาการสารสนเทศ</b> มี 5 สาขา (CS, MIS, NMD, IS, MC) นิสิตปี 4 ทำโปรเจคเดี่ยวหรือคู่ มีที่ปรึกษาและอาจมีที่ปรึกษาร่วม (ต่างสาขาได้) สอบ proposal, project#1, project#2 เก็บวันสอบ ประเภท ผล กรรมการ 2 คน สถานะ เทอมเริ่ม/เสร็จ และ keyword หลายคำ จงเขียน ER <span class="hint">(supervise มีแอตทริบิวต์ position)</span><div class="rv-ans"><ul><li>เอนทิตี: <b>MAJOR</b>(<u>major_id</u>, name) · <b>STUDENT</b>(<u>std_id</u>, name) · <b>LECTURER</b>(<u>lec_id</u>, name) · <b>PROJECT</b>(<u>proj_id</u>, title, status, start_term, finish_term, keyword {Multivalued}) · <b>PRESENTATION</b>(Weak ของ PROJECT: exam_type, exam_date, result)</li><li>STUDENT/LECTURER <b>belong to</b> MAJOR — M:1</li><li>STUDENT <b>do</b> PROJECT — M:1 (โปรเจคมีนิสิต 1–2 คน)</li><li>LECTURER <b>supervise</b> PROJECT — M:N แอตทริบิวต์ <b>position</b> (ที่ปรึกษาหลัก / ร่วม)</li><li>PROJECT <b>has</b> PRESENTATION — 1:M (Identifying)</li><li>LECTURER <b>is committee of</b> PRESENTATION — M:N (ครั้งละ 2 คน)</li></ul></div></li>
+<li><b>ระบบห้องสมุด</b> เก็บสมาชิก หนังสือ (มีผู้แต่งหลายคน) หมวดหมู่ และการยืม-คืน (วันยืม วันกำหนดคืน วันคืนจริง ค่าปรับ) จงเขียน ER <span class="hint">(borrow = M:N)</span><div class="rv-ans"><ul><li>เอนทิตี: <b>MEMBER</b>(<u>member_id</u>, name, phone, status) · <b>BOOK</b>(<u>book_id</u>, title, author {Multivalued} หรือเอนทิตี AUTHOR แยก, copies) · <b>CATEGORY</b>(<u>cat_id</u>, name)</li><li>BOOK <b>belong to</b> CATEGORY — M:1</li><li>MEMBER <b>borrow</b> BOOK — M:N แอตทริบิวต์ borrow_date, due_date, return_date, fine</li><li>(ถ้ายกผู้แต่งเป็นเอนทิตี) BOOK <b>written by</b> AUTHOR — M:N</li></ul></div></li>
+<li><b>คลินิก</b> เก็บผู้ป่วย แพทย์ (แพทย์มีความเชี่ยวชาญหลายด้าน) การนัดหมาย (วัน เวลา อาการ) และยาที่จ่ายในแต่ละการนัด (ชื่อยา จำนวน) จงเขียน ER <span class="hint">(การนัด–ยา = M:N + amount)</span><div class="rv-ans"><ul><li>เอนทิตี: <b>PATIENT</b>(<u>patient_id</u>, name, birthday) · <b>DOCTOR</b>(<u>doctor_id</u>, name, specialty {Multivalued}) · <b>APPOINTMENT</b>(<u>appt_id</u>, appt_date, appt_time, symptom) · <b>MEDICINE</b>(<u>med_id</u>, name)</li><li>PATIENT <b>make</b> APPOINTMENT — 1:M · DOCTOR <b>attend</b> APPOINTMENT — 1:M</li><li>APPOINTMENT <b>prescribe</b> MEDICINE — M:N แอตทริบิวต์ <b>amount</b></li></ul></div></li>
+<li><b>ร้านกาแฟ</b> เก็บเมนู (ราคาตามขนาด S/M/L) ลูกค้าสมาชิก (สะสมแต้ม) ใบเสร็จ และรายการในใบเสร็จ จงเขียน ER และอธิบายว่ารายการในใบเสร็จเป็นเอนทิตีอ่อนแอหรือไม่ <span class="hint">(Weak Entity ของใบเสร็จ)</span><div class="rv-ans"><ul><li>เอนทิตี: <b>MENU</b>(<u>menu_id</u>, name) · <b>MENU_PRICE</b>(Weak ของ MENU: size เป็น Partial Key, price) · <b>MEMBER</b>(<u>member_id</u>, name, points) · <b>RECEIPT</b>(<u>receipt_no</u>, receipt_time, total {Derived}) · <b>RECEIPT_ITEM</b>(Weak ของ RECEIPT: line_no, qty, unit_price)</li><li>MEMBER <b>pay</b> RECEIPT — 1:M (ลูกค้าทั่วไปไม่ต้องมีสมาชิก = Partial)</li><li>RECEIPT <b>contains</b> RECEIPT_ITEM — 1:M (Identifying) · RECEIPT_ITEM <b>of</b> MENU_PRICE — M:1</li></ul><p>รายการในใบเสร็จ<b>เป็นเอนทิตีอ่อนแอ</b> — “รายการที่ 1” มีในทุกใบเสร็จ ต้องใช้เลขที่ใบเสร็จ + ลำดับรายการจึงระบุได้ และถ้าลบใบเสร็จ รายการก็ไม่มีความหมาย</p></div></li>
+<li class="part">วิเคราะห์และตรวจแผนภาพ</li>
+<li>จากแผนภาพ ER ของกรณีศึกษา (ภาพที่ 2.28) เหตุใดจึงต้องมีเอนทิตี SECTION แทนที่จะให้นิสิตลงทะเบียนกับ SUBJECT โดยตรง <span class="hint">(เปิดหลายครั้ง ต่างเทอม ต่างผู้สอน)</span><div class="rv-ans"><p>วิชาเดียวเปิดสอนได้หลายครั้ง หลายภาคเรียน และหลายผู้สอน ถ้าให้นิสิตลงทะเบียนกับ SUBJECT โดยตรงจะไม่รู้ว่าเรียนเทอมไหน กับอาจารย์คนใด และนิสิตจะลงวิชาเดิมซ้ำ (เช่น เรียนซ้ำหลังได้ F) ไม่ได้ เพราะคู่ (นิสิต, วิชา) ซ้ำ SECTION ทำให้ “การเปิดสอนแต่ละครั้ง” มีตัวตน</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT subid, COUNT(*) AS n_open, COUNT(DISTINCT lecid) AS n_lecturer, COUNT(DISTINCT term) AS n_term
+FROM   section
+GROUP  BY subid
+ORDER  BY n_open DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 5 จาก 17 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>n_open</th><th>n_lecturer</th><th>n_term</th></tr><tr><td>CS001</td><td>7</td><td>3</td><td>6</td></tr><tr><td>CS002</td><td>7</td><td>6</td><td>4</td></tr><tr><td>CS004</td><td>7</td><td>3</td><td>5</td></tr><tr><td>CS009</td><td>4</td><td>3</td><td>4</td></tr><tr><td>MA001</td><td>4</td><td>4</td><td>4</td></tr></table></div></div></li>
+<li>จากภาพที่ 2.30 ระบบสั่งอาหารออนไลน์ จงระบุเอนทิตีทั้งหมด ความสัมพันธ์ทั้งหมด และภาวะความสัมพันธ์ของแต่ละความสัมพันธ์ <span class="hint">(order–food = M:N)</span><div class="rv-ans"><p><b>เอนทิตี 6 ตัว:</b> CUSTOMER, LEVEL, ORDER, FOOD, EMPLOYEE, RIDER</p><ul><li>CUSTOMER <b>has</b> LEVEL — M:1 (ลูกค้าหลายคนอยู่ระดับเดียวกัน)</li><li>CUSTOMER <b>request</b> ORDER — 1:M แอตทริบิวต์ date, start_time, finish_time, status, review</li><li>ORDER <b>consist of</b> FOOD — M:N แอตทริบิวต์ amount</li><li>EMPLOYEE <b>response</b> ORDER — 1:M (พนักงานหนึ่งคนรับผิดชอบหลายคำสั่งซื้อ)</li><li>RIDER <b>deliver</b> ORDER — 1:M</li><li>EMPLOYEE <b>suggest</b> RIDER — 1:M (พนักงานแนะนำไรเดอร์เข้าทำงาน)</li><li>EMPLOYEE <b>manage</b> EMPLOYEE — วกกลับ 1:M</li></ul></div></li>
+<li>จงตรวจแผนภาพ ER ของเพื่อนในโจทย์ AmICrazy โดยใช้ตารางข้อผิดพลาดหัวข้อ 2.8 เป็นเกณฑ์ แล้วเสนอแนวทางแก้ไข <span class="hint">(ชื่อความสัมพันธ์ = คำกริยา)</span><div class="rv-ans"><p>คำตอบขึ้นกับแผนภาพของเพื่อน ประเด็นที่ควรตรวจ:</p><ul><li>ชื่อเอนทิตีเป็นคำนามเอกพจน์ ชื่อความสัมพันธ์เป็นคำกริยา</li><li>ทุกเอนทิตีมีคีย์ (ยกเว้นเอนทิตีอ่อนแอที่มี Partial Key)</li><li>ไม่ใส่ FK เป็นแอตทริบิวต์ในแผนภาพ ER (ความสัมพันธ์แสดงด้วยเส้น)</li><li>ภาวะความสัมพันธ์ระบุครบทั้งสองฝั่ง และแอตทริบิวต์ของ M:N (role, meeting date) อยู่ที่ความสัมพันธ์</li><li>ไม่วาดค่าของแอตทริบิวต์ (เช่น ประเภทการลา) เป็นแอตทริบิวต์แยก</li></ul></div></li>
+</ol></div>
+
+<div class="pager"><a class="pg" href="01-intro.html">← 01 · ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</a><a class="pg next" href="03-relational-normalization.html">03 · แปลง ER เป็นตาราง &amp; Normalization →</a></div>
+<footer>Lecture Note · 1204202 การออกแบบและการจัดการฐานข้อมูล · อ.ดร.พรทิวา ปะวะระ · ภาควิชาวิทยาการคอมพิวเตอร์ คณะวิทยาการสารสนเทศ มหาวิทยาลัยมหาสารคาม</footer>
+</main>
+<script src="assets/password.js"></script>
+<script src="assets/nav.js"></script>
+</body>
+</html>

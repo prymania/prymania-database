@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ภาคผนวก ข · สรุปคำสั่ง SQL ที่ใช้บ่อย — Database Lecture Note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
+  <nav>
+<div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
+<a href="index.html"><span class="no">🏠</span>หน้าแรก / ภาพรวม</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 1 · ออกแบบฐานข้อมูล</div>
+<a href="01-intro.html"><span class="no">01</span>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</a>
+<a href="02-er-model.html"><span class="no">02</span>แบบจำลอง ER</a>
+<a href="03-relational-normalization.html"><span class="no">03</span>แปลง ER เป็นตาราง &amp; Normalization</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 2 · ภาษา SQL</div>
+<a href="04-sql-ddl-dml.html"><span class="no">04</span>สร้างตาราง &amp; INSERT/UPDATE/DELETE</a>
+<a href="05-select.html"><span class="no">05</span>การแสดงข้อมูลด้วยคำสั่ง SELECT</a>
+<a href="06-join.html"><span class="no">06</span>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 3 · ขั้นสูง</div>
+<a href="07-view.html"><span class="no">07</span>วิว (View)</a>
+<a href="08-index.html"><span class="no">08</span>ดัชนี (Index)</a>
+<a href="09-transaction.html"><span class="no">09</span>ทรานแซกชัน (Transaction)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม</div>
+<a href="10-security.html"><span class="no">10</span>ความปลอดภัยของฐานข้อมูล</a>
+<a href="11-stored-procedure.html"><span class="no">11</span>Stored Procedure &amp; Function</a>
+<a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
+<a href="appendix-a-script.html"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html" class="active"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<div class="subnav"><a href="#ddl"><span class="sno">DDL</span>ฐานข้อมูลและโครงสร้างตาราง</a><a href="#dml"><span class="sno">DML</span>เพิ่ม แก้ ลบข้อมูล</a><a href="#select"><span class="sno">DQL</span>SELECT</a><a href="#adv"><span class="sno">ADV</span>View, Index, Transaction</a><a href="#sec"><span class="sno">DCL</span>ผู้ใช้ สิทธิ์ Procedure Trigger</a></div>
+<a href="appendix-c-dbeaver.html"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">ง</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+</div>
+  </nav>
+  <img src="icon/nap.png" alt="" class="sidebar-img">
+</aside>
+<main class="content">
+<div class="page-head"><span class="kicker">APPENDIX B · CHEAT SHEET</span><h1>ภาคผนวก ข · สรุปคำสั่ง SQL ที่ใช้บ่อย</h1><p class="sub">ทบทวนก่อนสอบ — กดคัดลอกโครงคำสั่งไปแก้ใช้ได้ทันที</p></div>
+
+
+<div class="pagetoc"><div class="pagetoc-t">📑 ในบทนี้</div><ul><li><a href="#ddl">DDL  ฐานข้อมูลและโครงสร้างตาราง</a></li><li><a href="#dml">DML  เพิ่ม แก้ ลบข้อมูล</a></li><li><a href="#select">DQL  SELECT</a></li><li><a href="#adv">ADV  View, Index, Transaction</a></li><li><a href="#sec">DCL  ผู้ใช้ สิทธิ์ Procedure Trigger</a></li></ul></div>
+
+<h2 id="ddl"><span class="sec">DDL</span> ฐานข้อมูลและโครงสร้างตาราง</h2>
+<table class="tbl"><tr><th>งานที่ต้องการทำ</th><th>คำสั่ง MySQL</th><th>บท</th></tr>
+<tr><td>สร้างฐานข้อมูล</td><td><code>CREATE DATABASE ชื่อ CHARACTER SET utf8mb4;</code></td><td>4</td></tr>
+<tr><td>เลือกฐานข้อมูล</td><td><code>USE ชื่อ;</code></td><td>4</td></tr>
+<tr><td>ดูรายชื่อตาราง</td><td><code>SHOW TABLES;</code></td><td>4</td></tr>
+<tr><td>ดูโครงสร้างตาราง</td><td><code>DESCRIBE ชื่อตาราง;</code></td><td>4</td></tr>
+<tr><td>เพิ่มคอลัมน์</td><td><code>ALTER TABLE t ADD COLUMN c ชนิด;</code></td><td>4</td></tr>
+<tr><td>แก้ชนิดคอลัมน์</td><td><code>ALTER TABLE t MODIFY COLUMN c ชนิดใหม่;</code></td><td>4</td></tr>
+<tr><td>เปลี่ยนชื่อคอลัมน์</td><td><code>ALTER TABLE t CHANGE COLUMN เก่า ใหม่ ชนิด;</code></td><td>4</td></tr>
+<tr><td>ลบคอลัมน์</td><td><code>ALTER TABLE t DROP COLUMN c;</code></td><td>4</td></tr>
+<tr><td>ลบตาราง</td><td><code>DROP TABLE IF EXISTS t;</code></td><td>4</td></tr>
+<tr><td>ลบข้อมูลทั้งตาราง (คงโครงสร้าง)</td><td><code>TRUNCATE TABLE t;</code></td><td>4</td></tr>
+</table>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>โครง CREATE TABLE ครบทุกข้อกำหนด</span></div><pre class="sql">CREATE TABLE ชื่อตาราง (
+    id        INT AUTO_INCREMENT,
+    code      VARCHAR(10) NOT NULL,
+    amount    DECIMAL(10,2) DEFAULT 0,
+    ref_id    VARCHAR(10),
+    CONSTRAINT pk_x    PRIMARY KEY (id),
+    CONSTRAINT uk_x    UNIQUE (code),
+    CONSTRAINT chk_x   CHECK (amount &gt;= 0),
+    CONSTRAINT fk_x    FOREIGN KEY (ref_id) REFERENCES ตารางแม่(pk)
+                       ON DELETE CASCADE      -- หรือ SET NULL / RESTRICT
+);</pre></div>
+
+<h2 id="dml"><span class="sec">DML</span> เพิ่ม แก้ ลบข้อมูล</h2>
+<table class="tbl"><tr><th>งานที่ต้องการทำ</th><th>คำสั่ง MySQL</th><th>บท</th></tr>
+<tr><td>เพิ่มข้อมูล</td><td><code>INSERT INTO t (c1, c2) VALUES (v1, v2), (v3, v4);</code></td><td>4</td></tr>
+<tr><td>เพิ่มจากผล SELECT</td><td><code>INSERT INTO t2 (c1, c2) SELECT a, b FROM t1 WHERE …;</code></td><td>6</td></tr>
+<tr><td>แก้ไขข้อมูล</td><td><code>UPDATE t SET c = v WHERE เงื่อนไข;</code></td><td>4</td></tr>
+<tr><td>แก้ไขตามเงื่อนไขหลายแบบ</td><td><code>UPDATE t SET c = CASE WHEN … THEN … ELSE … END;</code></td><td>6</td></tr>
+<tr><td>ลบข้อมูล</td><td><code>DELETE FROM t WHERE เงื่อนไข;</code></td><td>4</td></tr>
+<tr><td>เลขล่าสุดของ AUTO_INCREMENT</td><td><code>SELECT LAST_INSERT_ID();</code></td><td>4</td></tr>
+</table>
+<div class="box warn"><div class="box-t">⚠️ จำให้ขึ้นใจ</div><p>UPDATE / DELETE <b>ต้องมี WHERE</b> และควร SELECT ด้วยเงื่อนไขเดียวกันดูก่อนทุกครั้ง</p></div>
+
+<h2 id="select"><span class="sec">DQL</span> SELECT</h2>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>โครง SELECT เต็ม (เขียนตามลำดับนี้)</span></div><pre class="sql">SELECT   [DISTINCT] คอลัมน์, ฟังก์ชันรวม(...) AS ชื่อแทน
+FROM     ตาราง1 t1
+         [INNER | LEFT] JOIN ตาราง2 t2 ON t1.fk = t2.pk
+WHERE    เงื่อนไขของแถว
+GROUP BY คอลัมน์ที่ใช้จัดกลุ่ม
+HAVING   เงื่อนไขของกลุ่ม (ใช้ฟังก์ชันรวมได้)
+ORDER BY คอลัมน์ [ASC | DESC]
+LIMIT    จำนวน [OFFSET ข้าม];</pre></div>
+<div class="flow">
+<div class="st">① FROM / JOIN</div><span class="ar">→</span><div class="st">② WHERE</div><span class="ar">→</span><div class="st">③ GROUP BY</div><span class="ar">→</span><div class="st">④ HAVING</div><span class="ar">→</span><div class="st">⑤ SELECT</div><span class="ar">→</span><div class="st">⑥ ORDER BY</div><span class="ar">→</span><div class="st">⑦ LIMIT</div>
+</div>
+<table class="tbl"><tr><th>งานที่ต้องการทำ</th><th>คำสั่ง</th><th>บท</th></tr>
+<tr><td>ตรวจค่าว่าง</td><td><code>WHERE c IS NULL</code> / <code>IS NOT NULL</code></td><td>5</td></tr>
+<tr><td>แทนค่าว่าง</td><td><code>IFNULL(c, ค่าแทน)</code> / <code>COALESCE(c1, c2, …)</code></td><td>5</td></tr>
+<tr><td>อยู่ในช่วง / ในรายการ</td><td><code>BETWEEN a AND b</code> / <code>IN ('x','y')</code></td><td>5</td></tr>
+<tr><td>ค้นหาข้อความ</td><td><code>LIKE 'S%'</code> (% = กี่ตัวก็ได้, _ = 1 ตัว)</td><td>5</td></tr>
+<tr><td>นับแถว / นับค่าไม่ว่าง / นับไม่ซ้ำ</td><td><code>COUNT(*)</code> / <code>COUNT(c)</code> / <code>COUNT(DISTINCT c)</code></td><td>5</td></tr>
+<tr><td>เงื่อนไขแบบมีทางเลือก</td><td><code>CASE WHEN … THEN … ELSE … END</code></td><td>5</td></tr>
+<tr><td>อายุจากวันเกิด</td><td><code>TIMESTAMPDIFF(YEAR, birthday, CURDATE())</code></td><td>5</td></tr>
+<tr><td>แถวที่ไม่มีคู่</td><td><code>LEFT JOIN … WHERE ฝั่งขวา.key IS NULL</code></td><td>6</td></tr>
+<tr><td>Self Join</td><td><code>FROM subject sub JOIN subject pre ON sub.pre = pre.subid</code></td><td>6</td></tr>
+<tr><td>รวม / ร่วม / ผลต่าง</td><td><code>UNION</code> / <code>INTERSECT</code> / <code>EXCEPT</code></td><td>6</td></tr>
+<tr><td>ตรวจการมีอยู่</td><td><code>WHERE [NOT] EXISTS (SELECT 1 FROM … WHERE …)</code></td><td>6</td></tr>
+<tr><td>เทียบกับค่าสรุป</td><td><code>WHERE c &gt; (SELECT AVG(c) FROM t)</code></td><td>6</td></tr>
+</table>
+
+<h2 id="adv"><span class="sec">ADV</span> View, Index, Transaction</h2>
+<table class="tbl"><tr><th>งานที่ต้องการทำ</th><th>คำสั่ง</th><th>บท</th></tr>
+<tr><td>สร้าง / ลบวิว</td><td><code>CREATE VIEW v AS SELECT …;</code> / <code>DROP VIEW v;</code></td><td>7</td></tr>
+<tr><td>สร้าง / ลบดัชนี</td><td><code>CREATE INDEX i ON t(c);</code> / <code>DROP INDEX i ON t;</code></td><td>8</td></tr>
+<tr><td>ดูแผนการทำงาน</td><td><code>EXPLAIN SELECT …;</code></td><td>8</td></tr>
+<tr><td>ทรานแซกชัน</td><td><code>START TRANSACTION; … COMMIT;</code> หรือ <code>ROLLBACK;</code></td><td>9</td></tr>
+<tr><td>ย้อนกลับบางส่วน</td><td><code>SAVEPOINT sp; … ROLLBACK TO SAVEPOINT sp;</code></td><td>9</td></tr>
+</table>
+
+<h2 id="sec"><span class="sec">DCL</span> ผู้ใช้ สิทธิ์ Procedure Trigger</h2>
+<table class="tbl"><tr><th>งานที่ต้องการทำ</th><th>คำสั่ง</th><th>บท</th></tr>
+<tr><td>สร้างผู้ใช้</td><td><code>CREATE USER 'u'@'localhost' IDENTIFIED BY 'pw';</code></td><td>10</td></tr>
+<tr><td>ให้สิทธิ์</td><td><code>GRANT SELECT, INSERT ON db.* TO 'u'@'localhost';</code></td><td>10</td></tr>
+<tr><td>ยกเลิกสิทธิ์</td><td><code>REVOKE ALL PRIVILEGES ON db.* FROM 'u'@'localhost';</code></td><td>10</td></tr>
+<tr><td>เรียกโพรซีเยอร์</td><td><code>CALL sp(พารามิเตอร์, @out);</code></td><td>11</td></tr>
+<tr><td>สำรองข้อมูล</td><td><code>mysqldump -u root -p db &gt; backup.sql</code></td><td>10</td></tr>
+</table>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>โครง Stored Procedure</span></div><pre class="sql">DELIMITER $$
+CREATE PROCEDURE sp_name (IN p_in VARCHAR(10), OUT p_out INT)
+BEGIN
+    DECLARE v INT DEFAULT 0;
+    SELECT COUNT(*) INTO v FROM ตาราง WHERE คอลัมน์ = p_in;
+    IF v &gt; 0 THEN
+        SET p_out = v;
+    ELSE
+        SET p_out = 0;
+    END IF;
+END $$
+DELIMITER ;</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>โครง Trigger</span></div><pre class="sql">DELIMITER $$
+CREATE TRIGGER tg_name
+BEFORE INSERT ON ตาราง          -- BEFORE | AFTER  ×  INSERT | UPDATE | DELETE
+FOR EACH ROW
+BEGIN
+    IF NEW.คอลัมน์ &lt; 0 THEN
+        SIGNAL SQLSTATE &#x27;45000&#x27; SET MESSAGE_TEXT = &#x27;ข้อความแจ้งเตือน&#x27;;
+    END IF;
+END $$
+DELIMITER ;</pre></div>
+
+<div class="pager"><a class="pg" href="appendix-a-script.html">← ก · สคริปต์ฐานข้อมูลกรณีศึกษา</a><a class="pg next" href="appendix-c-dbeaver.html">ค · เชื่อมต่อฐานข้อมูลด้วย DBeaver →</a></div>
+<footer>Lecture Note · 1204202 การออกแบบและการจัดการฐานข้อมูล · อ.ดร.พรทิวา ปะวะระ · ภาควิชาวิทยาการคอมพิวเตอร์ คณะวิทยาการสารสนเทศ มหาวิทยาลัยมหาสารคาม</footer>
+</main>
+<script src="assets/password.js"></script>
+<script src="assets/nav.js"></script>
+</body>
+</html>

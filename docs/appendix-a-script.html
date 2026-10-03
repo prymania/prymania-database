@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ภาคผนวก ก · สคริปต์สร้างฐานข้อมูลกรณีศึกษา — Database Lecture Note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
+  <nav>
+<div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
+<a href="index.html"><span class="no">🏠</span>หน้าแรก / ภาพรวม</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 1 · ออกแบบฐานข้อมูล</div>
+<a href="01-intro.html"><span class="no">01</span>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</a>
+<a href="02-er-model.html"><span class="no">02</span>แบบจำลอง ER</a>
+<a href="03-relational-normalization.html"><span class="no">03</span>แปลง ER เป็นตาราง &amp; Normalization</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 2 · ภาษา SQL</div>
+<a href="04-sql-ddl-dml.html"><span class="no">04</span>สร้างตาราง &amp; INSERT/UPDATE/DELETE</a>
+<a href="05-select.html"><span class="no">05</span>การแสดงข้อมูลด้วยคำสั่ง SELECT</a>
+<a href="06-join.html"><span class="no">06</span>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 3 · ขั้นสูง</div>
+<a href="07-view.html"><span class="no">07</span>วิว (View)</a>
+<a href="08-index.html"><span class="no">08</span>ดัชนี (Index)</a>
+<a href="09-transaction.html"><span class="no">09</span>ทรานแซกชัน (Transaction)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม</div>
+<a href="10-security.html"><span class="no">10</span>ความปลอดภัยของฐานข้อมูล</a>
+<a href="11-stored-procedure.html"><span class="no">11</span>Stored Procedure &amp; Function</a>
+<a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
+<a href="appendix-a-script.html" class="active"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<div class="subnav"><a href="#drop"><span class="sno">①</span>ลบตารางเดิม (ลำดับย้อนกลับ)</a><a href="#create"><span class="sno">②</span>สร้างตาราง (DDL)</a><a href="#insert"><span class="sno">③</span>เพิ่มข้อมูล (DML)</a><a href="#check"><span class="sno">④</span>ตรวจสอบหลังรันเสร็จ</a></div>
+<a href="appendix-b-cheatsheet.html"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">ง</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+</div>
+  </nav>
+  <img src="icon/worker.png" alt="" class="sidebar-img">
+</aside>
+<main class="content">
+<div class="page-head"><span class="kicker">APPENDIX A</span><h1>ภาคผนวก ก · สคริปต์สร้างฐานข้อมูลกรณีศึกษา</h1><p class="sub">CREATE TABLE + INSERT ครบ 5 ตาราง ของระบบลงทะเบียนเรียน — คัดลอกไปรันใน DBeaver ได้ทันที</p></div>
+
+
+<div class="box tip"><div class="box-t">✅ วิธีใช้</div><ol>
+<li>เปิด DBeaver เชื่อมต่อฐานข้อมูลของตนเอง (<a href="appendix-c-dbeaver.html">ภาคผนวก ค</a>) และตรวจว่าเลือกฐานข้อมูลถูกต้อง</li>
+<li>กดปุ่ม <b>📋 คัดลอก</b> ที่บล็อกด้านล่าง วางใน SQL Editor แล้วรันทั้งสคริปต์ด้วย <b>Alt+X</b> (Execute SQL Script)</li>
+<li>รันตามลำดับ: ① ลบตารางเดิม (ถ้ามี) → ② สร้างตาราง → ③ เพิ่มข้อมูล</li>
+</ol><p>หรือดาวน์โหลดไฟล์ทั้งหมดในครั้งเดียว: <a href="prymania_DBLabScript.sql" download>⬇ prymania_DBLabScript.sql</a></p></div>
+
+<div class="pagetoc"><div class="pagetoc-t">📑 ในบทนี้</div><ul><li><a href="#drop">①  ลบตารางเดิม (ลำดับย้อนกลับ)</a></li><li><a href="#create">②  สร้างตาราง (DDL)</a></li><li><a href="#insert">③  เพิ่มข้อมูล (DML)</a></li><li><a href="#check">④  ตรวจสอบหลังรันเสร็จ</a></li></ul></div>
+
+<h2 id="drop"><span class="sec">①</span> ลบตารางเดิม (ลำดับย้อนกลับ)</h2>
+<p>ใช้เมื่อต้องการเริ่มใหม่ทั้งหมด — ต้องลบตารางลูกก่อนตารางแม่ เพราะติดคีย์นอก</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>drop tables</span></div><pre class="sql">drop table if exists enroll;
+drop table if exists section;
+drop table if exists subject;
+drop table if exists lecturer;
+drop table if exists student;</pre></div>
+
+<h2 id="create"><span class="sec">②</span> สร้างตาราง (DDL)</h2>
+<p>สร้างตารางที่ถูกอ้างอิงก่อนเสมอ: student, subject, lecturer → section → enroll</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>create tables</span></div><pre class="sql">-- ******************** student ********************
+create table student(
+	stdid		varchar(10),
+	name		varchar(50),
+	major		varchar(20),
+	gpa			numeric(3,2),
+	birthday	date,
+constraint std_pk	primary key	(stdid),
+constraint std_gpa	check		(gpa between 0.0 and 4.0));
+
+-- ******************** subject ********************
+create table subject(
+	subid		varchar(10),
+	name		varchar(30)	not null,
+	credit		int,
+	major		varchar(20),
+	pre			varchar(10),
+constraint sub_pk		primary key	(subid),
+constraint sub_fk_pre	foreign key	(pre)	references subject(subid));
+
+-- ******************** lecturer *******************
+create table lecturer(
+	lecid		varchar(10),
+	name		varchar(30),
+	salary		int,
+	major		varchar(30),
+constraint lec_pk	primary key	(lecid));
+
+-- ******************** section ********************
+create table section(
+	secid		int	AUTO_INCREMENT,
+	subid		varchar(10),
+	lecid		varchar(10),
+	term		varchar(6),
+constraint sec_pk		primary key	(secid),
+constraint sec_fk_sub	foreign key	(subid)	references subject(subid)	on delete cascade,
+constraint sec_fk_lec	foreign key	(lecid)	references lecturer(lecid)	on delete cascade,
+constraint sec_uk		unique		(subid, lecid, term));
+
+-- ******************** enroll *********************
+create table enroll(
+	secid		int,
+	stdid		varchar(10),
+	grade		char,
+constraint enroll_pk		primary key	(secid, stdid),
+constraint enroll_fk_sec	foreign key	(secid)	references section(secid)	on delete cascade,
+constraint enroll_fk_std	foreign key	(stdid)	references student(stdid)	on delete cascade,
+constraint enroll_grade		check		(grade in (&#x27;A&#x27;, &#x27;B&#x27;, &#x27;C&#x27;, &#x27;D&#x27;, &#x27;F&#x27;)));</pre></div>
+
+<h2 id="insert"><span class="sec">③</span> เพิ่มข้อมูล (DML)</h2>
+<div class="schema">
+  <div class="tb"><div class="tb-h">student · 22 แถว</div><div class="col">นิสิต 5 สาขา + ไม่ระบุสาขา</div></div>
+  <div class="tb"><div class="tb-h">subject · 20 แถว</div><div class="col">CS, Math, Thai, English, Physics</div></div>
+  <div class="tb"><div class="tb-h">lecturer · 16 แถว</div><div class="col">t01 – t16</div></div>
+  <div class="tb"><div class="tb-h">section · 52 แถว</div><div class="col">ภาค 2023-1 ถึง 2026-1</div></div>
+  <div class="tb"><div class="tb-h">enroll · 100 แถว</div><div class="col">มีเกรด NULL บางแถว</div></div>
+</div>
+
+<h3>student</h3>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>insert into student</span></div><pre class="sql">-- ******************** student ********************
+insert into student values
+	(&#x27;60001&#x27;,	&#x27;Rukawa&#x27;,	&#x27;CS&#x27;,		3.75,	&#x27;2010-05-13&#x27;),
+	(&#x27;60002&#x27;,	&#x27;Sakuragi&#x27;,	&#x27;CS&#x27;,		null,	&#x27;2010-01-15&#x27;),
+	(&#x27;60003&#x27;,	&#x27;Mitsui&#x27;,	&#x27;CS&#x27;,		2.00,	&#x27;2013-06-25&#x27;),
+	(&#x27;60004&#x27;,	&#x27;Sendoh&#x27;,	&#x27;CS&#x27;,		3.98,	&#x27;2012-12-08&#x27;),
+	(&#x27;60005&#x27;,	null,		&#x27;Math&#x27;,		2.78,	&#x27;2011-09-02&#x27;),
+	(&#x27;60006&#x27;,	&#x27;Nobita&#x27;,	&#x27;Math&#x27;,		1.55,	null),
+	(&#x27;60007&#x27;,	&#x27;L&#x27;,		&#x27;Art&#x27;,		3.98,	&#x27;2011-01-31&#x27;),
+	(&#x27;60008&#x27;,	&#x27;Kira&#x27;,		&#x27;Art&#x27;,		3.05,	&#x27;2015-02-25&#x27;),
+	(&#x27;60009&#x27;,	&#x27;Killua&#x27;,	&#x27;English&#x27;,	3.98,	&#x27;2015-03-31&#x27;),
+	(&#x27;60010&#x27;,	&#x27;Gon&#x27;,		&#x27;English&#x27;,	1.55,	&#x27;2016-02-20&#x27;),
+	(&#x27;60011&#x27;,	&#x27;Kurapika&#x27;,	&#x27;English&#x27;,	3.98,	&#x27;2016-02-20&#x27;),
+	(&#x27;60012&#x27;,	&#x27;Hisoka&#x27;,	&#x27;CS&#x27;,		2.00,	&#x27;2015-06-06&#x27;),
+	(&#x27;60013&#x27;,	&#x27;Gon&#x27;,		&#x27;CS&#x27;,		2.78,	&#x27;2017-07-07&#x27;),
+	(&#x27;60014&#x27;,	&#x27;Light&#x27;,	&#x27;Physics&#x27;,	2.55,	&#x27;2016-10-10&#x27;),
+	(&#x27;60015&#x27;,	&#x27;Near&#x27;,		&#x27;Physics&#x27;,	4.00,	&#x27;2014-08-24&#x27;),
+	(&#x27;60016&#x27;,	&#x27;Mello&#x27;,	&#x27;Physics&#x27;,	1.55,	&#x27;2015-12-13&#x27;),
+	(&#x27;70022&#x27;,	null,		&#x27;English&#x27;,	null,	null),
+	(&#x27;70033&#x27;,	&#x27;Zoro&#x27;,		null,		3.98,	&#x27;2012-02-29&#x27;),
+	(&#x27;70034&#x27;,	&#x27;Luffy&#x27;,	null,		1.55,	&#x27;2010-02-11&#x27;),
+	(&#x27;70035&#x27;,	&#x27;Nami&#x27;,		null,		2.85,	null),
+	(&#x27;70036&#x27;,	&#x27;Sanji&#x27;,	&#x27;CS&#x27;,		2.78,	null),
+	(&#x27;70037&#x27;,	&#x27;Chopper&#x27;,	null,		null,	&#x27;2011-12-24&#x27;);</pre></div>
+
+<h3>subject</h3>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>insert into subject</span></div><pre class="sql">-- ******************** subject ********************
+insert into subject values
+	(&#x27;CS001&#x27;,	&#x27;Programming&#x27;,		3,	&#x27;CS&#x27;,		null),
+	(&#x27;CS002&#x27;,	&#x27;Java&#x27;,				3,	&#x27;CS&#x27;,		&#x27;CS001&#x27;),
+	(&#x27;CS003&#x27;,	&#x27;Web Design&#x27;,		2,	&#x27;CS&#x27;,		&#x27;CS001&#x27;),
+	(&#x27;CS004&#x27;,	&#x27;Database&#x27;,			3,	&#x27;CS&#x27;,		&#x27;CS001&#x27;),
+	(&#x27;CS005&#x27;,	&#x27;Graphics&#x27;,			3,	&#x27;CS&#x27;,		&#x27;CS002&#x27;),
+	(&#x27;CS006&#x27;,	&#x27;Mobile Apps&#x27;,		2,	&#x27;CS&#x27;,		&#x27;CS002&#x27;),
+	(&#x27;CS007&#x27;,	&#x27;Robotics&#x27;,			4,	&#x27;CS&#x27;,		&#x27;CS002&#x27;),
+	(&#x27;CS008&#x27;,	&#x27;AI&#x27;,				3,	&#x27;CS&#x27;,		&#x27;CS002&#x27;),
+	(&#x27;CS009&#x27;,	&#x27;Project&#x27;,			6,	&#x27;CS&#x27;,		&#x27;CS004&#x27;),
+	(&#x27;CS010&#x27;,	&#x27;Security&#x27;,			3,	&#x27;CS&#x27;,		&#x27;CS004&#x27;),
+	(&#x27;MA001&#x27;,	&#x27;Mathematics&#x27;,		3,	&#x27;Math&#x27;,		null),
+	(&#x27;MA002&#x27;,	&#x27;Discrete Math&#x27;,	4,	&#x27;Math&#x27;,		&#x27;MA001&#x27;),
+	(&#x27;MA003&#x27;,	&#x27;Statistics&#x27;,		3,	&#x27;Math&#x27;,		&#x27;MA002&#x27;),
+	(&#x27;TH001&#x27;,	&#x27;Thai&#x27;,				1,	&#x27;Thai&#x27;,		null),
+	(&#x27;TH002&#x27;,	&#x27;Thai Writing&#x27;,		1,	&#x27;Thai&#x27;,		&#x27;TH001&#x27;),
+	(&#x27;EN001&#x27;,	&#x27;English&#x27;,			2,	&#x27;English&#x27;,	null),
+	(&#x27;EN002&#x27;,	&#x27;Reading&#x27;,			3,	&#x27;English&#x27;,	&#x27;EN001&#x27;),
+	(&#x27;EN003&#x27;,	&#x27;Conversation&#x27;,		3,	&#x27;English&#x27;,	&#x27;EN001&#x27;),
+	(&#x27;EN004&#x27;,	&#x27;Writing&#x27;,			3,	&#x27;English&#x27;,	&#x27;EN002&#x27;),
+	(&#x27;PH001&#x27;,	&#x27;Physics&#x27;,			3,	&#x27;Physics&#x27;,	null);</pre></div>
+
+<h3>lecturer</h3>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>insert into lecturer</span></div><pre class="sql">-- ******************** lecturer *******************
+insert into lecturer values
+	(&#x27;t01&#x27;,	&#x27;Peter Parker&#x27;,	40000,	&#x27;CS&#x27;),
+	(&#x27;t02&#x27;,	&#x27;Steve Roger&#x27;,	50000,	&#x27;CS&#x27;),
+	(&#x27;t03&#x27;,	&#x27;Yoda&#x27;,			80000,	&#x27;Math&#x27;),
+	(&#x27;t04&#x27;,	&#x27;Post Malone&#x27;,	47000,	&#x27;Thai&#x27;),
+	(&#x27;t05&#x27;,	&#x27;IronMan&#x27;,		65000,	&#x27;Thai&#x27;),
+	(&#x27;t06&#x27;,	&#x27;Goku&#x27;,			20000,	&#x27;English&#x27;),
+	(&#x27;t07&#x27;,	&#x27;Vegeta&#x27;,		25000,	&#x27;English&#x27;),
+	(&#x27;t08&#x27;,	&#x27;Cell&#x27;,			70000,	&#x27;English&#x27;),
+	(&#x27;t09&#x27;,	&#x27;Frieza&#x27;,		60000,	&#x27;English&#x27;),
+	(&#x27;t10&#x27;,	&#x27;Piccolo&#x27;,		15000,	&#x27;Art&#x27;),
+	(&#x27;t11&#x27;,	&#x27;Batman&#x27;,		null,	&#x27;DC&#x27;),
+	(&#x27;t12&#x27;,	&#x27;Wolverine&#x27;,	null,	&#x27;DC&#x27;),
+	(&#x27;t13&#x27;,	&#x27;Thor&#x27;,			60000,	&#x27;DC&#x27;),
+	(&#x27;t14&#x27;,	&#x27;Yoda&#x27;,			80000,	&#x27;CS&#x27;),
+	(&#x27;t15&#x27;,	&#x27;Gohan&#x27;,		20000,	&#x27;Math&#x27;),
+	(&#x27;t16&#x27;,	&#x27;Levi&#x27;,			null,	&#x27;Physics&#x27;);</pre></div>
+
+<h3>section</h3>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>insert into section</span></div><pre class="sql">-- ******************** section ********************
+insert into section(subid, lecid, term) values
+	(&#x27;CS001&#x27;,	&#x27;t01&#x27;,	&#x27;2023-1&#x27;),		-- secid 1
+	(&#x27;CS004&#x27;,	&#x27;t01&#x27;,	&#x27;2023-1&#x27;),		-- secid 2
+	(&#x27;CS005&#x27;,	&#x27;t01&#x27;,	&#x27;2023-1&#x27;),		-- secid 3
+	(&#x27;CS003&#x27;,	&#x27;t02&#x27;,	&#x27;2023-1&#x27;),		-- secid 4
+	(&#x27;CS006&#x27;,	&#x27;t02&#x27;,	&#x27;2023-1&#x27;),		-- secid 5
+	(&#x27;CS002&#x27;,	&#x27;t01&#x27;,	&#x27;2023-2&#x27;),		-- secid 6
+	(&#x27;CS003&#x27;,	&#x27;t01&#x27;,	&#x27;2023-2&#x27;),		-- secid 7
+	(&#x27;CS004&#x27;,	&#x27;t03&#x27;,	&#x27;2023-3&#x27;),		-- secid 8
+	(&#x27;CS007&#x27;,	&#x27;t05&#x27;,	&#x27;2023-3&#x27;),		-- secid 9
+	(&#x27;CS008&#x27;,	&#x27;t01&#x27;,	&#x27;2023-3&#x27;),		-- secid 10
+
+	(&#x27;CS001&#x27;,	&#x27;t01&#x27;,	&#x27;2024-1&#x27;),		-- secid 11
+	(&#x27;CS004&#x27;,	&#x27;t01&#x27;,	&#x27;2024-1&#x27;),		-- secid 12
+	(&#x27;CS005&#x27;,	&#x27;t02&#x27;,	&#x27;2024-1&#x27;),		-- secid 13
+
+	(&#x27;CS008&#x27;,	&#x27;t02&#x27;,	&#x27;2024-2&#x27;),		-- secid 14
+	(&#x27;CS001&#x27;,	&#x27;t01&#x27;,	&#x27;2024-2&#x27;),		-- secid 15
+	(&#x27;CS002&#x27;,	&#x27;t01&#x27;,	&#x27;2024-2&#x27;),		-- secid 16
+	(&#x27;CS005&#x27;,	&#x27;t01&#x27;,	&#x27;2024-2&#x27;),		-- secid 17
+	(&#x27;MA001&#x27;,	&#x27;t03&#x27;,	&#x27;2024-2&#x27;),		-- secid 18
+	(&#x27;MA002&#x27;,	&#x27;t05&#x27;,	&#x27;2024-2&#x27;),		-- secid 19
+
+	(&#x27;CS004&#x27;,	&#x27;t01&#x27;,	&#x27;2024-3&#x27;),		-- secid 20
+	(&#x27;CS004&#x27;,	&#x27;t03&#x27;,	&#x27;2024-3&#x27;),		-- secid 21
+	(&#x27;CS004&#x27;,	&#x27;t05&#x27;,	&#x27;2024-3&#x27;),		-- secid 22
+	(&#x27;MA002&#x27;,	&#x27;t05&#x27;,	&#x27;2024-3&#x27;),		-- secid 23
+
+	(&#x27;CS001&#x27;,	&#x27;t02&#x27;,	&#x27;2024-1&#x27;),		-- secid 24
+	(&#x27;CS006&#x27;,	&#x27;t03&#x27;,	&#x27;2024-1&#x27;),		-- secid 25
+	(&#x27;CS007&#x27;,	&#x27;t02&#x27;,	&#x27;2024-1&#x27;),		-- secid 26
+	(&#x27;MA001&#x27;,	&#x27;t05&#x27;,	&#x27;2024-1&#x27;),		-- secid 27
+	(&#x27;CS009&#x27;,	&#x27;t02&#x27;,	&#x27;2024-2&#x27;),		-- secid 28
+	(&#x27;CS002&#x27;,	&#x27;t02&#x27;,	&#x27;2024-2&#x27;),		-- secid 29
+	(&#x27;CS002&#x27;,	&#x27;t04&#x27;,	&#x27;2024-2&#x27;),		-- secid 30
+
+	(&#x27;CS009&#x27;,	&#x27;t02&#x27;,	&#x27;2024-3&#x27;),		-- secid 31
+	(&#x27;CS002&#x27;,	&#x27;t13&#x27;,	&#x27;2024-3&#x27;),		-- secid 32
+	(&#x27;CS002&#x27;,	&#x27;t05&#x27;,	&#x27;2024-3&#x27;),		-- secid 33
+
+	(&#x27;EN001&#x27;,	&#x27;t06&#x27;,	&#x27;2025-1&#x27;),		-- secid 34
+	(&#x27;CS001&#x27;,	&#x27;t01&#x27;,	&#x27;2025-1&#x27;),		-- secid 35
+	(&#x27;CS003&#x27;,	&#x27;t03&#x27;,	&#x27;2025-1&#x27;),		-- secid 36
+	(&#x27;MA001&#x27;,	&#x27;t06&#x27;,	&#x27;2025-1&#x27;),		-- secid 37
+	(&#x27;EN001&#x27;,	&#x27;t07&#x27;,	&#x27;2025-1&#x27;),		-- secid 38
+
+	(&#x27;CS001&#x27;,	&#x27;t02&#x27;,	&#x27;2025-2&#x27;),		-- secid 39
+	(&#x27;CS008&#x27;,	&#x27;t03&#x27;,	&#x27;2025-2&#x27;),		-- secid 40
+	(&#x27;CS009&#x27;,	&#x27;t04&#x27;,	&#x27;2025-2&#x27;),		-- secid 41
+	(&#x27;EN003&#x27;,	&#x27;t08&#x27;,	&#x27;2025-2&#x27;),		-- secid 42
+
+	(&#x27;TH001&#x27;,	&#x27;t04&#x27;,	&#x27;2025-3&#x27;),		-- secid 43
+	(&#x27;TH002&#x27;,	&#x27;t04&#x27;,	&#x27;2025-3&#x27;),		-- secid 44 (ไม่มีคนลง)
+	(&#x27;CS010&#x27;,	&#x27;t02&#x27;,	&#x27;2025-3&#x27;),		-- secid 45
+	(&#x27;CS002&#x27;,	&#x27;t14&#x27;,	&#x27;2025-3&#x27;),		-- secid 46
+	(&#x27;MA003&#x27;,	&#x27;t03&#x27;,	&#x27;2025-3&#x27;),		-- secid 47
+	(&#x27;EN003&#x27;,	&#x27;t09&#x27;,	&#x27;2025-3&#x27;),		-- secid 48
+	(&#x27;CS001&#x27;,	&#x27;t10&#x27;,	&#x27;2025-3&#x27;),		-- secid 49
+	(&#x27;MA001&#x27;,	&#x27;t15&#x27;,	&#x27;2025-3&#x27;),		-- secid 50
+
+	(&#x27;CS004&#x27;,	&#x27;t01&#x27;,	&#x27;2026-1&#x27;),		-- secid 51
+	(&#x27;CS009&#x27;,	&#x27;t03&#x27;,	&#x27;2026-1&#x27;);		-- secid 52 (ไม่มีคนลง)</pre></div>
+
+<h3>enroll</h3>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>insert into enroll</span></div><pre class="sql">-- ******************** enroll *********************
+insert into enroll values
+	(1,		&#x27;60001&#x27;,	&#x27;A&#x27;),
+	(1,		&#x27;60002&#x27;,	&#x27;B&#x27;),
+	(1,		&#x27;60005&#x27;,	&#x27;C&#x27;),
+	(1,		&#x27;60006&#x27;,	&#x27;F&#x27;),
+	(1,		&#x27;60010&#x27;,	&#x27;F&#x27;),
+
+	(2,		&#x27;60001&#x27;,	&#x27;C&#x27;),
+	(2,		&#x27;60002&#x27;,	&#x27;A&#x27;),
+	(2,		&#x27;60005&#x27;,	&#x27;D&#x27;),
+	(2,		&#x27;60010&#x27;,	&#x27;F&#x27;),
+
+	(4,		&#x27;60004&#x27;,	&#x27;F&#x27;),
+
+	(5,		&#x27;60005&#x27;,	&#x27;C&#x27;),
+	(5,		&#x27;60006&#x27;,	&#x27;A&#x27;),
+	(5,		&#x27;60003&#x27;,	&#x27;F&#x27;),
+	(5,		&#x27;60004&#x27;,	&#x27;B&#x27;),
+
+	(6,		&#x27;60001&#x27;,	&#x27;B&#x27;),
+	(6,		&#x27;60002&#x27;,	&#x27;F&#x27;),
+	(6,		&#x27;60003&#x27;,	&#x27;B&#x27;),
+	(6,		&#x27;60007&#x27;,	&#x27;A&#x27;),
+
+	(7,		&#x27;60005&#x27;,	&#x27;B&#x27;),
+	(7,		&#x27;60007&#x27;,	&#x27;A&#x27;),
+
+	(8,		&#x27;60001&#x27;,	&#x27;A&#x27;),
+	(8,		&#x27;60007&#x27;,	&#x27;B&#x27;),
+
+	(9,		&#x27;60003&#x27;,	&#x27;D&#x27;),
+	(9,		&#x27;60004&#x27;,	&#x27;C&#x27;),
+
+	(10,	&#x27;60001&#x27;,	&#x27;A&#x27;),
+	(10,	&#x27;60003&#x27;,	&#x27;F&#x27;),
+	(10,	&#x27;60009&#x27;,	&#x27;B&#x27;),
+
+	(11,	&#x27;60012&#x27;,	&#x27;A&#x27;),
+
+	(12,	&#x27;60002&#x27;,	&#x27;A&#x27;),
+	(12,	&#x27;60004&#x27;,	&#x27;A&#x27;),
+	(12,	&#x27;60005&#x27;,	&#x27;B&#x27;),
+	(12,	&#x27;60006&#x27;,	&#x27;F&#x27;),
+
+	(13,	&#x27;60004&#x27;,	&#x27;A&#x27;),
+	(13,	&#x27;60006&#x27;,	&#x27;F&#x27;),
+
+	(14,	&#x27;60010&#x27;,	&#x27;B&#x27;),
+	(14,	&#x27;60012&#x27;,	&#x27;B&#x27;),
+
+	(15,	&#x27;60001&#x27;,	&#x27;A&#x27;),
+	(15,	&#x27;60004&#x27;,	&#x27;A&#x27;),
+	(15,	&#x27;60003&#x27;,	&#x27;B&#x27;),
+	(15,	&#x27;60010&#x27;,	&#x27;F&#x27;),
+
+	(16,	&#x27;60013&#x27;,	&#x27;A&#x27;),
+	(16,	&#x27;60010&#x27;,	&#x27;D&#x27;),
+
+	(17,	&#x27;60013&#x27;,	&#x27;B&#x27;),
+	(17,	&#x27;60007&#x27;,	&#x27;C&#x27;),
+
+	(18,	&#x27;60005&#x27;,	&#x27;A&#x27;),
+	(18,	&#x27;60006&#x27;,	&#x27;D&#x27;),
+	(18,	&#x27;60013&#x27;,	&#x27;C&#x27;),
+
+	(19,	&#x27;60001&#x27;,	&#x27;B&#x27;),
+	(19,	&#x27;60002&#x27;,	&#x27;B&#x27;),
+	(19,	&#x27;60003&#x27;,	&#x27;A&#x27;),
+	(19,	&#x27;60007&#x27;,	&#x27;A&#x27;),
+	(19,	&#x27;60005&#x27;,	&#x27;A&#x27;),
+
+	(20,	&#x27;60013&#x27;,	&#x27;F&#x27;),
+	(20,	&#x27;60009&#x27;,	&#x27;C&#x27;),
+
+	(21,	&#x27;60006&#x27;,	&#x27;F&#x27;),
+
+	(22,	&#x27;60008&#x27;,	&#x27;F&#x27;),
+	(22,	&#x27;70034&#x27;,	&#x27;F&#x27;),
+	(23,	&#x27;60008&#x27;,	&#x27;F&#x27;),
+	(23,	&#x27;70034&#x27;,	&#x27;F&#x27;),
+
+	(28,	&#x27;60004&#x27;,	&#x27;A&#x27;),
+
+	(30,	&#x27;70022&#x27;,	&#x27;A&#x27;),
+
+	(31,	&#x27;60001&#x27;,	&#x27;A&#x27;),
+	(31,	&#x27;60007&#x27;,	&#x27;B&#x27;),
+
+	(34,	&#x27;70033&#x27;,	null),
+	(34,	&#x27;60009&#x27;,	&#x27;A&#x27;),
+	(34,	&#x27;60011&#x27;,	&#x27;A&#x27;),
+	(34,	&#x27;60010&#x27;,	&#x27;C&#x27;),
+
+	(35,	&#x27;70033&#x27;,	null),
+	(35,	&#x27;60010&#x27;,	&#x27;A&#x27;),
+
+	(36,	&#x27;70033&#x27;,	null),
+	(36,	&#x27;70022&#x27;,	null),
+	(36,	&#x27;60011&#x27;,	&#x27;B&#x27;),
+
+	(37,	&#x27;70022&#x27;,	null),
+
+	(38,	&#x27;60013&#x27;,	&#x27;B&#x27;),
+	(38,	&#x27;70034&#x27;,	&#x27;F&#x27;),
+
+	(39,	&#x27;70034&#x27;,	&#x27;D&#x27;),
+	(39,	&#x27;70022&#x27;,	&#x27;C&#x27;),
+
+	(40,	&#x27;60004&#x27;,	&#x27;A&#x27;),
+	(40,	&#x27;60009&#x27;,	&#x27;A&#x27;),
+
+	(41,	&#x27;60007&#x27;,	&#x27;A&#x27;),
+
+	(42,	&#x27;60009&#x27;,	&#x27;B&#x27;),
+	(42,	&#x27;60011&#x27;,	&#x27;C&#x27;),
+	(42,	&#x27;60010&#x27;,	&#x27;F&#x27;),
+
+	(43,	&#x27;60010&#x27;,	&#x27;A&#x27;),
+	(43,	&#x27;60013&#x27;,	&#x27;A&#x27;),
+	(43,	&#x27;70022&#x27;,	&#x27;B&#x27;),
+
+	(45,	&#x27;60001&#x27;,	&#x27;B&#x27;),
+	(45,	&#x27;60004&#x27;,	&#x27;A&#x27;),
+	(45,	&#x27;60009&#x27;,	null),
+
+	(46,	&#x27;70034&#x27;,	&#x27;C&#x27;),
+	(46,	&#x27;60002&#x27;,	&#x27;B&#x27;),
+
+	(47,	&#x27;60005&#x27;,	&#x27;A&#x27;),
+	(47,	&#x27;60006&#x27;,	null),
+
+	(48,	&#x27;60011&#x27;,	&#x27;A&#x27;),
+	(48,	&#x27;70022&#x27;,	&#x27;F&#x27;),
+
+	(49,	&#x27;70036&#x27;,	&#x27;B&#x27;),
+	(49,	&#x27;70037&#x27;,	&#x27;C&#x27;),
+
+	(50,	&#x27;70036&#x27;,	&#x27;D&#x27;),
+
+	(51,	&#x27;60008&#x27;,	null),
+	(51,	&#x27;70034&#x27;,	null);</pre></div>
+
+
+<h2 id="check"><span class="sec">④</span> ตรวจสอบหลังรันเสร็จ</h2>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>นับจำนวนแถวทุกตาราง</span></div><pre class="sql">SELECT &#x27;student&#x27;  AS table_name, COUNT(*) AS n_rows FROM student
+UNION ALL SELECT &#x27;subject&#x27;,  COUNT(*) FROM subject
+UNION ALL SELECT &#x27;lecturer&#x27;, COUNT(*) FROM lecturer
+UNION ALL SELECT &#x27;section&#x27;,  COUNT(*) FROM section
+UNION ALL SELECT &#x27;enroll&#x27;,   COUNT(*) FROM enroll;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>table_name</th><th>n_rows</th></tr><tr><td>student</td><td>22</td></tr><tr><td>subject</td><td>20</td></tr><tr><td>lecturer</td><td>16</td></tr><tr><td>section</td><td>52</td></tr><tr><td>enroll</td><td>100</td></tr></table></div>
+<div class="box warn"><div class="box-t">⚠️ ถ้าจำนวนแถวไม่ตรง</div><ul>
+<li>รันซ้ำแล้วได้ <code>Duplicate entry</code> — ข้อมูลถูกเพิ่มไปแล้ว ให้ลบตารางในขั้น ① แล้วรันใหม่</li>
+<li>section ได้ secid ไม่เริ่มที่ 1 — เคย insert แล้วลบ ทำให้ AUTO_INCREMENT เดินต่อ ให้ DROP TABLE แล้วสร้างใหม่ (หรือ TRUNCATE) — ตัวอย่างในเว็บนี้อ้างอิง secid 1–52</li>
+<li>ภาษาไทยเป็น ??? — ฐานข้อมูลไม่ได้ใช้ <code>utf8mb4</code></li>
+</ul></div>
+
+<div class="pager"><a class="pg" href="12-trigger.html">← 12 · ทริกเกอร์ (Trigger)</a><a class="pg next" href="appendix-b-cheatsheet.html">ข · สรุปคำสั่ง SQL (Cheat Sheet) →</a></div>
+<footer>Lecture Note · 1204202 การออกแบบและการจัดการฐานข้อมูล · อ.ดร.พรทิวา ปะวะระ · ภาควิชาวิทยาการคอมพิวเตอร์ คณะวิทยาการสารสนเทศ มหาวิทยาลัยมหาสารคาม</footer>
+</main>
+<script src="assets/password.js"></script>
+<script src="assets/nav.js"></script>
+</body>
+</html>

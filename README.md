@@ -1,12 +1,12 @@
 # Database Lecture Note (1204202)
 
-เว็บ lecture note แบบ static — เปิด `site/index.html` ได้ทันที (ไม่ต้องมีเซิร์ฟเวอร์)
+เว็บ lecture note แบบ static — เปิด `docs/index.html` ได้ทันที (ไม่ต้องมีเซิร์ฟเวอร์)
 
 ## โครงสร้าง
 - `src/*.html` — เนื้อหาแต่ละบท (แก้ที่นี่)
-- `build.py` — แปลง `src/` → `site/` และ **รันทุกตัวอย่าง SQL กับ MySQL จริง** เพื่อสร้างตารางผลลัพธ์
+- `build.py` — แปลง `src/` → `docs/` และ **รันทุกตัวอย่าง SQL กับ MySQL จริง** เพื่อสร้างตารางผลลัพธ์
 - `prymania_DBLabScript.sql` — schema + data กรณีศึกษา (ทุกหน้าเริ่มจากข้อมูลชุดนี้ใหม่)
-- `site/` — ผลลัพธ์ (assets/style.css, assets/nav.js, image/, icon/)
+- `docs/` — ผลลัพธ์ (GitHub Pages เปิดจากโฟลเดอร์นี้) (assets/style.css, assets/nav.js, image/, icon/)
 
 ## Build
 ```
@@ -23,7 +23,7 @@ build จะสร้างฐานข้อมูลชั่วคราว `
 | `exec` / `error` / `temp` / `reset` / `max="10"` / `show="SELECT ..."` | รันไม่แสดงผล / คาดว่า error / rollback หลังรัน / โหลดข้อมูลใหม่ / จำกัดแถว / แสดงผลคำสั่งเพิ่ม |
 | `<ex no="5.1" title="..." level="2">โจทย์<answer>เฉลย</answer></ex>` | แบบฝึกหัดระหว่างเรียน (ปุ่มดูเฉลย) |
 | `<review><li>...</li></review>` | คำถามท้ายบท |
-| `<fig n="2-28" w="500">คำบรรยาย</fig>` | รูป `site/image/fig2-28.jpg` |
+| `<fig n="2-28" w="500">คำบรรยาย</fig>` | รูป `docs/image/fig2-28.jpg` |
 | `<toc/>` | สารบัญหน้า (จาก h2) |
 
 ## คำถามท้ายบท + เฉลย
@@ -38,7 +38,7 @@ python apply_reviews.py && python build.py
 - เฉลยแต่ละบทเริ่มจากฐานข้อมูลกรณีศึกษาใหม่ ยกเว้นไฟล์ที่มี `#!noreset` (บทที่ 7, 11 ใช้วิว/โพรซีเยอร์ที่สร้างในบท)
 - รายละเอียดรูปแบบอยู่ต้นไฟล์ `apply_reviews.py`
 
-เฉลยซ่อนอยู่หลังปุ่ม **🔑 ดูเฉลย** — รหัสผ่านแยกตามบทอยู่ที่ `site/assets/password.js` ใน `window.EXERCISE_PASSWORDS` (คีย์ `c1`–`c12` ตรงกับเลขหน้าของไฟล์ เช่น 07-view.html = c7) แก้ได้โดยไม่ต้อง build ใหม่
+เฉลยซ่อนอยู่หลังปุ่ม **🔑 ดูเฉลย** — รหัสผ่านแยกตามบทอยู่ที่ `docs/assets/password.js` ใน `window.EXERCISE_PASSWORDS` (คีย์ `c1`–`c12` ตรงกับเลขหน้าของไฟล์ เช่น 07-view.html = c7) แก้ได้โดยไม่ต้อง build ใหม่
 ข้อควรรู้: เป็นการล็อกฝั่งเบราว์เซอร์ เนื้อหาเฉลยยังอยู่ใน HTML และรหัสผ่านทุกบทอ่านได้จาก password.js — กันการเปิดดูโดยไม่ตั้งใจได้ แต่ไม่ใช่ความปลอดภัยจริง
 
 ## ภาคผนวก ง · Library Tutorial

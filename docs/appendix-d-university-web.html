@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ภาคผนวก ง · ตัวอย่าง Website University — Database Lecture Note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
+  <nav>
+<div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
+<a href="index.html"><span class="no">🏠</span>หน้าแรก / ภาพรวม</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 1 · ออกแบบฐานข้อมูล</div>
+<a href="01-intro.html"><span class="no">01</span>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</a>
+<a href="02-er-model.html"><span class="no">02</span>แบบจำลอง ER</a>
+<a href="03-relational-normalization.html"><span class="no">03</span>แปลง ER เป็นตาราง &amp; Normalization</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 2 · ภาษา SQL</div>
+<a href="04-sql-ddl-dml.html"><span class="no">04</span>สร้างตาราง &amp; INSERT/UPDATE/DELETE</a>
+<a href="05-select.html"><span class="no">05</span>การแสดงข้อมูลด้วยคำสั่ง SELECT</a>
+<a href="06-join.html"><span class="no">06</span>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 3 · ขั้นสูง</div>
+<a href="07-view.html"><span class="no">07</span>วิว (View)</a>
+<a href="08-index.html"><span class="no">08</span>ดัชนี (Index)</a>
+<a href="09-transaction.html"><span class="no">09</span>ทรานแซกชัน (Transaction)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม</div>
+<a href="10-security.html"><span class="no">10</span>ความปลอดภัยของฐานข้อมูล</a>
+<a href="11-stored-procedure.html"><span class="no">11</span>Stored Procedure &amp; Function</a>
+<a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
+<a href="appendix-a-script.html"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html" class="active"><span class="no">ง</span>ตัวอย่าง Website University</a>
+<div class="subnav"><a href="#d1"><span class="sno">1</span>ติดตั้งและรัน</a><a href="#d2"><span class="sno">2</span>หน้าจัดการข้อมูล — ตารางบนเว็บไม่ใช่แค่ SELECT *</a><a href="#d3"><span class="sno">3</span>Dashboard — รายงานจากคำสั่ง SQL</a><a href="#d4"><span class="sno">4</span>หน้าโครงสร้างฐานข้อมูล</a></div>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+</div>
+  </nav>
+  <img src="icon/worker.png" alt="" class="sidebar-img">
+</aside>
+<main class="content">
+<div class="page-head"><span class="kicker">APPENDIX D</span><h1>ภาคผนวก ง · ตัวอย่าง Website University</h1><p class="sub">เว็บแอป Flask + MySQL ที่ใช้ฐานข้อมูลกรณีศึกษาของวิชา — ดูว่าตาราง student, lecturer, subject, section, enroll เมื่อเป็นเว็บจริงหน้าตาเป็นอย่างไร และ SQL แบบไหนอยู่เบื้องหลังแต่ละหน้า</p></div>
+
+
+<div class="box idea"><div class="box-t">💡 เว็บนี้ทำอะไร</div><p>ใช้ฐานข้อมูลชุดเดียวกับ <a href="appendix-a-script.html">ภาคผนวก ก</a> ทุกตาราง ทุกแถว — มีหน้า<b>จัดการข้อมูล</b> (ค้นหา / เพิ่ม / แก้ไข / ลบ) หน้า <b>Dashboard</b> และหน้า<b>โครงสร้างฐานข้อมูล</b> ทุกตารางบนเว็บมีปุ่ม <b>🔍 SQL ที่รันจริง</b> ให้กดดูคำสั่งที่ server ส่งไปยัง MySQL</p>
+<p><a href="university_schema_site.zip" download>⬇ ดาวน์โหลด university_schema_site.zip</a></p></div>
+
+<div class="pagetoc"><div class="pagetoc-t">📑 ในบทนี้</div><ul><li><a href="#d1">1  ติดตั้งและรัน</a></li><li><a href="#d2">2  หน้าจัดการข้อมูล — ตารางบนเว็บไม่ใช่แค่ SELECT *</a></li><li><a href="#d3">3  Dashboard — รายงานจากคำสั่ง SQL</a></li><li><a href="#d4">4  หน้าโครงสร้างฐานข้อมูล</a></li></ul></div>
+
+<h2 id="d1"><span class="sec">1</span> ติดตั้งและรัน</h2>
+<ol>
+<li>แตกไฟล์ zip แล้วเปิด Terminal ในโฟลเดอร์ <code>university_schema_site</code></li>
+<li>ติดตั้งไลบรารี: <code>pip install -r requirements.txt</code> (Flask + mysql-connector-python)</li>
+<li>แก้ <code>config.py</code> ให้ตรงกับ MySQL ที่ใช้ — ค่าเริ่มต้นคือ <code>localhost</code> / <code>root</code> / ฐานข้อมูล <code>university</code> หรือใช้บัญชีบนเซิร์ฟเวอร์ของวิชา (<a href="appendix-c-dbeaver.html">ภาคผนวก ค</a>) ก็ได้</li>
+<li>รัน <code>python app.py</code> แล้วเปิด <code>http://127.0.0.1:9001</code></li>
+<li>ครั้งแรกกดปุ่ม <b>↺ รีเซ็ตข้อมูล</b> มุมขวาบน — เว็บจะสร้างฐานข้อมูลและรัน <code>schema.sql</code> ให้ (ทดลองเพิ่ม/ลบข้อมูลแล้วอยากได้ข้อมูลเดิมคืน ก็กดปุ่มนี้อีกครั้ง)</li>
+</ol>
+<div class="code"><div class="code-head"><span>โครงสร้างไฟล์</span></div><pre>university_schema_site/
+├── app.py        # รับคำขอจากหน้าเว็บ แล้วเรียกฟังก์ชันใน db.py
+├── db.py         # ★ SQL ทุกคำสั่งของเว็บอยู่ที่นี่ (ค้นหา / CRUD / รายงาน)
+├── config.py     # ค่าเชื่อมต่อ MySQL
+├── schema.sql    # สร้างตาราง + ข้อมูล (ชุดเดียวกับภาคผนวก ก)
+├── templates/    # หน้า HTML: index (จัดการข้อมูล), dashboard, schema
+└── static/       # JavaScript + CSS + รูปนิสิต/อาจารย์ (images/รหัส.jpg)</pre></div>
+<div class="box note"><div class="box-t">📝 โครงสร้างเดียวกับโปรเจคระบบห้องสมุด</div><p>แยกไฟล์แบบเดียวกับ <a href="library_tutorial_site/index.html" target="_blank" rel="noopener">Library Tutorial (ภาคผนวก จ)</a> — หน้าเว็บ (JavaScript) ยิงคำขอไปที่ <code>app.py</code> → <code>app.py</code> เรียกฟังก์ชันใน <code>db.py</code> → <code>db.py</code> รัน SQL แล้วส่งผลกลับเป็น JSON ใช้เว็บนี้เป็นตัวอย่างอ้างอิงตอนทำโปรเจคกลุ่มได้</p></div>
+
+<h2 id="d2"><span class="sec">2</span> หน้าจัดการข้อมูล — ตารางบนเว็บไม่ใช่แค่ SELECT *</h2>
+<p>แต่ละแท็บแสดงข้อมูลที่ <b>JOIN แล้ว</b> เพื่อให้ผู้ใช้อ่านรู้เรื่อง — เช่น ผู้ใช้อยากเห็น “ชื่อวิชา” และ “ชื่ออาจารย์” ไม่ใช่แค่รหัส สีหัวตารางบอกที่มาของคอลัมน์: <span class="legend-chip" style="background:#24254F;color:#fff">คอลัมน์ของตารางนั้น</span> <span class="legend-chip" style="background:#7A4FD0;color:#fff">มาจากตารางอื่น (JOIN)</span> <span class="legend-chip" style="background:#B7791F;color:#fff">คำนวณ / นับ</span></p>
+<table class="tbl"><tr><th>แท็บ</th><th>สิ่งที่แสดงเพิ่มจากตารางจริง</th><th>เทคนิค SQL</th><th>ปุ่มในแต่ละแถว</th></tr>
+<tr><td><b>นิสิต</b></td><td>อายุ, จำนวนวิชาที่ลงทะเบียน, รูปนิสิต</td><td>TIMESTAMPDIFF, LEFT JOIN + COUNT</td><td>📄 ผลการเรียน (คำนวณ GPAX)</td></tr>
+<tr><td><b>อาจารย์</b></td><td>จำนวนกลุ่มเรียนที่สอน, รูปอาจารย์</td><td>LEFT JOIN + COUNT</td><td>📚 กลุ่มที่สอน</td></tr>
+<tr><td><b>รายวิชา</b></td><td><code>pre_subid</code>, <code>pre_subname</code></td><td>Self Join (LEFT JOIN subject กับตัวเอง)</td><td>🔗 วิชาต่อเนื่อง</td></tr>
+<tr><td><b>กลุ่มเรียน</b></td><td><code>sub_id</code>, <code>sub_name</code>, <code>lec_id</code>, <code>lec_name</code>, จำนวนนิสิต</td><td>INNER JOIN 2 ตาราง + LEFT JOIN enroll</td><td>👥 รายชื่อนิสิต</td></tr>
+<tr><td><b>การลงทะเบียน</b></td><td>ภาคเรียน, ชื่อวิชา, ชื่อนิสิต</td><td>INNER JOIN 4 ตาราง, PK 2 คอลัมน์</td><td>แก้เกรด</td></tr>
+</table>
+<figure class="shot"><img src="image/appd-subjects.png" alt="แท็บรายวิชา" style="max-width:860px"><figcaption>แท็บรายวิชา — <code>pre_subname</code> (หัวสีม่วง) มาจากการ JOIN ตาราง subject กับตัวเอง · วิชาที่ไม่มีวิชาบังคับก่อนแสดง NULL</figcaption></figure>
+
+<h3>รายวิชา: แสดงวิชาบังคับก่อนเป็นชื่อ</h3>
+<p>คอลัมน์ <code>pre</code> เก็บแค่รหัสวิชา จึงต้อง JOIN ตาราง subject กับตัวเองเพื่อเอาชื่อมาแสดง และต้องใช้ <b>LEFT JOIN</b> เพราะวิชาที่ไม่มีวิชาบังคับก่อน (<code>pre</code> เป็น NULL) ต้องยังอยู่ในรายการ</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>db.py · search_subjects()</span></div><pre class="sql">SELECT s.subid, s.name, s.credit, s.major,
+       s.pre  AS pre_subid,
+       p.name AS pre_subname
+FROM subject s
+LEFT JOIN subject p ON s.pre = p.subid
+ORDER BY s.subid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 20 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>credit</th><th>major</th><th>pre_subid</th><th>pre_subname</th></tr><tr><td>CS001</td><td>Programming</td><td>3</td><td>CS</td><td class="null">NULL</td><td class="null">NULL</td></tr><tr><td>CS002</td><td>Java</td><td>3</td><td>CS</td><td>CS001</td><td>Programming</td></tr><tr><td>CS003</td><td>Web Design</td><td>2</td><td>CS</td><td>CS001</td><td>Programming</td></tr><tr><td>CS004</td><td>Database</td><td>3</td><td>CS</td><td>CS001</td><td>Programming</td></tr><tr><td>CS005</td><td>Graphics</td><td>3</td><td>CS</td><td>CS002</td><td>Java</td></tr><tr><td>CS006</td><td>Mobile Apps</td><td>2</td><td>CS</td><td>CS002</td><td>Java</td></tr><tr><td>CS007</td><td>Robotics</td><td>4</td><td>CS</td><td>CS002</td><td>Java</td></tr><tr><td>CS008</td><td>AI</td><td>3</td><td>CS</td><td>CS002</td><td>Java</td></tr></table></div>
+
+<h3>กลุ่มเรียน: รหัส + ชื่อวิชา + ชื่ออาจารย์ + จำนวนนิสิต</h3>
+<p>ทุกกลุ่มเรียนมีวิชาและอาจารย์เสมอจึงใช้ INNER JOIN ได้ ส่วน enroll ใช้ <b>LEFT JOIN</b> เพื่อให้กลุ่มที่ยังไม่มีใครลงทะเบียนแสดงเป็น 0 แทนที่จะหายไป</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>db.py · search_sections() — เมื่อเลือกภาคเรียน 2024-1 ในช่องค้นหา</span></div><pre class="sql">SELECT sec.secid, sec.term,
+       sec.subid AS sub_id, sub.name AS sub_name, sub.credit,
+       sec.lecid AS lec_id, l.name   AS lec_name,
+       COUNT(e.stdid) AS n_student
+FROM section sec
+INNER JOIN subject sub ON sec.subid = sub.subid
+INNER JOIN lecturer l  ON sec.lecid = l.lecid
+LEFT JOIN enroll e     ON sec.secid = e.secid
+WHERE 1=1
+  AND sec.term = &#x27;2024-1&#x27;
+GROUP BY sec.secid
+ORDER BY sec.term, sec.secid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>term</th><th>sub_id</th><th>sub_name</th><th>credit</th><th>lec_id</th><th>lec_name</th><th>n_student</th></tr><tr><td>11</td><td>2024-1</td><td>CS001</td><td>Programming</td><td>3</td><td>t01</td><td>Peter Parker</td><td>1</td></tr><tr><td>12</td><td>2024-1</td><td>CS004</td><td>Database</td><td>3</td><td>t01</td><td>Peter Parker</td><td>4</td></tr><tr><td>13</td><td>2024-1</td><td>CS005</td><td>Graphics</td><td>3</td><td>t02</td><td>Steve Roger</td><td>2</td></tr><tr><td>24</td><td>2024-1</td><td>CS001</td><td>Programming</td><td>3</td><td>t02</td><td>Steve Roger</td><td>0</td></tr><tr><td>25</td><td>2024-1</td><td>CS006</td><td>Mobile Apps</td><td>2</td><td>t03</td><td>Yoda</td><td>0</td></tr><tr><td>26</td><td>2024-1</td><td>CS007</td><td>Robotics</td><td>4</td><td>t02</td><td>Steve Roger</td><td>0</td></tr><tr><td>27</td><td>2024-1</td><td>MA001</td><td>Mathematics</td><td>3</td><td>t05</td><td>IronMan</td><td>0</td></tr></table></div>
+<figure class="shot"><img src="image/appd-sections.png" alt="แท็บกลุ่มเรียน" style="max-width:860px"><figcaption>แท็บกลุ่มเรียน — ช่องค้นหาเป็น dropdown ที่ดึงรายการจากฐานข้อมูล</figcaption></figure>
+<div class="box idea"><div class="box-t">💡 WHERE 1=1 คืออะไร</div><p>ช่องค้นหาที่ผู้ใช้กรอกมีจำนวนไม่แน่นอน <code>db.py</code> จึงเริ่มด้วย <code>WHERE 1=1</code> (จริงเสมอ) แล้วต่อ <code>AND เงื่อนไข</code> เฉพาะช่องที่กรอก — ค่าที่ผู้ใช้พิมพ์ส่งผ่าน placeholder <code>%s</code> ไม่ได้ต่อสตริงเข้าไปตรง ๆ จึงปลอดภัยจาก SQL Injection (บทที่ 10)</p></div>
+
+<h3>นิสิต: ผลการเรียนและเกรดเฉลี่ยสะสม</h3>
+<p>กดปุ่ม <b>📄 ผลการเรียน</b> ในแถวของนิสิต เว็บจะรันคำสั่งนี้ (JOIN 4 ตาราง) แล้วคำนวณ GPAX = Σ(แต้ม × หน่วยกิต) ÷ Σ หน่วยกิต</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>db.py · student_transcript('60004')</span></div><pre class="sql">SELECT sec.term, sub.subid AS sub_id, sub.name AS sub_name, sub.credit,
+       l.name AS lec_name, e.grade,
+       CASE e.grade WHEN &#x27;A&#x27; THEN 4 WHEN &#x27;B&#x27; THEN 3 WHEN &#x27;C&#x27; THEN 2
+                    WHEN &#x27;D&#x27; THEN 1 WHEN &#x27;F&#x27; THEN 0 END AS point
+FROM enroll e
+INNER JOIN section sec ON e.secid = sec.secid
+INNER JOIN subject sub ON sec.subid = sub.subid
+INNER JOIN lecturer l  ON sec.lecid = l.lecid
+WHERE e.stdid = &#x27;60004&#x27;
+ORDER BY sec.term, sub.subid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (9 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>term</th><th>sub_id</th><th>sub_name</th><th>credit</th><th>lec_name</th><th>grade</th><th>point</th></tr><tr><td>2023-1</td><td>CS003</td><td>Web Design</td><td>2</td><td>Steve Roger</td><td>F</td><td>0</td></tr><tr><td>2023-1</td><td>CS006</td><td>Mobile Apps</td><td>2</td><td>Steve Roger</td><td>B</td><td>3</td></tr><tr><td>2023-3</td><td>CS007</td><td>Robotics</td><td>4</td><td>IronMan</td><td>C</td><td>2</td></tr><tr><td>2024-1</td><td>CS004</td><td>Database</td><td>3</td><td>Peter Parker</td><td>A</td><td>4</td></tr><tr><td>2024-1</td><td>CS005</td><td>Graphics</td><td>3</td><td>Steve Roger</td><td>A</td><td>4</td></tr><tr><td>2024-2</td><td>CS001</td><td>Programming</td><td>3</td><td>Peter Parker</td><td>A</td><td>4</td></tr><tr><td>2024-2</td><td>CS009</td><td>Project</td><td>6</td><td>Steve Roger</td><td>A</td><td>4</td></tr><tr><td>2025-2</td><td>CS008</td><td>AI</td><td>3</td><td>Yoda</td><td>A</td><td>4</td></tr><tr><td>2025-3</td><td>CS010</td><td>Security</td><td>3</td><td>Steve Roger</td><td>A</td><td>4</td></tr></table></div>
+<figure class="shot"><img src="image/appd-students.png" alt="แท็บนิสิต" style="max-width:860px"><figcaption>แท็บนิสิต — ค่า NULL แสดงเป็นตัวเอียงสีจาง ให้เห็นว่า “ไม่มีค่า” ต่างจาก 0 หรือข้อความว่าง</figcaption></figure>
+
+<h3>เพิ่ม / แก้ไข / ลบ — เห็นข้อกำหนดบังคับทำงานจริง</h3>
+<p>ฟอร์มส่งข้อมูลไปที่ <code>db.py</code> ซึ่งรัน INSERT / UPDATE / DELETE แล้วแสดง “คำสั่งที่รันล่าสุด” ใต้ตาราง ถ้าข้อมูลผิดกฎ MySQL จะปฏิเสธ และเว็บแปลข้อความ error ให้อ่านง่าย — ลองทำดู:</p>
+<table class="tbl"><tr><th>ลองทำ</th><th>ผลที่ได้</th><th>เพราะ</th></tr>
+<tr><td>เพิ่มนิสิตรหัสซ้ำ เช่น 60001</td><td>Error 1062</td><td>PRIMARY KEY</td></tr>
+<tr><td>แก้ GPA เป็น 5</td><td>Error 3819</td><td>CHECK <code>std_gpa</code></td></tr>
+<tr><td>ลบวิชา CS001</td><td>Error 1451</td><td>วิชาอื่นใช้ CS001 เป็นวิชาบังคับก่อน (FK <code>sub_fk_pre</code>)</td></tr>
+<tr><td>เปิดกลุ่มเรียน CS001 / t01 / 2023-1 ซ้ำ</td><td>Error 1062</td><td>UNIQUE <code>(subid, lecid, term)</code></td></tr>
+<tr><td>ลบนิสิต 60001</td><td>สำเร็จ และประวัติลงทะเบียนหายไปด้วย</td><td>FK ของ enroll เป็น <code>ON DELETE CASCADE</code></td></tr>
+</table>
+
+<h2 id="d3"><span class="sec">3</span> Dashboard — รายงานจากคำสั่ง SQL</h2>
+<p>การ์ดตัวเลขด้านบนมาจากคำสั่งเดียวที่มี scalar subquery หลายตัว ส่วนกล่องรายงานแต่ละกล่องคือฟังก์ชัน <code>report_xxx()</code> หนึ่งฟังก์ชันใน <code>db.py</code> (มีแท่งกราฟในคอลัมน์ตัวเลขหลัก)</p>
+<figure class="shot"><img src="image/appd-dashboard.png" alt="Dashboard" style="max-width:860px"></figure>
+<table class="tbl"><tr><th>รายงาน</th><th>เทคนิค SQL</th><th>บทที่เรียน</th></tr>
+<tr><td>นิสิตแยกตามสาขา</td><td>GROUP BY + IFNULL</td><td>5</td></tr>
+<tr><td>การกระจายของเกรด</td><td>COUNT + ร้อยละด้วย subquery</td><td>5–6</td></tr>
+<tr><td>กลุ่มเรียนและการลงทะเบียนแต่ละภาค</td><td>LEFT JOIN + COUNT(DISTINCT)</td><td>6</td></tr>
+<tr><td>วิชายอดนิยม 5 อันดับ</td><td>JOIN + GROUP BY + LIMIT</td><td>6</td></tr>
+<tr><td>เกรดเฉลี่ยสะสมสูงสุด 5 อันดับ</td><td>CASE แปลงเกรดเป็นแต้ม + SUM ถ่วงหน่วยกิต</td><td>6</td></tr>
+<tr><td>อัตราสอบผ่านรายวิชา</td><td>SUM(เงื่อนไข) / AVG(เงื่อนไข)</td><td>6</td></tr>
+<tr><td>ภาระงานสอนของอาจารย์</td><td>LEFT JOIN 2 ชั้น</td><td>6</td></tr>
+<tr><td>เงินเดือนอาจารย์แยกตามสาขา</td><td>AVG / MIN / MAX (ไม่นับ NULL)</td><td>5</td></tr>
+<tr><td>กลุ่มเรียนที่ไม่มีคนลงทะเบียน</td><td>NOT EXISTS</td><td>6</td></tr>
+<tr><td>นิสิตที่ยังไม่เคยลงทะเบียน</td><td>LEFT JOIN … IS NULL</td><td>6</td></tr>
+</table>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>db.py · report_lecturer_load() — ภาระงานสอนของอาจารย์</span></div><pre class="sql">SELECT l.lecid AS lec_id, l.name AS lec_name, l.major,
+       COUNT(DISTINCT sec.secid) AS n_section,
+       COUNT(e.stdid)            AS n_student
+FROM lecturer l
+LEFT JOIN section sec ON l.lecid = sec.lecid
+LEFT JOIN enroll e    ON sec.secid = e.secid
+GROUP BY l.lecid
+ORDER BY n_student DESC, l.lecid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 6 จาก 16 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lec_id</th><th>lec_name</th><th>major</th><th>n_section</th><th>n_student</th></tr><tr><td>t01</td><td>Peter Parker</td><td>CS</td><td>14</td><td>37</td></tr><tr><td>t02</td><td>Steve Roger</td><td>CS</td><td>11</td><td>17</td></tr><tr><td>t03</td><td>Yoda</td><td>Math</td><td>8</td><td>13</td></tr><tr><td>t05</td><td>IronMan</td><td>Thai</td><td>6</td><td>11</td></tr><tr><td>t04</td><td>Post Malone</td><td>Thai</td><td>4</td><td>5</td></tr><tr><td>t06</td><td>Goku</td><td>English</td><td>2</td><td>5</td></tr></table></div>
+<div class="box tip"><div class="box-t">✅ เพิ่มรายงานเอง</div><p>เขียนฟังก์ชันใหม่ใน <code>db.py</code> ให้ <code>return run_query(sql)</code> แล้วเพิ่ม 1 บรรทัดในรายการ <code>REPORTS</code> ท้ายไฟล์ — หน้า Dashboard สร้างกล่องรายงานให้เองโดยไม่ต้องแก้ไฟล์อื่น ลองนำคำสั่งจากแบบฝึกหัดบทที่ 6–7 มาใส่ดู</p></div>
+
+<h2 id="d4"><span class="sec">4</span> หน้าโครงสร้างฐานข้อมูล</h2>
+<p>แสดง ER Diagram คู่กับโครงสร้างตารางที่อ่านจาก <code>information_schema</code> (🔑 = Primary Key, 🔗 = Foreign Key และตารางที่อ้างถึง) — เทียบให้เห็นว่า Entity และ Relationship ในบทที่ 2 กลายเป็นตารางและ Foreign Key ในบทที่ 3 อย่างไร</p>
+<figure class="shot"><img src="image/appd-schema.png" alt="หน้าโครงสร้างฐานข้อมูล" style="max-width:860px"></figure>
+
+<div class="pager"><a class="pg" href="appendix-c-dbeaver.html">← ค · เชื่อมต่อฐานข้อมูลด้วย DBeaver</a></div>
+<footer>Lecture Note · 1204202 การออกแบบและการจัดการฐานข้อมูล · อ.ดร.พรทิวา ปะวะระ · ภาควิชาวิทยาการคอมพิวเตอร์ คณะวิทยาการสารสนเทศ มหาวิทยาลัยมหาสารคาม</footer>
+</main>
+<script src="assets/password.js"></script>
+<script src="assets/nav.js"></script>
+</body>
+</html>

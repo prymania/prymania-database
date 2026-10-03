@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-build.py — สร้างเว็บ lecture note จาก src/*.html  ->  site/*.html
+build.py — สร้างเว็บ lecture note จาก src/*.html  ->  docs/*.html (GitHub Pages เปิดจากโฟลเดอร์ docs/)
 
 แท็กพิเศษในไฟล์ src:
   <sql title="..." [run] [exec] [reset] [temp] [error] [max="10"] [show="SELECT ..."]>SQL</sql>
@@ -20,7 +20,7 @@ import html, json, re, sys, datetime, decimal, pathlib
 import mysql.connector
 
 ROOT = pathlib.Path(__file__).parent
-SRC, OUT = ROOT / "src", ROOT / "site"
+SRC, OUT = ROOT / "src", ROOT / "docs"
 LAB_SCRIPT = ROOT / "prymania_DBLabScript.sql"
 DB = dict(host="localhost", user="root", password="abcd1234")
 DBNAME = "zz_lecture_build"
@@ -46,7 +46,7 @@ PAGES = [  # (file, nav-no, nav title, group)
     ("appendix-d-university-web.html", "ง", "ตัวอย่าง Website University", "ภาคผนวก"),
     ("library_tutorial_site/index.html", "จ", "Library Tutorial ↗", "ภาคผนวก"),  # ลิงก์ภายนอก เปิดแท็บใหม่ (ไม่มีหน้า src)
 ]
-LIB_SRC = ROOT / "library_tutorial_site"   # คัดลอกไปไว้ที่ site/library_tutorial_site/ (ภาคผนวก จ เปิดแท็บใหม่)
+LIB_SRC = ROOT / "library_tutorial_site"   # คัดลอกไปไว้ที่ docs/library_tutorial_site/ (ภาคผนวก จ เปิดแท็บใหม่)
 LIB_OUT = OUT / "library_tutorial_site"
 
 def is_external(f):
@@ -357,7 +357,7 @@ def build(only=None):
     zip_university()
 
 def zip_university():
-    """บีบอัด university_schema_site -> site/university_schema_site.zip (ภาคผนวก ง ให้ดาวน์โหลด)"""
+    """บีบอัด university_schema_site -> docs/university_schema_site.zip (ภาคผนวก ง ให้ดาวน์โหลด)"""
     import zipfile
     src = ROOT / "university_schema_site"
     if not src.exists():
@@ -369,7 +369,7 @@ def zip_university():
     print("zipped university_schema_site.zip")
 
 def copy_library():
-    """คัดลอก library_tutorial_site -> site/library-tutorial พร้อมเพิ่มลิงก์กลับ Lecture Note ในเมนู"""
+    """คัดลอก library_tutorial_site -> docs/library_tutorial_site พร้อมเพิ่มลิงก์กลับ Lecture Note ในเมนู"""
     import shutil
     if not LIB_SRC.exists():
         return

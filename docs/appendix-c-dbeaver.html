@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ภาคผนวก ค · วิธีเชื่อมต่อฐานข้อมูลด้วย DBeaver — Database Lecture Note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
+  <nav>
+<div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
+<a href="index.html"><span class="no">🏠</span>หน้าแรก / ภาพรวม</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 1 · ออกแบบฐานข้อมูล</div>
+<a href="01-intro.html"><span class="no">01</span>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</a>
+<a href="02-er-model.html"><span class="no">02</span>แบบจำลอง ER</a>
+<a href="03-relational-normalization.html"><span class="no">03</span>แปลง ER เป็นตาราง &amp; Normalization</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 2 · ภาษา SQL</div>
+<a href="04-sql-ddl-dml.html"><span class="no">04</span>สร้างตาราง &amp; INSERT/UPDATE/DELETE</a>
+<a href="05-select.html"><span class="no">05</span>การแสดงข้อมูลด้วยคำสั่ง SELECT</a>
+<a href="06-join.html"><span class="no">06</span>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 3 · ขั้นสูง</div>
+<a href="07-view.html"><span class="no">07</span>วิว (View)</a>
+<a href="08-index.html"><span class="no">08</span>ดัชนี (Index)</a>
+<a href="09-transaction.html"><span class="no">09</span>ทรานแซกชัน (Transaction)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม</div>
+<a href="10-security.html"><span class="no">10</span>ความปลอดภัยของฐานข้อมูล</a>
+<a href="11-stored-procedure.html"><span class="no">11</span>Stored Procedure &amp; Function</a>
+<a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
+<a href="appendix-a-script.html"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html" class="active"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<div class="subnav"><a href="#c1"><span class="sno">1</span>สร้าง connection ใหม่</a><a href="#c2"><span class="sno">2</span>กรอกข้อมูลการเชื่อมต่อ</a><a href="#c3"><span class="sno">3</span>แก้ Driver properties</a><a href="#c4"><span class="sno">4</span>ตั้งชื่อ connection</a><a href="#c5"><span class="sno">5</span>เข้าสู่ระบบ</a><a href="#c6"><span class="sno">6</span>แก้ไข connection ภายหลัง</a><a href="#c7"><span class="sno">7</span>เปิด SQL Editor และเลือกฐานข้อมูล</a><a href="#c8"><span class="sno">8</span>ทดสอบคำสั่งพื้นฐาน</a><a href="#c9"><span class="sno">9</span>เลิกใช้งาน</a></div>
+<a href="appendix-d-university-web.html"><span class="no">ง</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+</div>
+  </nav>
+  <img src="icon/well-done2.png" alt="" class="sidebar-img">
+</aside>
+<main class="content">
+<div class="page-head"><span class="kicker">APPENDIX C</span><h1>ภาคผนวก ค · วิธีเชื่อมต่อฐานข้อมูลด้วย DBeaver</h1><p class="sub">สร้าง connection ระหว่าง DBeaver กับ MySQL ของมหาวิทยาลัยสำหรับการฝึกปฏิบัติ</p></div>
+
+
+<div class="box idea"><div class="box-t">💡 ข้อมูลที่ต้องใช้</div><table class="tbl" style="margin:6px 0 0"><tr><th>รายการ</th><th>ค่า</th></tr>
+<tr><td>Server Host</td><td><code>202.28.34.202</code></td></tr><tr><td>Port</td><td><code>3306</code></td></tr>
+<tr><td>Username</td><td><code>s</code> + รหัสนิสิต เช่น <code>s66011200</code></td></tr>
+<tr><td>Password</td><td><code>s</code> + รหัสนิสิต + <code>pwd</code></td></tr>
+<tr><td>Database</td><td>ชื่อฐานข้อมูลของตนเอง</td></tr></table></div>
+
+<div class="pagetoc"><div class="pagetoc-t">📑 ในบทนี้</div><ul><li><a href="#c1">1  สร้าง connection ใหม่</a></li><li><a href="#c2">2  กรอกข้อมูลการเชื่อมต่อ</a></li><li><a href="#c3">3  แก้ Driver properties</a></li><li><a href="#c4">4  ตั้งชื่อ connection</a></li><li><a href="#c5">5  เข้าสู่ระบบ</a></li><li><a href="#c6">6  แก้ไข connection ภายหลัง</a></li><li><a href="#c7">7  เปิด SQL Editor และเลือกฐานข้อมูล</a></li><li><a href="#c8">8  ทดสอบคำสั่งพื้นฐาน</a></li><li><a href="#c9">9  เลิกใช้งาน</a></li></ul></div>
+
+<h2 id="c1"><span class="sec">1</span> สร้าง connection ใหม่</h2>
+<p>เปิด DBeaver กดปุ่ม <b>New Database Connection</b> บนแถบเครื่องมือ เลือก <b>MySQL</b> แล้วกด <b>Next</b></p>
+<figure class="shot"><img src="image/figc-1a.jpg" alt="" style="max-width:320px"></figure>
+<figure class="shot"><img src="image/figc-1b.jpg" alt="" style="max-width:520px"></figure>
+
+<h2 id="c2"><span class="sec">2</span> กรอกข้อมูลการเชื่อมต่อ</h2>
+<p>Server Host, Database, Username — และ<b>เอาเครื่องหมายถูกที่ Save password ออก</b> (เครื่องในห้องปฏิบัติการใช้ร่วมกัน)</p>
+<figure class="shot"><img src="image/figc-2.jpg" alt="" style="max-width:520px"></figure>
+
+<h2 id="c3"><span class="sec">3</span> แก้ Driver properties</h2>
+<p>ไปที่แท็บ <b>Driver properties</b> แล้วแก้ค่า <code>allowPublicKeyRetrieval</code> เป็น <code>true</code></p>
+<figure class="shot"><img src="image/figc-3.jpg" alt="" style="max-width:520px"></figure>
+
+<h2 id="c4"><span class="sec">4</span> ตั้งชื่อ connection</h2>
+<p>กลับมาแท็บ <b>Main</b> คลิก <b>Connection details (name, type, …)</b> ตั้ง Connection name เป็นชื่อของตนเอง แล้วกด <b>Finish</b></p>
+<figure class="shot"><img src="image/figc-4a.jpg" alt="" style="max-width:520px"></figure>
+<figure class="shot"><img src="image/figc-4b.jpg" alt="" style="max-width:360px"></figure>
+
+<h2 id="c5"><span class="sec">5</span> เข้าสู่ระบบ</h2>
+<p>คลิกที่ชื่อ connection แล้วใส่รหัสผ่านรูปแบบ <code>s</code> + รหัสนิสิต + <code>pwd</code></p>
+<figure class="shot"><img src="image/figc-5.jpg" alt="" style="max-width:340px"></figure>
+
+<h2 id="c6"><span class="sec">6</span> แก้ไข connection ภายหลัง</h2>
+<p>คลิกขวาที่ connection → <b>Edit Connection</b> (F4)</p>
+<figure class="shot"><img src="image/figc-6.jpg" alt="" style="max-width:420px"></figure>
+
+<h2 id="c7"><span class="sec">7</span> เปิด SQL Editor และเลือกฐานข้อมูล</h2>
+<p>เปิดไฟล์ใหม่ (ปุ่ม <b>SQL</b>) ตรวจว่า connection และ database ด้านบนเป็นของตนเอง — ถ้าขึ้น <code>&lt;N/A&gt;</code> ให้กดเลือกฐานข้อมูลให้ถูกต้อง มิฉะนั้นจะได้ error <code>No database selected</code></p>
+<figure class="shot"><img src="image/figc-7a.jpg" alt="" style="max-width:620px"></figure>
+<figure class="shot"><img src="image/figc-7b.jpg" alt="" style="max-width:300px"></figure>
+
+<h2 id="c8"><span class="sec">8</span> ทดสอบคำสั่งพื้นฐาน</h2>
+<p>รันทีละคำสั่งด้วย <b>Ctrl+Enter</b> หรือรันทั้งสคริปต์ด้วย <b>Alt+X</b></p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ทดสอบว่าเชื่อมต่อได้</span></div><pre class="sql">SELECT VERSION(), DATABASE(), CURRENT_USER();
+SHOW TABLES;</pre></div>
+<p>จากนั้นรันสคริปต์กรณีศึกษาใน <a href="appendix-a-script.html">ภาคผนวก ก</a> แล้วลอง CREATE, INSERT, UPDATE, DELETE, SELECT ตามบทที่ 4–5</p>
+
+<h2 id="c9"><span class="sec">9</span> เลิกใช้งาน</h2>
+<p>เมื่อจบการฝึกปฏิบัติทุกครั้ง ต้อง <b>Disconnect</b> หรือ <b>Delete</b> connection ของตนเองเสมอ</p>
+<figure class="shot"><img src="image/figc-9.jpg" alt="" style="max-width:420px"></figure>
+
+<div class="box warn"><div class="box-t">⚠️ ปัญหาที่พบบ่อย</div><table class="tbl" style="margin:6px 0 0"><tr><th>ข้อความ</th><th>สาเหตุ / วิธีแก้</th></tr>
+<tr><td><code>Public Key Retrieval is not allowed</code></td><td>ยังไม่ได้ตั้ง <code>allowPublicKeyRetrieval = true</code> (ขั้นที่ 3)</td></tr>
+<tr><td><code>Access denied for user</code></td><td>Username หรือ Password ผิด ตรวจรูปแบบ s + รหัส + pwd</td></tr>
+<tr><td><code>No database selected</code></td><td>ยังไม่ได้เลือกฐานข้อมูล (ขั้นที่ 7)</td></tr>
+<tr><td><code>Communications link failure</code></td><td>เครื่องติดต่อเซิร์ฟเวอร์ไม่ได้ — ตรวจเครือข่าย (อาจต้องใช้เครือข่ายของมหาวิทยาลัย) และ Host/Port</td></tr>
+<tr><td><code>Table '…' doesn't exist</code></td><td>ยังไม่ได้รันสคริปต์ภาคผนวก ก หรือพิมพ์ชื่อตารางเป็นตัวพิมพ์ใหญ่ (เซิร์ฟเวอร์ลินุกซ์แยกตัวพิมพ์)</td></tr>
+</table></div>
+
+<div class="pager"><a class="pg" href="appendix-b-cheatsheet.html">← ข · สรุปคำสั่ง SQL (Cheat Sheet)</a><a class="pg next" href="appendix-d-university-web.html">ง · ตัวอย่าง Website University →</a></div>
+<footer>Lecture Note · 1204202 การออกแบบและการจัดการฐานข้อมูล · อ.ดร.พรทิวา ปะวะระ · ภาควิชาวิทยาการคอมพิวเตอร์ คณะวิทยาการสารสนเทศ มหาวิทยาลัยมหาสารคาม</footer>
+</main>
+<script src="assets/password.js"></script>
+<script src="assets/nav.js"></script>
+</body>
+</html>

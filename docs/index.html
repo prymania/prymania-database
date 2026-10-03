@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>หน้าแรก / ภาพรวม — Database Lecture Note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
+  <nav>
+<div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
+<a href="index.html" class="active"><span class="no">🏠</span>หน้าแรก / ภาพรวม</a>
+<div class="subnav"><a href="#chapters"><span class="sno">MAP</span>แผนที่บทเรียน</a><a href="#case"><span class="sno">DB</span>กรณีศึกษา: ระบบลงทะเบียนเรียน</a><a href="#legend"><span class="sno">UI</span>ตัวอย่างองค์ประกอบในแต่ละบท</a><a href="#review"><span class="sno">✎</span>คำถามท้ายบท</a></div>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 1 · ออกแบบฐานข้อมูล</div>
+<a href="01-intro.html"><span class="no">01</span>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</a>
+<a href="02-er-model.html"><span class="no">02</span>แบบจำลอง ER</a>
+<a href="03-relational-normalization.html"><span class="no">03</span>แปลง ER เป็นตาราง &amp; Normalization</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 2 · ภาษา SQL</div>
+<a href="04-sql-ddl-dml.html"><span class="no">04</span>สร้างตาราง &amp; INSERT/UPDATE/DELETE</a>
+<a href="05-select.html"><span class="no">05</span>การแสดงข้อมูลด้วยคำสั่ง SELECT</a>
+<a href="06-join.html"><span class="no">06</span>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 3 · ขั้นสูง</div>
+<a href="07-view.html"><span class="no">07</span>วิว (View)</a>
+<a href="08-index.html"><span class="no">08</span>ดัชนี (Index)</a>
+<a href="09-transaction.html"><span class="no">09</span>ทรานแซกชัน (Transaction)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม</div>
+<a href="10-security.html"><span class="no">10</span>ความปลอดภัยของฐานข้อมูล</a>
+<a href="11-stored-procedure.html"><span class="no">11</span>Stored Procedure &amp; Function</a>
+<a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
+<a href="appendix-a-script.html"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">ง</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+</div>
+  </nav>
+  <img src="icon/me_cat.png" alt="" class="sidebar-img">
+</aside>
+<main class="content">
+
+
+<section class="hero">
+  <div class="code-no">1204202 · 3(2-2-5) · ภาคเรียนที่ 1/2569</div>
+  <h1>การออกแบบและการจัดการฐานข้อมูล</h1>
+  <div class="en">Database Design and Management — Lecture Note</div>
+  <div class="meta"><span>👩‍🏫 อ.ดร.พรทิวา ปะวะระ</span><span>🐬 MySQL 8.x</span><span>🦫 DBeaver</span><span>🏫 วิทยาการคอมพิวเตอร์ ม.มหาสารคาม</span></div>
+</section>
+
+<div class="box idea"><div class="box-t">💡 เว็บนี้ใช้อย่างไร</div>
+<p>เนื้อหาแบ่งเป็น <b>12 บท + 5 ภาคผนวก</b> (รวมตัวอย่างเว็บและ Library Tutorial) ใช้ <b>กรณีศึกษาระบบลงทะเบียนเรียน</b> ตัวเดียวตลอดทั้งเล่ม ตั้งแต่ออกแบบ ER ไปจนถึงเขียน Trigger
+ระหว่างเรียนแต่ละหัวข้อย่อยจะมี <b>แบบฝึกหัดทันที</b> ให้ลองคิดก่อน แล้วค่อยกดปุ่ม <b>“ดูเฉลย”</b> และท้ายบทมี <b>คำถามทบทวน</b></p>
+</div>
+
+<h2 id="chapters"><span class="sec">MAP</span> แผนที่บทเรียน</h2>
+
+<div class="part-t">// ส่วนที่ 1 · ออกแบบฐานข้อมูล (สอบกลางภาค)</div>
+<div class="cards">
+  <a class="tcard" href="01-intro.html"><span class="num">01</span><b>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</b><span>ข้อมูล vs สารสนเทศ, ปัญหาระบบแฟ้ม, DBMS, สถาปัตยกรรม 3 ระดับ, วงจรพัฒนา</span><em class="wk">สัปดาห์ 1</em></a>
+  <a class="tcard" href="02-er-model.html"><span class="num">02</span><b>แบบจำลองความสัมพันธ์ (ER Model)</b><span>เอนทิตี แอตทริบิวต์ ความสัมพันธ์ 1:1 / 1:M / M:N และการเขียน ER จากโจทย์</span><em class="wk">สัปดาห์ 2–3</em></a>
+  <a class="tcard" href="03-relational-normalization.html"><span class="num">03</span><b>แปลง ER เป็นตาราง &amp; Normalization</b><span>ชนิดของคีย์, กฎความคงสภาพ, กฎการแปลง, FD, 1NF → 2NF → 3NF → BCNF</span><em class="wk">สัปดาห์ 2–3</em></a>
+</div>
+
+<div class="part-t">// ส่วนที่ 2 · ภาษา SQL</div>
+<div class="cards">
+  <a class="tcard p2" href="04-sql-ddl-dml.html"><span class="num">04</span><b>สร้างตารางและจัดการข้อมูลพื้นฐาน</b><span>ชนิดข้อมูล, CREATE TABLE, constraint, FK + CASCADE, INSERT / UPDATE / DELETE</span><em class="wk">สัปดาห์ 4–5</em></a>
+  <a class="tcard p2" href="05-select.html"><span class="num">05</span><b>การแสดงข้อมูลด้วยคำสั่ง SELECT</b><span>WHERE, NULL, LIKE, ORDER BY, LIMIT, ฟังก์ชันรวม, GROUP BY / HAVING, CASE</span><em class="wk">สัปดาห์ 6</em></a>
+  <a class="tcard p2" href="06-join.html"><span class="num">06</span><b>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</b><span>INNER / LEFT / Self Join, UNION / INTERSECT / EXCEPT, Subquery, INSERT…SELECT, UPDATE + CASE</span><em class="wk">สัปดาห์ 9–12</em></a>
+</div>
+
+<div class="part-t">// ส่วนที่ 3 · ขั้นสูง (สอบปลายภาค)</div>
+<div class="cards">
+  <a class="tcard p3" href="07-view.html"><span class="num">07</span><b>วิว (View)</b><span>สร้าง/จัดการวิว, วิวจากหลายตาราง, วิวสรุปข้อมูล, ใช้วิวแก้โจทย์ซับซ้อน, WITH CHECK OPTION, CTE</span><em class="wk">สัปดาห์ 13</em></a>
+  <a class="tcard p3" href="08-index.html"><span class="num">08</span><b>ดัชนี (Index)</b><span>B-Tree, EXPLAIN, ดัชนีหลายคอลัมน์, Leftmost Prefix, Covering Index, กรณีที่ดัชนีใช้ไม่ได้</span><em class="wk">สัปดาห์ 13</em></a>
+  <a class="tcard p3" href="09-transaction.html"><span class="num">09</span><b>ทรานแซกชัน (Transaction)</b><span>ACID, COMMIT / ROLLBACK / SAVEPOINT, Implicit Commit, Isolation Level, Lock, Deadlock</span><em class="wk">สัปดาห์ 13</em></a>
+</div>
+
+<div class="part-t">// ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรมฐานข้อมูล</div>
+<div class="cards">
+  <a class="tcard p3" href="10-security.html"><span class="num">10</span><b>ความปลอดภัยของฐานข้อมูล</b><span>User, GRANT / REVOKE, Role, วิวควบคุมสิทธิ์, SQL Injection, แนวปฏิบัติ</span><em class="wk">สัปดาห์ 14</em></a>
+  <a class="tcard p3" href="11-stored-procedure.html"><span class="num">11</span><b>Stored Procedure &amp; Function</b><span>IN / OUT / INOUT, IF / WHILE, Cursor, SIGNAL, HANDLER + Transaction, Function</span><em class="wk">สัปดาห์ 15</em></a>
+  <a class="tcard p3" href="12-trigger.html"><span class="num">12</span><b>ทริกเกอร์ (Trigger)</b><span>BEFORE / AFTER, OLD / NEW, ตรวจสอบข้อมูล, Audit Log, กฎธุรกิจข้ามตาราง, ข้อมูลสรุป</span><em class="wk">สัปดาห์ 15</em></a>
+</div>
+
+<div class="part-t">// ภาคผนวก</div>
+<div class="cards">
+  <a class="tcard p4" href="appendix-a-script.html"><span class="num">ก</span><b>สคริปต์สร้างฐานข้อมูลกรณีศึกษา</b><span>CREATE + INSERT ครบ 5 ตาราง กดคัดลอกไปรันใน DBeaver ได้ทันที</span></a>
+  <a class="tcard p4" href="appendix-b-cheatsheet.html"><span class="num">ข</span><b>สรุปคำสั่ง SQL ที่ใช้บ่อย</b><span>ตาราง cheat sheet สำหรับทบทวนก่อนสอบ</span></a>
+  <a class="tcard p4" href="appendix-c-dbeaver.html"><span class="num">ค</span><b>เชื่อมต่อฐานข้อมูลด้วย DBeaver</b><span>ตั้งค่า connection เซิร์ฟเวอร์มหาวิทยาลัยทีละขั้น</span></a>
+  <a class="tcard p4" href="appendix-d-university-web.html"><span class="num">ง</span><b>ตัวอย่าง Website University</b><span>เว็บแอป Flask + MySQL บนฐานข้อมูลกรณีศึกษา — ตารางที่ JOIN แล้ว CRUD Dashboard พร้อมปุ่มดู SQL ที่รันจริง</span></a>
+  <a class="tcard p4" href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="num">จ</span><b>Library Tutorial · ทำโปรเจคระบบห้องสมุด</b><span>เว็บแอป Flask + MySQL ทีละขั้น (12 หน้า) — แนวคิด ติดตั้ง CRUD รายงาน ต้นแบบสำหรับโปรเจคกลุ่ม</span></a>
+</div>
+
+<h2 id="case"><span class="sec">DB</span> กรณีศึกษา: ระบบลงทะเบียนเรียน</h2>
+<p>ทุกตัวอย่างตั้งแต่บทที่ 4–12 ใช้ 5 ตารางนี้ — ควรจำโครงสร้างให้ได้ 🔑 = คีย์หลัก, ↗ = คีย์นอก</p>
+<div class="schema">
+  <div class="tb"><div class="tb-h">student</div><div class="col pk">stdid</div><div class="col">name</div><div class="col">major</div><div class="col">gpa</div><div class="col">birthday</div></div>
+  <div class="tb"><div class="tb-h">subject</div><div class="col pk">subid</div><div class="col">name</div><div class="col">credit</div><div class="col">major</div><div class="col fk">pre</div></div>
+  <div class="tb"><div class="tb-h">lecturer</div><div class="col pk">lecid</div><div class="col">name</div><div class="col">salary</div><div class="col">major</div></div>
+  <div class="tb"><div class="tb-h">section</div><div class="col pk">secid</div><div class="col fk">subid</div><div class="col fk">lecid</div><div class="col">term</div></div>
+  <div class="tb"><div class="tb-h">enroll</div><div class="col pk">secid</div><div class="col pk">stdid</div><div class="col">grade</div></div>
+</div>
+
+<h2 id="legend"><span class="sec">UI</span> ตัวอย่างองค์ประกอบในแต่ละบท</h2>
+<div class="legend">
+  <div class="lg"><i style="background:var(--teal)"></i><div><b>แนวคิด</b> — นิยาม / หลักการสำคัญ</div></div>
+  <div class="lg"><i style="background:var(--amber)"></i><div><b>ข้อสังเกต</b> — รายละเอียดที่ควรรู้</div></div>
+  <div class="lg"><i style="background:var(--rose)"></i><div><b>ข้อควรระวัง</b> — ความผิดพลาดที่พบบ่อย</div></div>
+  <div class="lg"><i style="background:var(--plum)"></i><div><b>แบบฝึกหัดระหว่างเรียน</b> — มีเฉลยซ่อนไว้</div></div>
+</div>
+
+<h3>① Code card — กดปุ่มคัดลอกไปวางใน DBeaver ได้เลย</h3>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่าง · GROUP BY</span></div><pre class="sql">-- นับจำนวนนิสิต และเกรดเฉลี่ยของแต่ละสาขา
+SELECT major,
+       COUNT(*)           AS n_student,
+       ROUND(AVG(gpa), 2) AS avg_gpa
+FROM   student
+GROUP  BY major
+ORDER  BY major;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_student</th><th>avg_gpa</th></tr><tr><td class="null">NULL</td><td>4</td><td>2.79</td></tr><tr><td>Art</td><td>2</td><td>3.52</td></tr><tr><td>CS</td><td>7</td><td>2.88</td></tr><tr><td>English</td><td>4</td><td>3.17</td></tr><tr><td>Math</td><td>2</td><td>2.17</td></tr><tr><td>Physics</td><td>3</td><td>2.70</td></tr></table></div>
+
+<div class="box warn"><div class="box-t">⚠️ ข้อควรระวัง</div><p><code>WHERE gpa = NULL</code> จะไม่คืนแถวใดเลย ต้องใช้ <code>IS NULL</code> เสมอ</p></div>
+
+<h3>② แบบฝึกหัดระหว่างเรียน — ลองคิดก่อน แล้วค่อยกดดูเฉลย</h3>
+<div class="ex" id="exตัวอย่าง"><div class="ex-head"><span class="ex-badge">ฝึก ตัวอย่าง</span><span class="ex-title">สาขาที่มีนิสิตตั้งแต่ 3 คน</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงเขียนคำสั่งแสดงชื่อสาขาและจำนวนนิสิต <b>เฉพาะสาขาที่มีนิสิตตั้งแต่ 3 คนขึ้นไป</b> เรียงจากมากไปน้อย</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT major, COUNT(*) AS n_student
+FROM   student
+GROUP  BY major
+HAVING COUNT(*) &gt;= 3
+ORDER  BY n_student DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_student</th></tr><tr><td>CS</td><td>7</td></tr><tr><td>English</td><td>4</td></tr><tr><td class="null">NULL</td><td>4</td></tr><tr><td>Physics</td><td>3</td></tr></table></div>
+      <p>เงื่อนไขกับฟังก์ชันรวม (<code>COUNT(*)</code>) ต้องเขียนใน <b>HAVING</b> ไม่ใช่ WHERE เพราะ WHERE ทำงานก่อนการจัดกลุ่ม</p></div></div></div>
+
+<h3>③ คำถามท้ายบท</h3>
+<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
+    <li>จงอธิบายความแตกต่างระหว่าง <code>WHERE</code> กับ <code>HAVING</code> พร้อมยกตัวอย่าง <span class="q-tag">อธิบาย</span></li>
+    <li>เหตุใด <code>COUNT(*)</code> กับ <code>COUNT(gpa)</code> จึงให้ผลไม่เท่ากัน <span class="q-tag">วิเคราะห์</span></li>
+    <li>จงเขียนคำสั่งแสดงอาจารย์ที่มีเงินเดือนสูงสุด 3 อันดับแรก <span class="q-tag">เขียน SQL</span></li>
+  </ol></div>
+
+
+<div class="pager"><span></span><a class="pg next" href="01-intro.html">01 · ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล →</a></div>
+<footer>Lecture Note · 1204202 การออกแบบและการจัดการฐานข้อมูล · อ.ดร.พรทิวา ปะวะระ · ภาควิชาวิทยาการคอมพิวเตอร์ คณะวิทยาการสารสนเทศ มหาวิทยาลัยมหาสารคาม</footer>
+</main>
+<script src="assets/password.js"></script>
+<script src="assets/nav.js"></script>
+</body>
+</html>

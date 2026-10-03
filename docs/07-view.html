@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทที่ 7 · วิว (View) — Database Lecture Note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
+  <nav>
+<div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
+<a href="index.html"><span class="no">🏠</span>หน้าแรก / ภาพรวม</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 1 · ออกแบบฐานข้อมูล</div>
+<a href="01-intro.html"><span class="no">01</span>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</a>
+<a href="02-er-model.html"><span class="no">02</span>แบบจำลอง ER</a>
+<a href="03-relational-normalization.html"><span class="no">03</span>แปลง ER เป็นตาราง &amp; Normalization</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 2 · ภาษา SQL</div>
+<a href="04-sql-ddl-dml.html"><span class="no">04</span>สร้างตาราง &amp; INSERT/UPDATE/DELETE</a>
+<a href="05-select.html"><span class="no">05</span>การแสดงข้อมูลด้วยคำสั่ง SELECT</a>
+<a href="06-join.html"><span class="no">06</span>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 3 · ขั้นสูง</div>
+<a href="07-view.html" class="active"><span class="no">07</span>วิว (View)</a>
+<div class="subnav"><a href="#s1"><span class="sno">7.1</span>แนวคิดของวิว</a><a href="#s2"><span class="sno">7.2</span>ประโยชน์ของวิว</a><a href="#s3"><span class="sno">7.3</span>การสร้างและจัดการวิว</a><a href="#s4"><span class="sno">7.4</span>วิวจากตารางเดียว</a><a href="#s5"><span class="sno">7.5</span>วิวจากการเชื่อมหลายตาราง</a><a href="#s6"><span class="sno">7.6</span>วิวสรุปข้อมูล (Aggregate View)</a><a href="#s7"><span class="sno">7.7</span>ใช้วิวแก้โจทย์ที่ซับซ้อน</a><a href="#s8"><span class="sno">7.8</span>วิวกับความปลอดภัยของข้อมูล</a><a href="#s9"><span class="sno">7.9</span>การปรับปรุงข้อมูลผ่านวิว</a><a href="#s10"><span class="sno">7.10</span>ข้อควรระวัง และการเปรียบเทียบ</a><a href="#review"><span class="sno">✎</span>คำถามท้ายบท</a></div>
+<a href="08-index.html"><span class="no">08</span>ดัชนี (Index)</a>
+<a href="09-transaction.html"><span class="no">09</span>ทรานแซกชัน (Transaction)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม</div>
+<a href="10-security.html"><span class="no">10</span>ความปลอดภัยของฐานข้อมูล</a>
+<a href="11-stored-procedure.html"><span class="no">11</span>Stored Procedure &amp; Function</a>
+<a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
+<a href="appendix-a-script.html"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">ง</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+</div>
+  </nav>
+  <img src="icon/awesome.png" alt="" class="sidebar-img">
+</aside>
+<main class="content">
+<div class="page-head"><span class="kicker">CHAPTER 07 · สัปดาห์ที่ 13</span><h1>บทที่ 7 · วิว (View)</h1><p class="sub">แนวคิดของวิว การสร้างและจัดการวิว วิวจากหลายตาราง วิวสรุปข้อมูล วิวซ้อนวิว การใช้วิวแก้โจทย์ที่ซับซ้อน การปรับปรุงข้อมูลผ่านวิว และข้อควรระวัง</p></div>
+
+
+<div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
+<li>อธิบายแนวคิดของวิว ความแตกต่างจากตารางจริง และประโยชน์ของวิวได้</li>
+<li>สร้าง แก้ไข ตรวจสอบ และลบวิวด้วย CREATE / OR REPLACE / SHOW CREATE / DROP VIEW ได้</li>
+<li>สร้างวิวจากตารางเดียว จากการเชื่อมหลายตาราง และวิวที่สรุปข้อมูลด้วย GROUP BY ได้</li>
+<li>แตกโจทย์ที่ซับซ้อนออกเป็นวิวทีละชั้น แล้วใช้วิวตอบคำถามได้</li>
+<li>ระบุได้ว่าวิวใดปรับปรุงข้อมูลผ่านได้ และใช้ WITH CHECK OPTION ได้</li>
+<li>อธิบายข้อควรระวังของวิว และเปรียบเทียบวิวกับตาราง Derived Table และ CTE ได้</li>
+</ol></div>
+
+<div class="pagetoc"><div class="pagetoc-t">📑 ในบทนี้</div><ul><li><a href="#s1">7.1  แนวคิดของวิว</a></li><li><a href="#s2">7.2  ประโยชน์ของวิว</a></li><li><a href="#s3">7.3  การสร้างและจัดการวิว</a></li><li><a href="#s4">7.4  วิวจากตารางเดียว</a></li><li><a href="#s5">7.5  วิวจากการเชื่อมหลายตาราง</a></li><li><a href="#s6">7.6  วิวสรุปข้อมูล (Aggregate View)</a></li><li><a href="#s7">7.7  ใช้วิวแก้โจทย์ที่ซับซ้อน</a></li><li><a href="#s8">7.8  วิวกับความปลอดภัยของข้อมูล</a></li><li><a href="#s9">7.9  การปรับปรุงข้อมูลผ่านวิว</a></li><li><a href="#s10">7.10  ข้อควรระวัง และการเปรียบเทียบ</a></li></ul></div>
+
+<h2 id="s1"><span class="sec">7.1</span> แนวคิดของวิว</h2>
+<p><span class="term">วิว (View)</span> คือ <b>ตารางเสมือน (Virtual Table)</b> ที่นิยามด้วยคำสั่ง SELECT — DBMS เก็บไว้เพียง “คำสั่ง” ไม่ได้เก็บ “ข้อมูล” ทุกครั้งที่เรียกใช้วิว ระบบจะนำคำสั่งนั้นไปประมวลผลกับ<b>ตารางจริง (Base Table)</b> ในขณะนั้น ผลลัพธ์จึงเป็นข้อมูลล่าสุดเสมอ</p>
+<figure class="shot"><img src="image/fig7-1.jpg" alt="ภาพที่ 7.1" loading="lazy"><figcaption><b>ภาพที่ 7.1</b> แนวคิดการทำงานของวิว — ผู้ใช้ SELECT จากวิว แต่ข้อมูลมาจากตารางจริง</figcaption></figure>
+<div class="vs">
+<div><h4>📦 ตารางจริง (Base Table)</h4><ul><li>เก็บข้อมูลจริงบนดิสก์</li><li>สร้างด้วย CREATE TABLE</li><li>มี PK / FK / CHECK ของตัวเอง</li><li>INSERT / UPDATE / DELETE ได้เสมอ</li></ul></div>
+<div><h4>🪟 วิว (View)</h4><ul><li>เก็บเฉพาะคำสั่ง SELECT</li><li>สร้างด้วย CREATE VIEW</li><li>ไม่มีข้อกำหนดบังคับของตัวเอง</li><li>ปรับปรุงข้อมูลผ่านได้บางกรณี (หัวข้อ 7.9)</li></ul></div>
+</div>
+<div class="box idea"><div class="box-t">💡 เปรียบเทียบให้เห็นภาพ</div><p>ตารางจริงเหมือน <b>ห้องเก็บของ</b> ส่วนวิวเหมือน <b>หน้าต่าง</b> ที่มองเข้าไปในห้อง — หน้าต่างแต่ละบานมองเห็นของคนละมุม (บางคอลัมน์ บางแถว) แต่ของในห้องมีชุดเดียว ถ้าของในห้องเปลี่ยน มองผ่านหน้าต่างก็เห็นการเปลี่ยนแปลงทันที</p></div>
+<h3>7.1.1 เห็นภาพการสร้างวิวทีละขั้น</h3>
+<p>ใช้ข้อมูลจริงจากตาราง <code>student</code> ในสคริปต์กรณีศึกษา (ภาคผนวก ก) สร้างวิว <code>v_cs_honor</code> ที่แสดง “นิสิตสาขา CS ที่มีเกรดเฉลี่ยตั้งแต่ 3.00 ขึ้นไป” แล้วดูว่าคำสั่งของวิวไปเลือกส่วนใดของตาราง</p>
+
+<div class="vstep"><div class="vstep-t"><span class="n">1</span>เริ่มจากตารางจริง student (22 แถว 5 คอลัมน์)</div>
+<p>เรียงข้อมูลตามสาขา แล้วตามเกรดเฉลี่ยจากมากไปน้อย เพื่อให้แถวที่เกี่ยวข้องอยู่ติดกัน: <span class="legend-chip row">แถวสีส้ม</span> = แถวที่ผ่านเงื่อนไข <code>major = 'CS'</code> · <span class="legend-chip frame">กรอบสีแดง</span> = แถวที่ผ่านทั้ง <code>major = 'CS'</code> <b>และ</b> <code>gpa &gt;= 3.00</code> คือข้อมูลที่วิวจะ “มองเห็น” (ทุกคอลัมน์ เพราะใช้ <code>SELECT *</code>)</p>
+<div class="result-t">▸ SELECT * FROM student ORDER BY major, gpa DESC (22 แถว)</div><div class="tbl-wrap"><table class="tbl result demo"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>70033</td><td>Zoro</td><td class="null">NULL</td><td>3.98</td><td>2012-02-29</td></tr><tr><td>70035</td><td>Nami</td><td class="null">NULL</td><td>2.85</td><td class="null">NULL</td></tr><tr><td>70034</td><td>Luffy</td><td class="null">NULL</td><td>1.55</td><td>2010-02-11</td></tr><tr><td>70037</td><td>Chopper</td><td class="null">NULL</td><td class="null">NULL</td><td>2011-12-24</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>2011-01-31</td></tr><tr><td>60008</td><td>Kira</td><td>Art</td><td>3.05</td><td>2015-02-25</td></tr><tr class="hl fr fr-top"><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2012-12-08</td></tr><tr class="hl fr fr-bot"><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2010-05-13</td></tr><tr class="hl"><td>60013</td><td>Gon</td><td>CS</td><td>2.78</td><td>2017-07-07</td></tr><tr class="hl"><td>70036</td><td>Sanji</td><td>CS</td><td>2.78</td><td class="null">NULL</td></tr><tr class="hl"><td>60003</td><td>Mitsui</td><td>CS</td><td>2.00</td><td>2013-06-25</td></tr><tr class="hl"><td>60012</td><td>Hisoka</td><td>CS</td><td>2.00</td><td>2015-06-06</td></tr><tr class="hl"><td>60002</td><td>Sakuragi</td><td>CS</td><td class="null">NULL</td><td>2010-01-15</td></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>3.98</td><td>2015-03-31</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>3.98</td><td>2016-02-20</td></tr><tr><td>60010</td><td>Gon</td><td>English</td><td>1.55</td><td>2016-02-20</td></tr><tr><td>70022</td><td class="null">NULL</td><td>English</td><td class="null">NULL</td><td class="null">NULL</td></tr><tr><td>60005</td><td class="null">NULL</td><td>Math</td><td>2.78</td><td>2011-09-02</td></tr><tr><td>60006</td><td>Nobita</td><td>Math</td><td>1.55</td><td class="null">NULL</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td><td>4.00</td><td>2014-08-24</td></tr><tr><td>60014</td><td>Light</td><td>Physics</td><td>2.55</td><td>2016-10-10</td></tr><tr><td>60016</td><td>Mello</td><td>Physics</td><td>1.55</td><td>2015-12-13</td></tr></table></div>
+</div>
+<div class="vstep-arrow">▼</div>
+<div class="vstep"><div class="vstep-t"><span class="n">2</span>เขียนคำสั่ง CREATE VIEW — ระบุ “คอลัมน์” ด้วย SELECT และ “แถว” ด้วย WHERE</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>สร้างวิว v_cs_honor</span></div><pre class="sql">CREATE VIEW v_cs_honor AS
+SELECT *                         -- ทุกคอลัมน์
+FROM   student                   -- จากตารางจริง
+WHERE  major = &#x27;cs&#x27;              -- เลือกแถว: สาขา CS (แถวสีส้ม)
+AND    gpa &gt;= 3.00;              -- และเกรดเฉลี่ย ≥ 3.00 (ในกรอบ)</pre></div>
+<p>คำสั่งนี้ทำงานเสร็จทันทีโดย<b>ไม่มีการคัดลอกข้อมูล</b>แม้แต่แถวเดียว — มีผลเพียงบันทึกนิยามของวิวลงในพจนานุกรมข้อมูล (Data Dictionary) · สังเกตว่าเขียน <code>'cs'</code> ตัวเล็กก็ได้ผลเหมือน <code>'CS'</code> เพราะ collation ปริยายของ MySQL ไม่สนตัวพิมพ์เล็ก/ใหญ่</p>
+</div>
+<div class="vstep-arrow">▼</div>
+<div class="vstep"><div class="vstep-t"><span class="n">3</span>สิ่งที่ DBMS เก็บไว้จริง ๆ คือ “ข้อความของคำสั่ง SELECT”</div>
+<p>ดูได้จากตาราง <code>information_schema.VIEWS</code> — ไม่มีข้อมูลนิสิตเก็บอยู่ในวิวเลย (MySQL ขยาย <code>*</code> เป็นรายชื่อคอลัมน์ให้เอง)</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ดูนิยามของวิวที่ DBMS เก็บไว้</span></div><pre class="sql">SELECT TABLE_NAME, VIEW_DEFINITION
+FROM   information_schema.VIEWS
+WHERE  TABLE_SCHEMA = DATABASE() AND TABLE_NAME = &#x27;v_cs_honor&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>TABLE_NAME</th><th>VIEW_DEFINITION</th></tr><tr><td>v_cs_honor</td><td>select `std_66011200`.`student`.`stdid` AS `stdid`,`std_66011200`.`student`.`name` AS `name`,`std_66011200`.`student`.`major` AS `major`,`std_66011200`.`student`.`gpa` AS `gpa`,`std_66011200`.`student`.`birthday` AS `birthday` from `std_66011200`.`student` where ((`std_66011200`.`student`.`major` = &#x27;cs&#x27;) and (`std_66011200`.`student`.`gpa` &gt;= 3.00))</td></tr></table></div>
+</div>
+<div class="vstep-arrow">▼</div>
+<div class="vstep"><div class="vstep-t"><span class="n">4</span>เมื่อ SELECT จากวิว — DBMS นำนิยามในขั้นที่ 3 ไปรันกับตาราง student “ตอนนั้น”</div>
+<p>ผลลัพธ์คือแถวที่อยู่ในกรอบสีแดงในขั้นที่ 1 พอดี: 2 แถว × 5 คอลัมน์</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>SELECT จากวิว เหมือน SELECT จากตาราง</span></div><pre class="sql">SELECT * FROM v_cs_honor;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2010-05-13</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2012-12-08</td></tr></table></div>
+</div>
+<div class="vstep-arrow">▼</div>
+<div class="vstep"><div class="vstep-t"><span class="n">5</span>ข้อมูลในตารางจริงเปลี่ยน → วิวเห็นการเปลี่ยนแปลงทันที</div>
+<p>แก้ gpa ของนิสิต 60013 จาก 2.78 เป็น 3.10 และเพิ่มนิสิตสาขา CS คนใหม่ในตาราง student (ไม่ได้แตะวิวเลย) แล้ว SELECT จากวิวอีกครั้ง — ทั้งสองแถวผ่านเงื่อนไขของวิว จึงปรากฏในวิวทันที</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>แก้ตารางจริง แล้วดูวิวอีกครั้ง — วิวเห็นข้อมูลใหม่ทันที</span></div><pre class="sql">UPDATE student SET gpa = 3.10 WHERE stdid = &#x27;60013&#x27;;
+INSERT INTO student VALUES (&#x27;80001&#x27;, &#x27;Rintaro&#x27;, &#x27;CS&#x27;, 3.50, &#x27;2012-12-14&#x27;);
+SELECT * FROM v_cs_honor;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2010-05-13</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2012-12-08</td></tr><tr><td>60013</td><td>Gon</td><td>CS</td><td>3.10</td><td>2017-07-07</td></tr><tr><td>80001</td><td>Rintaro</td><td>CS</td><td>3.50</td><td>2012-12-14</td></tr></table></div>
+</div>
+<div class="box note"><div class="box-t">📝 สรุปจากภาพ</div><ul>
+<li>SELECT-list ของวิว = <b>หน้าต่างแนวตั้ง</b> (เลือกคอลัมน์) · WHERE ของวิว = <b>หน้าต่างแนวนอน</b> (เลือกแถว)</li>
+<li>วิวเก็บ<b>คำสั่ง</b> ไม่เก็บ<b>ข้อมูล</b> — ข้อมูลมีชุดเดียวอยู่ในตารางจริง จึงไม่มีปัญหาความซ้ำซ้อนหรือข้อมูลไม่ตรงกัน</li>
+<li>ทุกครั้งที่ใช้วิว ผลลัพธ์คำนวณใหม่จากตารางจริง “ณ ขณะนั้น” เสมอ</li>
+</ul></div>
+
+<h2 id="s2"><span class="sec">7.2</span> ประโยชน์ของวิว</h2>
+<table class="tbl"><tr><th>ประโยชน์</th><th>คำอธิบาย</th><th>ตัวอย่างในบทนี้</th></tr>
+<tr><td><b>ซ่อนความซับซ้อน</b></td><td>คำสั่งที่ JOIN 4–5 ตาราง เก็บเป็นวิวครั้งเดียว ต่อไปใช้แค่ SELECT ธรรมดา</td><td>v_enroll_detail</td></tr>
+<tr><td><b>นำกลับมาใช้ซ้ำ</b></td><td>ตรรกะเดียวกัน (เช่น วิธีคิดเกรดเฉลี่ย) เขียนครั้งเดียว ทุกรายงานใช้ร่วมกัน แก้จุดเดียวมีผลทุกที่</td><td>v_student_gpa</td></tr>
+<tr><td><b>แตกปัญหาเป็นขั้น</b></td><td>โจทย์ซับซ้อนสร้างวิวทีละชั้น แต่ละชั้นตรวจผลได้ง่าย</td><td>หัวข้อ 7.7</td></tr>
+<tr><td><b>ความปลอดภัย</b></td><td>ให้ผู้ใช้เห็นเฉพาะคอลัมน์/แถวที่อนุญาต โดยไม่ให้สิทธิ์ตารางจริง</td><td>v_student_public</td></tr>
+<tr><td><b>มุมมองเฉพาะกลุ่ม</b></td><td>คือ External Level ในสถาปัตยกรรม 3 ระดับ (บทที่ 1)</td><td>วิวของอาจารย์ / ฝ่ายทะเบียน</td></tr>
+<tr><td><b>ความเป็นอิสระเชิงตรรกะ</b></td><td>ถ้าโครงสร้างตารางเปลี่ยน แก้แค่วิว โปรแกรมที่ใช้วิวไม่ต้องแก้</td><td>CREATE OR REPLACE VIEW</td></tr>
+</table>
+
+<h2 id="s3"><span class="sec">7.3</span> การสร้างและจัดการวิว</h2>
+<div class="code"><div class="code-head"><span>รูปแบบคำสั่ง</span></div><pre>CREATE [OR REPLACE] VIEW ชื่อวิว [(คอลัมน์1, คอลัมน์2, ...)] AS
+SELECT ...
+[WITH [CASCADED | LOCAL] CHECK OPTION];
+
+ALTER VIEW ชื่อวิว AS SELECT ...;     -- แก้นิยามวิว
+DROP VIEW [IF EXISTS] ชื่อวิว;        -- ลบวิว (ตารางจริงไม่ได้รับผลกระทบ)</pre></div>
+<ul>
+<li>ตั้งชื่อวิวให้ขึ้นต้นด้วย <code>v_</code> เพื่อแยกจากตารางได้ทันที</li>
+<li>ชื่อวิวต้องไม่ซ้ำกับชื่อตารางในฐานข้อมูลเดียวกัน</li>
+<li>ทุกคอลัมน์ในวิวต้องมีชื่อ — คอลัมน์ที่คำนวณ (เช่น <code>COUNT(*)</code>) ต้องตั้ง alias หรือระบุรายชื่อคอลัมน์หลังชื่อวิว</li>
+</ul>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 7.1 — วิวนิสิตสาขา CS</span></div><pre class="sql">CREATE VIEW v_cs_student AS
+SELECT stdid, name, gpa, birthday
+FROM   student
+WHERE  major = &#x27;CS&#x27;;
+
+SELECT * FROM v_cs_student WHERE gpa &gt;= 2.50 ORDER BY gpa DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>gpa</th><th>birthday</th></tr><tr><td>60004</td><td>Sendoh</td><td>3.98</td><td>2012-12-08</td></tr><tr><td>60001</td><td>Rukawa</td><td>3.75</td><td>2010-05-13</td></tr><tr><td>60013</td><td>Gon</td><td>2.78</td><td>2017-07-07</td></tr><tr><td>70036</td><td>Sanji</td><td>2.78</td><td class="null">NULL</td></tr></table></div>
+<div class="box idea"><div class="box-t">💡 เบื้องหลัง: DBMS ทำอะไรเมื่อเรา SELECT จากวิว</div><p>เมื่อสั่ง <code>SELECT * FROM v_cs_student WHERE gpa &gt;= 2.50</code> MySQL จะนำนิยามของวิวมา “แทนที่” ชื่อวิว แล้วรวมเงื่อนไขเข้าด้วยกัน (เรียกว่าวิธี <b>MERGE</b>) จนได้คำสั่งที่ทำงานกับตารางจริง ดังนี้</p>
+<pre class="sql">SELECT stdid, name, gpa, birthday
+FROM   student
+WHERE  major = 'CS'          -- เงื่อนไขจากวิว
+  AND  gpa >= 2.50           -- เงื่อนไขจากคำสั่งที่เรียกใช้
+ORDER  BY gpa DESC;</pre>
+<p>ดังนั้นสิ่งที่ทำกับตารางได้ (WHERE, ORDER BY, GROUP BY, JOIN กับตารางอื่น หรือแม้แต่ JOIN กับวิวอื่น) ก็ทำกับวิวได้ทั้งหมด — ในมุมมองของคำสั่ง SELECT วิวคือ “ตาราง” ตารางหนึ่ง</p></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 7.2 — ตั้งชื่อคอลัมน์ของวิวด้วยรายชื่อหลังชื่อวิว</span></div><pre class="sql">CREATE VIEW v_lecturer_salary (lecturer_id, lecturer_name, monthly, yearly) AS
+SELECT lecid, name, salary, salary * 12
+FROM   lecturer;
+
+SELECT * FROM v_lecturer_salary WHERE yearly &gt;= 700000;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecturer_id</th><th>lecturer_name</th><th>monthly</th><th>yearly</th></tr><tr><td>t03</td><td>Yoda</td><td>80000</td><td>960000</td></tr><tr><td>t05</td><td>IronMan</td><td>65000</td><td>780000</td></tr><tr><td>t08</td><td>Cell</td><td>70000</td><td>840000</td></tr><tr><td>t09</td><td>Frieza</td><td>60000</td><td>720000</td></tr><tr><td>t13</td><td>Thor</td><td>60000</td><td>720000</td></tr><tr><td>t14</td><td>Yoda</td><td>80000</td><td>960000</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ไม่ตั้งชื่อคอลัมน์ที่คำนวณ → MySQL ตั้งชื่อให้เอง อ่านยาก</span></div><pre class="sql">CREATE VIEW v_bad_name AS
+SELECT major, COUNT(*), ROUND(AVG(gpa), 2) FROM student GROUP BY major;
+
+SELECT * FROM v_bad_name;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>COUNT(*)</th><th>ROUND(AVG(gpa), 2)</th></tr><tr><td>CS</td><td>7</td><td>2.88</td></tr><tr><td>Math</td><td>2</td><td>2.17</td></tr><tr><td>Art</td><td>2</td><td>3.52</td></tr><tr><td>English</td><td>4</td><td>3.17</td></tr><tr><td>Physics</td><td>3</td><td>2.70</td></tr><tr><td class="null">NULL</td><td>4</td><td>2.79</td></tr></table></div>
+<p>แก้นิยามวิวด้วย <code>CREATE OR REPLACE VIEW</code> (หรือ <code>ALTER VIEW</code>) — เช่น เพิ่มคอลัมน์ major เข้าไปในวิว v_cs_student</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>CREATE OR REPLACE VIEW</span></div><pre class="sql">CREATE OR REPLACE VIEW v_cs_student AS
+SELECT stdid, name, major, gpa, birthday
+FROM   student
+WHERE  major = &#x27;CS&#x27;;
+
+DESCRIBE v_cs_student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>Field</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Extra</th></tr><tr><td>stdid</td><td>varchar(10)</td><td>NO</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>name</td><td>varchar(50)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>major</td><td>varchar(20)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>gpa</td><td>decimal(3,2)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>birthday</td><td>date</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr></table></div>
+<h3>ตรวจสอบวิวที่มีอยู่</h3>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>รายชื่อวิวทั้งหมดในฐานข้อมูล</span></div><pre class="sql">SHOW FULL TABLES WHERE Table_type = &#x27;VIEW&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>Tables_in_zz_lecture_build</th><th>Table_type</th></tr><tr><td>v_bad_name</td><td>VIEW</td></tr><tr><td>v_cs_honor</td><td>VIEW</td></tr><tr><td>v_cs_student</td><td>VIEW</td></tr><tr><td>v_lecturer_salary</td><td>VIEW</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ดูคำสั่งที่ใช้สร้างวิว (ผ่าน information_schema)</span></div><pre class="sql">SELECT TABLE_NAME, VIEW_DEFINITION, IS_UPDATABLE
+FROM   information_schema.VIEWS
+WHERE  TABLE_SCHEMA = DATABASE() AND TABLE_NAME = &#x27;v_cs_student&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>TABLE_NAME</th><th>VIEW_DEFINITION</th><th>IS_UPDATABLE</th></tr><tr><td>v_cs_student</td><td>select `std_66011200`.`student`.`stdid` AS `stdid`,`std_66011200`.`student`.`name` AS `name`,`std_66011200`.`student`.`major` AS `major`,`std_66011200`.`student`.`gpa` AS `gpa`,`std_66011200`.`student`.`birthday` AS `birthday` from `std_66011200`.`student` where (`std_66011200`.`student`.`major` = &#x27;CS&#x27;)</td><td>YES</td></tr></table></div>
+<div class="box note"><div class="box-t">📝 SHOW CREATE VIEW</div><p>ใน DBeaver ใช้ <code>SHOW CREATE VIEW v_cs_student;</code> หรือดับเบิลคลิกวิวใน Database Navigator → แท็บ <b>Source</b> — สังเกตว่า MySQL เขียนคำสั่งใหม่ในรูปแบบเต็ม (ชื่อตารางมีชื่อฐานข้อมูลนำหน้า ใส่ backtick ทุกชื่อ)</p></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ลบวิว</span></div><pre class="sql">DROP VIEW IF EXISTS v_bad_name;</pre></div>
+
+<div class="ex" id="ex7.1"><div class="ex-head"><span class="ex-badge">ฝึก 7.1</span><span class="ex-title">วิวอาจารย์สาขา English</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงสร้างวิว <code>v_english_lecturer</code> แสดงรหัส ชื่อ เงินเดือนของอาจารย์สาขา English แล้วใช้วิวแสดงอาจารย์ที่เงินเดือนต่ำกว่า 40,000</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_english_lecturer AS
+SELECT lecid, name, salary
+FROM   lecturer
+WHERE  major = &#x27;English&#x27;;
+
+SELECT * FROM v_english_lecturer WHERE salary &lt; 40000;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th></tr><tr><td>t06</td><td>Goku</td><td>20000</td></tr><tr><td>t07</td><td>Vegeta</td><td>25000</td></tr></table></div></div></div></div>
+<div class="ex" id="ex7.2"><div class="ex-head"><span class="ex-badge">ฝึก 7.2</span><span class="ex-title">ตั้งชื่อคอลัมน์ให้วิว</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงสร้างวิว <code>v_subject_short(code, title, credit_hours)</code> จากตาราง subject แล้วแสดงวิชาที่มีมากกว่า 3 หน่วยกิต</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_subject_short (code, title, credit_hours) AS
+SELECT subid, name, credit FROM subject;
+
+SELECT * FROM v_subject_short WHERE credit_hours &gt; 3;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>code</th><th>title</th><th>credit_hours</th></tr><tr><td>CS007</td><td>Robotics</td><td>4</td></tr><tr><td>CS009</td><td>Project</td><td>6</td></tr><tr><td>MA002</td><td>Discrete Math</td><td>4</td></tr></table></div>
+<p>เมื่อตั้งชื่อคอลัมน์ใหม่แล้ว ต้องใช้ชื่อใหม่ (credit_hours) ในการ SELECT จากวิว ไม่ใช่ชื่อเดิม (credit)</p></div></div></div>
+
+<h2 id="s4"><span class="sec">7.4</span> วิวจากตารางเดียว</h2>
+<p>ใช้คัดบางคอลัมน์ บางแถว และ<b>เพิ่มคอลัมน์ที่คำนวณได้</b> เช่น อายุ (Derived Attribute ในบทที่ 2) — ไม่ต้องเขียน TIMESTAMPDIFF ซ้ำทุกครั้ง</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 7.3 — วิวนิสิตพร้อมอายุและระดับผลการเรียน</span></div><pre class="sql">CREATE VIEW v_student_profile AS
+SELECT stdid,
+       IFNULL(name, &#x27;(ไม่มีชื่อ)&#x27;)                     AS name,
+       IFNULL(major, &#x27;Undeclared&#x27;)                     AS major,
+       gpa,
+       birthday,
+       TIMESTAMPDIFF(YEAR, birthday, CURDATE())        AS age,
+       CASE
+           WHEN gpa IS NULL  THEN &#x27;ยังไม่มีข้อมูล&#x27;
+           WHEN gpa &gt;= 3.50  THEN &#x27;ดีเยี่ยม&#x27;
+           WHEN gpa &gt;= 2.50  THEN &#x27;ดี&#x27;
+           WHEN gpa &gt;= 2.00  THEN &#x27;พอใช้&#x27;
+           ELSE &#x27;ต้องปรับปรุง&#x27;
+       END                                             AS level
+FROM   student;
+
+SELECT * FROM v_student_profile ORDER BY stdid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 22 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th><th>age</th><th>level</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2010-05-13</td><td>16</td><td>ดีเยี่ยม</td></tr><tr><td>60002</td><td>Sakuragi</td><td>CS</td><td class="null">NULL</td><td>2010-01-15</td><td>16</td><td>ยังไม่มีข้อมูล</td></tr><tr><td>60003</td><td>Mitsui</td><td>CS</td><td>2.00</td><td>2013-06-25</td><td>13</td><td>พอใช้</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2012-12-08</td><td>13</td><td>ดีเยี่ยม</td></tr><tr><td>60005</td><td>(ไม่มีชื่อ)</td><td>Math</td><td>2.78</td><td>2011-09-02</td><td>15</td><td>ดี</td></tr><tr><td>60006</td><td>Nobita</td><td>Math</td><td>1.55</td><td class="null">NULL</td><td class="null">NULL</td><td>ต้องปรับปรุง</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>2011-01-31</td><td>15</td><td>ดีเยี่ยม</td></tr><tr><td>60008</td><td>Kira</td><td>Art</td><td>3.05</td><td>2015-02-25</td><td>11</td><td>ดี</td></tr></table></div>
+<p>เมื่อมีวิวแล้ว คำถามที่เกี่ยวกับอายุและระดับผลการเรียนจะสั้นลงมาก</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ใช้วิว — นิสิตที่อายุ 15 ปีขึ้นไปและผลการเรียนระดับดีเยี่ยม</span></div><pre class="sql">SELECT stdid, name, major, age, gpa
+FROM   v_student_profile
+WHERE  age &gt;= 15 AND level = &#x27;ดีเยี่ยม&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>age</th><th>gpa</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>16</td><td>3.75</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>15</td><td>3.98</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ใช้วิว — นับจำนวนนิสิตแต่ละระดับ</span></div><pre class="sql">SELECT level, COUNT(*) AS n_student
+FROM   v_student_profile
+GROUP  BY level
+ORDER  BY n_student DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>level</th><th>n_student</th></tr><tr><td>ดีเยี่ยม</td><td>7</td></tr><tr><td>ดี</td><td>6</td></tr><tr><td>ต้องปรับปรุง</td><td>4</td></tr><tr><td>ยังไม่มีข้อมูล</td><td>3</td></tr><tr><td>พอใช้</td><td>2</td></tr></table></div>
+
+<div class="ex" id="ex7.3"><div class="ex-head"><span class="ex-badge">ฝึก 7.3</span><span class="ex-title">วิวรายวิชาพร้อมประเภท</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงสร้างวิว <code>v_subject_type</code> แสดงรหัสวิชา ชื่อ หน่วยกิต สาขา และ <code>credit_type</code> (“น้อย” &lt; 3, “ปกติ” = 3, “หนัก” &gt; 3) และ <code>has_pre</code> (“มี” / “ไม่มี” วิชาบังคับก่อน) แล้วใช้วิวนับจำนวนวิชาแต่ละ credit_type ในสาขา CS</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_subject_type AS
+SELECT subid, name, credit, major,
+       CASE WHEN credit &lt; 3 THEN &#x27;น้อย&#x27;
+            WHEN credit = 3 THEN &#x27;ปกติ&#x27;
+            ELSE &#x27;หนัก&#x27; END                  AS credit_type,
+       IF(pre IS NULL, &#x27;ไม่มี&#x27;, &#x27;มี&#x27;)          AS has_pre
+FROM   subject;
+
+SELECT credit_type, COUNT(*) AS n_subject
+FROM   v_subject_type
+WHERE  major = &#x27;CS&#x27;
+GROUP  BY credit_type;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>credit_type</th><th>n_subject</th></tr><tr><td>ปกติ</td><td>6</td></tr><tr><td>น้อย</td><td>2</td></tr><tr><td>หนัก</td><td>2</td></tr></table></div></div></div></div>
+
+<h2 id="s5"><span class="sec">7.5</span> วิวจากการเชื่อมหลายตาราง</h2>
+<p>นี่คือการใช้งานวิวที่พบบ่อยที่สุด — JOIN ที่ต้องเขียนซ้ำบ่อย ๆ เก็บไว้เป็นวิวครั้งเดียว ภาพด้านล่างแสดงว่าคอลัมน์ของวิว <code>v_section_detail</code> มาจากตารางใดบ้าง (สีของคอลัมน์ = ตารางต้นทาง · กรอบประ = คอลัมน์ที่ใช้เชื่อม)</p>
+<div class="colmap">
+<div class="src"><h4>section</h4><span class="chip c1">secid</span><span class="chip c1 join">subid</span><span class="chip c1 join">lecid</span><span class="chip c1">term</span></div>
+<div class="src"><h4>subject</h4><span class="chip c2 join">subid</span><span class="chip c2">name</span><span class="chip c2">credit</span><span class="chip off">major</span><span class="chip off">pre</span></div>
+<div class="src"><h4>lecturer</h4><span class="chip c3 join">lecid</span><span class="chip c3">name</span><span class="chip off">salary</span><span class="chip c3">major</span></div>
+</div>
+<div class="vstep-arrow">▼ <small style="font-size:13px;color:var(--mute);font-weight:600">section.subid = subject.subid · section.lecid = lecturer.lecid</small></div>
+<div class="colmap-out"><h4>v_section_detail (วิว)</h4><span class="chip c1">secid</span><span class="chip c1">term</span><span class="chip c2">subid</span><span class="chip c2">subject_name</span><span class="chip c2">credit</span><span class="chip c3">lecid</span><span class="chip c3">lecturer_name</span><span class="chip c3">lecturer_major</span></div>
+<p>สังเกตว่า subject และ lecturer มีคอลัมน์ชื่อ <code>name</code> และ <code>major</code> ซ้ำกัน — ในวิวต้องตั้ง alias ให้ไม่ซ้ำ (subject_name, lecturer_name, lecturer_major) เพราะ<b>ชื่อคอลัมน์ในวิวต้องไม่ซ้ำกัน</b> ส่วนคอลัมน์ที่ขีดฆ่า (salary, pre …) ไม่ได้ถูกเลือกมาไว้ในวิว</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 7.4 — v_section_detail: กลุ่มเรียน + ชื่อวิชา + ชื่ออาจารย์</span></div><pre class="sql">CREATE VIEW v_section_detail AS
+SELECT sec.secid, sec.term,
+       sub.subid, sub.name  AS subject_name, sub.credit,
+       l.lecid,   l.name    AS lecturer_name, l.major AS lecturer_major
+FROM   section sec
+       INNER JOIN subject  sub ON sec.subid = sub.subid
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid;
+
+SELECT * FROM v_section_detail ORDER BY secid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 52 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>term</th><th>subid</th><th>subject_name</th><th>credit</th><th>lecid</th><th>lecturer_name</th><th>lecturer_major</th></tr><tr><td>1</td><td>2023-1</td><td>CS001</td><td>Programming</td><td>3</td><td>t01</td><td>Peter Parker</td><td>CS</td></tr><tr><td>2</td><td>2023-1</td><td>CS004</td><td>Database</td><td>3</td><td>t01</td><td>Peter Parker</td><td>CS</td></tr><tr><td>3</td><td>2023-1</td><td>CS005</td><td>Graphics</td><td>3</td><td>t01</td><td>Peter Parker</td><td>CS</td></tr><tr><td>4</td><td>2023-1</td><td>CS003</td><td>Web Design</td><td>2</td><td>t02</td><td>Steve Roger</td><td>CS</td></tr><tr><td>5</td><td>2023-1</td><td>CS006</td><td>Mobile Apps</td><td>2</td><td>t02</td><td>Steve Roger</td><td>CS</td></tr><tr><td>6</td><td>2023-2</td><td>CS002</td><td>Java</td><td>3</td><td>t01</td><td>Peter Parker</td><td>CS</td></tr><tr><td>7</td><td>2023-2</td><td>CS003</td><td>Web Design</td><td>2</td><td>t01</td><td>Peter Parker</td><td>CS</td></tr><tr><td>8</td><td>2023-3</td><td>CS004</td><td>Database</td><td>3</td><td>t03</td><td>Yoda</td><td>Math</td></tr></table></div>
+<p><b>ตามรอย 1 แถว:</b> แถว secid = 1 ของวิวประกอบขึ้นจาก 3 แถวในตารางจริง ดังนี้</p>
+<div class="colmap">
+<div class="src"><h4>① section</h4><div class="result-t">▸ secid = 1 (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>subid</th><th>lecid</th><th>term</th></tr><tr><td>1</td><td>CS001</td><td>t01</td><td>2023-1</td></tr></table></div></div>
+<div class="src"><h4>② subject</h4><div class="result-t">▸ subid ตรงกับ ① (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>credit</th></tr><tr><td>CS001</td><td>Programming</td><td>3</td></tr></table></div></div>
+<div class="src"><h4>③ lecturer</h4><div class="result-t">▸ lecid ตรงกับ ① (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>major</th></tr><tr><td>t01</td><td>Peter Parker</td><td>CS</td></tr></table></div></div>
+</div>
+<div class="vstep-arrow">▼</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>① + ② + ③ = แถวเดียวในวิว</span></div><pre class="sql">SELECT * FROM v_section_detail WHERE secid = 1;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>term</th><th>subid</th><th>subject_name</th><th>credit</th><th>lecid</th><th>lecturer_name</th><th>lecturer_major</th></tr><tr><td>1</td><td>2023-1</td><td>CS001</td><td>Programming</td><td>3</td><td>t01</td><td>Peter Parker</td><td>CS</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 7.5 — v_enroll_detail: ข้อมูลการลงทะเบียนครบถ้วน (5 ตาราง)</span></div><pre class="sql">CREATE VIEW v_enroll_detail AS
+SELECT s.stdid      AS student_id,
+       s.name       AS student_name,
+       s.major      AS student_major,
+       d.secid, d.term, d.subid AS subject_id, d.subject_name, d.credit,
+       d.lecturer_name,
+       e.grade,
+       CASE e.grade WHEN &#x27;A&#x27; THEN 4 WHEN &#x27;B&#x27; THEN 3 WHEN &#x27;C&#x27; THEN 2
+                    WHEN &#x27;D&#x27; THEN 1 WHEN &#x27;F&#x27; THEN 0 END AS point
+FROM   enroll e
+       INNER JOIN student          s ON e.stdid = s.stdid
+       INNER JOIN v_section_detail d ON e.secid = d.secid;
+
+SELECT * FROM v_enroll_detail ORDER BY student_id, term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 100 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_id</th><th>student_name</th><th>student_major</th><th>secid</th><th>term</th><th>subject_id</th><th>subject_name</th><th>credit</th><th>lecturer_name</th><th>grade</th><th>point</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>1</td><td>2023-1</td><td>CS001</td><td>Programming</td><td>3</td><td>Peter Parker</td><td>A</td><td>4</td></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>2</td><td>2023-1</td><td>CS004</td><td>Database</td><td>3</td><td>Peter Parker</td><td>C</td><td>2</td></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>6</td><td>2023-2</td><td>CS002</td><td>Java</td><td>3</td><td>Peter Parker</td><td>B</td><td>3</td></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>10</td><td>2023-3</td><td>CS008</td><td>AI</td><td>3</td><td>Peter Parker</td><td>A</td><td>4</td></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>8</td><td>2023-3</td><td>CS004</td><td>Database</td><td>3</td><td>Yoda</td><td>A</td><td>4</td></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>15</td><td>2024-2</td><td>CS001</td><td>Programming</td><td>3</td><td>Peter Parker</td><td>A</td><td>4</td></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>19</td><td>2024-2</td><td>MA002</td><td>Discrete Math</td><td>4</td><td>IronMan</td><td>B</td><td>3</td></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>31</td><td>2024-3</td><td>CS009</td><td>Project</td><td>6</td><td>Steve Roger</td><td>A</td><td>4</td></tr></table></div>
+<div class="box idea"><div class="box-t">💡 วิวซ้อนวิว (View on View)</div><p>v_enroll_detail สร้างจากวิว v_section_detail อีกที — ไม่ต้องเขียน JOIN subject และ lecturer ซ้ำ ถ้าวันหนึ่งต้องแก้วิธีแสดงชื่ออาจารย์ แก้ที่ v_section_detail จุดเดียว</p></div>
+<p>เทียบความยาว: “แสดงชื่อวิชา ภาค อาจารย์ เกรด ของ Rukawa” โดยไม่ใช้วิว ต้อง JOIN 5 ตาราง แต่เมื่อมีวิวเหลือเพียง</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ใช้วิว — ทรานสคริปต์ของ Rukawa</span></div><pre class="sql">SELECT term, subject_name, credit, lecturer_name, grade
+FROM   v_enroll_detail
+WHERE  student_name = &#x27;Rukawa&#x27;
+ORDER  BY term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (9 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>term</th><th>subject_name</th><th>credit</th><th>lecturer_name</th><th>grade</th></tr><tr><td>2023-1</td><td>Programming</td><td>3</td><td>Peter Parker</td><td>A</td></tr><tr><td>2023-1</td><td>Database</td><td>3</td><td>Peter Parker</td><td>C</td></tr><tr><td>2023-2</td><td>Java</td><td>3</td><td>Peter Parker</td><td>B</td></tr><tr><td>2023-3</td><td>Database</td><td>3</td><td>Yoda</td><td>A</td></tr><tr><td>2023-3</td><td>AI</td><td>3</td><td>Peter Parker</td><td>A</td></tr><tr><td>2024-2</td><td>Programming</td><td>3</td><td>Peter Parker</td><td>A</td></tr><tr><td>2024-2</td><td>Discrete Math</td><td>4</td><td>IronMan</td><td>B</td></tr><tr><td>2024-3</td><td>Project</td><td>6</td><td>Steve Roger</td><td>A</td></tr><tr><td>2025-3</td><td>Security</td><td>3</td><td>Steve Roger</td><td>B</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 7.6 — v_subject_pre: วิชาพร้อมชื่อวิชาบังคับก่อน (Self Join)</span></div><pre class="sql">CREATE VIEW v_subject_pre AS
+SELECT sub.subid, sub.name AS subject_name, sub.credit,
+       pre.subid AS pre_id,
+       IFNULL(pre.name, &#x27;-&#x27;) AS pre_name
+FROM   subject sub
+       LEFT JOIN subject pre ON sub.pre = pre.subid;
+
+SELECT * FROM v_subject_pre WHERE pre_id IS NOT NULL ORDER BY subid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (15 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>subject_name</th><th>credit</th><th>pre_id</th><th>pre_name</th></tr><tr><td>CS002</td><td>Java</td><td>3</td><td>CS001</td><td>Programming</td></tr><tr><td>CS003</td><td>Web Design</td><td>2</td><td>CS001</td><td>Programming</td></tr><tr><td>CS004</td><td>Database</td><td>3</td><td>CS001</td><td>Programming</td></tr><tr><td>CS005</td><td>Graphics</td><td>3</td><td>CS002</td><td>Java</td></tr><tr><td>CS006</td><td>Mobile Apps</td><td>2</td><td>CS002</td><td>Java</td></tr><tr><td>CS007</td><td>Robotics</td><td>4</td><td>CS002</td><td>Java</td></tr><tr><td>CS008</td><td>AI</td><td>3</td><td>CS002</td><td>Java</td></tr><tr><td>CS009</td><td>Project</td><td>6</td><td>CS004</td><td>Database</td></tr><tr><td>CS010</td><td>Security</td><td>3</td><td>CS004</td><td>Database</td></tr><tr><td>EN002</td><td>Reading</td><td>3</td><td>EN001</td><td>English</td></tr><tr><td>EN003</td><td>Conversation</td><td>3</td><td>EN001</td><td>English</td></tr><tr><td>EN004</td><td>Writing</td><td>3</td><td>EN002</td><td>Reading</td></tr><tr><td>MA002</td><td>Discrete Math</td><td>4</td><td>MA001</td><td>Mathematics</td></tr><tr><td>MA003</td><td>Statistics</td><td>3</td><td>MA002</td><td>Discrete Math</td></tr><tr><td>TH002</td><td>Thai Writing</td><td>1</td><td>TH001</td><td>Thai</td></tr></table></div>
+<p>วิวยังใช้ <b>รวมข้อมูลจากหลายตารางที่มีโครงสร้างคล้ายกัน</b> ให้อยู่ในรูปเดียวด้วย UNION ได้ เช่น ทำ “สมุดรายชื่อบุคคล” ของมหาวิทยาลัยที่รวมทั้งนิสิตและอาจารย์ — โปรแกรมค้นหารายชื่อใช้วิวเดียว ไม่ต้องค้นสองตาราง</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างเพิ่มเติม — v_person: รวมนิสิตและอาจารย์ด้วย UNION ALL</span></div><pre class="sql">CREATE VIEW v_person AS
+SELECT stdid AS person_id, name, major, &#x27;นิสิต&#x27;  AS person_type FROM student
+UNION ALL
+SELECT lecid,              name, major, &#x27;อาจารย์&#x27; FROM lecturer;
+
+SELECT person_type, COUNT(*) AS n FROM v_person GROUP BY person_type;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>person_type</th><th>n</th></tr><tr><td>นิสิต</td><td>22</td></tr><tr><td>อาจารย์</td><td>16</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ใช้วิว — ค้นหาทุกคนที่ชื่อขึ้นต้นด้วย Yo หรือ Go ไม่ว่าเป็นนิสิตหรืออาจารย์</span></div><pre class="sql">SELECT * FROM v_person
+WHERE  name LIKE &#x27;Yo%&#x27; OR name LIKE &#x27;Go%&#x27;
+ORDER  BY person_type, person_id;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>person_id</th><th>name</th><th>major</th><th>person_type</th></tr><tr><td>60010</td><td>Gon</td><td>English</td><td>นิสิต</td></tr><tr><td>60013</td><td>Gon</td><td>CS</td><td>นิสิต</td></tr><tr><td>t03</td><td>Yoda</td><td>Math</td><td>อาจารย์</td></tr><tr><td>t06</td><td>Goku</td><td>English</td><td>อาจารย์</td></tr><tr><td>t14</td><td>Yoda</td><td>CS</td><td>อาจารย์</td></tr><tr><td>t15</td><td>Gohan</td><td>Math</td><td>อาจารย์</td></tr></table></div>
+<div class="box note"><div class="box-t">📝 ชื่อคอลัมน์ของวิว UNION</div><p>ชื่อคอลัมน์ของวิวมาจาก SELECT <b>ชุดแรก</b> เท่านั้น (person_id, name, major, person_type) ชุดที่สองต้องมีจำนวนคอลัมน์เท่ากันและชนิดข้อมูลเข้ากันได้ — วิวที่มี UNION <b>ปรับปรุงข้อมูลผ่านไม่ได้</b> (หัวข้อ 7.9)</p></div>
+
+<div class="ex" id="ex7.4"><div class="ex-head"><span class="ex-badge">ฝึก 7.4</span><span class="ex-title">ใช้ v_section_detail</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>ใช้วิว v_section_detail แสดงชื่อวิชาและภาคเรียนที่อาจารย์สาขา CS สอนในปี 2024</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT secid, term, subject_name, lecturer_name
+FROM   v_section_detail
+WHERE  lecturer_major = &#x27;CS&#x27; AND term LIKE &#x27;2024-%&#x27;
+ORDER  BY term, secid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (13 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>term</th><th>subject_name</th><th>lecturer_name</th></tr><tr><td>11</td><td>2024-1</td><td>Programming</td><td>Peter Parker</td></tr><tr><td>12</td><td>2024-1</td><td>Database</td><td>Peter Parker</td></tr><tr><td>13</td><td>2024-1</td><td>Graphics</td><td>Steve Roger</td></tr><tr><td>24</td><td>2024-1</td><td>Programming</td><td>Steve Roger</td></tr><tr><td>26</td><td>2024-1</td><td>Robotics</td><td>Steve Roger</td></tr><tr><td>14</td><td>2024-2</td><td>AI</td><td>Steve Roger</td></tr><tr><td>15</td><td>2024-2</td><td>Programming</td><td>Peter Parker</td></tr><tr><td>16</td><td>2024-2</td><td>Java</td><td>Peter Parker</td></tr><tr><td>17</td><td>2024-2</td><td>Graphics</td><td>Peter Parker</td></tr><tr><td>28</td><td>2024-2</td><td>Project</td><td>Steve Roger</td></tr><tr><td>29</td><td>2024-2</td><td>Java</td><td>Steve Roger</td></tr><tr><td>20</td><td>2024-3</td><td>Database</td><td>Peter Parker</td></tr><tr><td>31</td><td>2024-3</td><td>Project</td><td>Steve Roger</td></tr></table></div></div></div></div>
+<div class="ex" id="ex7.5"><div class="ex-head"><span class="ex-badge">ฝึก 7.5</span><span class="ex-title">ใช้ v_enroll_detail</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>ใช้วิว v_enroll_detail แสดงรหัสนิสิต ชื่อ ชื่อวิชา ชื่อผู้สอน ภาคเรียน ของการเรียนที่ได้เกรด F เรียงตามรหัสนิสิต</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT student_id, student_name, subject_name, lecturer_name, term
+FROM   v_enroll_detail
+WHERE  grade = &#x27;F&#x27;
+ORDER  BY student_id, term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 19 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_id</th><th>student_name</th><th>subject_name</th><th>lecturer_name</th><th>term</th></tr><tr><td>60002</td><td>Sakuragi</td><td>Java</td><td>Peter Parker</td><td>2023-2</td></tr><tr><td>60003</td><td>Mitsui</td><td>Mobile Apps</td><td>Steve Roger</td><td>2023-1</td></tr><tr><td>60003</td><td>Mitsui</td><td>AI</td><td>Peter Parker</td><td>2023-3</td></tr><tr><td>60004</td><td>Sendoh</td><td>Web Design</td><td>Steve Roger</td><td>2023-1</td></tr><tr><td>60006</td><td>Nobita</td><td>Programming</td><td>Peter Parker</td><td>2023-1</td></tr><tr><td>60006</td><td>Nobita</td><td>Database</td><td>Peter Parker</td><td>2024-1</td></tr><tr><td>60006</td><td>Nobita</td><td>Graphics</td><td>Steve Roger</td><td>2024-1</td></tr><tr><td>60006</td><td>Nobita</td><td>Database</td><td>Yoda</td><td>2024-3</td></tr><tr><td>60008</td><td>Kira</td><td>Database</td><td>IronMan</td><td>2024-3</td></tr><tr><td>60008</td><td>Kira</td><td>Discrete Math</td><td>IronMan</td><td>2024-3</td></tr></table></div>
+<p>เทียบกับคำสั่งเดียวกันในบทที่ 6 ที่ต้อง JOIN 5 ตาราง — โจทย์เดียวกัน แต่สั้นและอ่านง่ายกว่ามาก</p></div></div></div>
+
+<h2 id="s6"><span class="sec">7.6</span> วิวสรุปข้อมูล (Aggregate View)</h2>
+<p>วิวที่มี GROUP BY ใช้สร้าง “ตารางสรุป” สำหรับรายงาน — ข้อมูลคำนวณใหม่ทุกครั้งที่เรียกใช้ จึงถูกต้องเสมอ</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 7.7 — v_section_summary: สรุปผลแต่ละกลุ่มเรียน</span></div><pre class="sql">CREATE VIEW v_section_summary AS
+SELECT d.secid, d.term, d.subject_name, d.lecturer_name,
+       COUNT(e.stdid)                                   AS n_student,
+       SUM(CASE WHEN e.grade = &#x27;A&#x27; THEN 1 ELSE 0 END)    AS n_A,
+       SUM(CASE WHEN e.grade = &#x27;F&#x27; THEN 1 ELSE 0 END)    AS n_F,
+       SUM(CASE WHEN e.grade IS NULL AND e.stdid IS NOT NULL THEN 1 ELSE 0 END) AS n_waiting
+FROM   v_section_detail d
+       LEFT JOIN enroll e ON d.secid = e.secid
+GROUP  BY d.secid, d.term, d.subject_name, d.lecturer_name;
+
+SELECT * FROM v_section_summary ORDER BY secid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 52 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>term</th><th>subject_name</th><th>lecturer_name</th><th>n_student</th><th>n_A</th><th>n_F</th><th>n_waiting</th></tr><tr><td>1</td><td>2023-1</td><td>Programming</td><td>Peter Parker</td><td>5</td><td>1</td><td>2</td><td>0</td></tr><tr><td>2</td><td>2023-1</td><td>Database</td><td>Peter Parker</td><td>4</td><td>1</td><td>1</td><td>0</td></tr><tr><td>3</td><td>2023-1</td><td>Graphics</td><td>Peter Parker</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>4</td><td>2023-1</td><td>Web Design</td><td>Steve Roger</td><td>1</td><td>0</td><td>1</td><td>0</td></tr><tr><td>5</td><td>2023-1</td><td>Mobile Apps</td><td>Steve Roger</td><td>4</td><td>1</td><td>1</td><td>0</td></tr><tr><td>6</td><td>2023-2</td><td>Java</td><td>Peter Parker</td><td>4</td><td>1</td><td>1</td><td>0</td></tr><tr><td>7</td><td>2023-2</td><td>Web Design</td><td>Peter Parker</td><td>2</td><td>1</td><td>0</td><td>0</td></tr><tr><td>8</td><td>2023-3</td><td>Database</td><td>Yoda</td><td>2</td><td>1</td><td>0</td><td>0</td></tr><tr><td>9</td><td>2023-3</td><td>Robotics</td><td>IronMan</td><td>2</td><td>0</td><td>0</td><td>0</td></tr><tr><td>10</td><td>2023-3</td><td>AI</td><td>Peter Parker</td><td>3</td><td>1</td><td>1</td><td>0</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 7.8 — v_student_gpa: เกรดเฉลี่ยถ่วงน้ำหนักจากการลงทะเบียนจริง</span></div><pre class="sql">CREATE VIEW v_student_gpa AS
+SELECT student_id, student_name, student_major,
+       COUNT(*)                                      AS n_subject,
+       SUM(credit)                                   AS total_credit,
+       ROUND(SUM(credit * point) / SUM(credit), 2)   AS gpa_calc
+FROM   v_enroll_detail
+WHERE  grade IS NOT NULL
+GROUP  BY student_id, student_name, student_major;
+
+SELECT * FROM v_student_gpa ORDER BY gpa_calc DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (17 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_id</th><th>student_name</th><th>student_major</th><th>n_subject</th><th>total_credit</th><th>gpa_calc</th></tr><tr><td>60012</td><td>Hisoka</td><td>CS</td><td>2</td><td>6</td><td>3.50</td></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>9</td><td>31</td><td>3.48</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>7</td><td>27</td><td>3.44</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>9</td><td>29</td><td>3.38</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>4</td><td>10</td><td>3.20</td></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>5</td><td>14</td><td>3.14</td></tr><tr><td>60005</td><td class="null">NULL</td><td>Math</td><td>8</td><td>23</td><td>2.96</td></tr><tr><td>60002</td><td>Sakuragi</td><td>CS</td><td>6</td><td>19</td><td>2.84</td></tr><tr><td>60013</td><td>Gon</td><td>CS</td><td>6</td><td>15</td><td>2.47</td></tr><tr><td>70022</td><td class="null">NULL</td><td>English</td><td>4</td><td>10</td><td>2.10</td></tr><tr><td>60003</td><td>Mitsui</td><td>CS</td><td>6</td><td>19</td><td>2.00</td></tr><tr><td>70036</td><td>Sanji</td><td>CS</td><td>2</td><td>6</td><td>2.00</td></tr><tr><td>70037</td><td>Chopper</td><td class="null">NULL</td><td>1</td><td>3</td><td>2.00</td></tr><tr><td>60010</td><td>Gon</td><td>English</td><td>9</td><td>24</td><td>1.33</td></tr><tr><td>60006</td><td>Nobita</td><td>Math</td><td>6</td><td>17</td><td>0.65</td></tr><tr><td>70034</td><td>Luffy</td><td class="null">NULL</td><td>5</td><td>15</td><td>0.60</td></tr><tr><td>60008</td><td>Kira</td><td>Art</td><td>2</td><td>7</td><td>0.00</td></tr></table></div>
+<div class="box note"><div class="box-t">📝 gpa_calc ≠ student.gpa</div><p>คอลัมน์ <code>student.gpa</code> เป็นข้อมูลที่กรอกไว้ (ดีนอร์มัลไลซ์ — บทที่ 3) ส่วน gpa_calc คำนวณจากการลงทะเบียนจริง จึงไม่ตรงกัน นี่คือเหตุผลที่ไม่ควรเก็บค่าที่คำนวณได้ — วิวคือทางเลือกที่ดีกว่า</p></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 7.9 — v_lecturer_load: ภาระงานอาจารย์ (รวมคนที่ไม่เคยสอน)</span></div><pre class="sql">CREATE VIEW v_lecturer_load AS
+SELECT l.lecid, l.name, l.major,
+       COUNT(DISTINCT sec.secid)  AS n_section,
+       COUNT(DISTINCT sec.subid)  AS n_subject,
+       COUNT(e.stdid)             AS n_student
+FROM   lecturer l
+       LEFT JOIN section sec ON l.lecid  = sec.lecid
+       LEFT JOIN enroll  e   ON sec.secid = e.secid
+GROUP  BY l.lecid, l.name, l.major;
+
+SELECT * FROM v_lecturer_load ORDER BY n_student DESC, lecid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (16 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>major</th><th>n_section</th><th>n_subject</th><th>n_student</th></tr><tr><td>t01</td><td>Peter Parker</td><td>CS</td><td>14</td><td>6</td><td>37</td></tr><tr><td>t02</td><td>Steve Roger</td><td>CS</td><td>11</td><td>9</td><td>17</td></tr><tr><td>t03</td><td>Yoda</td><td>Math</td><td>8</td><td>7</td><td>13</td></tr><tr><td>t05</td><td>IronMan</td><td>Thai</td><td>6</td><td>5</td><td>11</td></tr><tr><td>t04</td><td>Post Malone</td><td>Thai</td><td>4</td><td>4</td><td>5</td></tr><tr><td>t06</td><td>Goku</td><td>English</td><td>2</td><td>2</td><td>5</td></tr><tr><td>t08</td><td>Cell</td><td>English</td><td>1</td><td>1</td><td>3</td></tr><tr><td>t07</td><td>Vegeta</td><td>English</td><td>1</td><td>1</td><td>2</td></tr><tr><td>t09</td><td>Frieza</td><td>English</td><td>1</td><td>1</td><td>2</td></tr><tr><td>t10</td><td>Piccolo</td><td>Art</td><td>1</td><td>1</td><td>2</td></tr><tr><td>t14</td><td>Yoda</td><td>CS</td><td>1</td><td>1</td><td>2</td></tr><tr><td>t15</td><td>Gohan</td><td>Math</td><td>1</td><td>1</td><td>1</td></tr><tr><td>t11</td><td>Batman</td><td>DC</td><td>0</td><td>0</td><td>0</td></tr><tr><td>t12</td><td>Wolverine</td><td>DC</td><td>0</td><td>0</td><td>0</td></tr><tr><td>t13</td><td>Thor</td><td>DC</td><td>1</td><td>1</td><td>0</td></tr><tr><td>t16</td><td>Levi</td><td>Physics</td><td>0</td><td>0</td><td>0</td></tr></table></div>
+<div class="box warn"><div class="box-t">⚠️ COUNT(DISTINCT …) ในวิวสรุป</div><p>หลัง JOIN กับ enroll กลุ่มเรียนหนึ่งจะซ้ำหลายแถว (1 แถวต่อนิสิต 1 คน) ถ้าใช้ <code>COUNT(sec.secid)</code> จะได้จำนวนเท่ากับจำนวนนิสิต ไม่ใช่จำนวนกลุ่ม — ต้องใช้ <code>COUNT(DISTINCT sec.secid)</code></p></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 7.10 — v_term_summary: สรุปรายภาคเรียน</span></div><pre class="sql">CREATE VIEW v_term_summary AS
+SELECT term,
+       COUNT(*)            AS n_section,
+       SUM(n_student)      AS n_enroll,
+       ROUND(AVG(n_student), 2) AS avg_per_section
+FROM   v_section_summary
+GROUP  BY term;
+
+SELECT * FROM v_term_summary ORDER BY term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (10 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>term</th><th>n_section</th><th>n_enroll</th><th>avg_per_section</th></tr><tr><td>2023-1</td><td>5</td><td>14</td><td>2.80</td></tr><tr><td>2023-2</td><td>2</td><td>6</td><td>3.00</td></tr><tr><td>2023-3</td><td>3</td><td>7</td><td>2.33</td></tr><tr><td>2024-1</td><td>7</td><td>7</td><td>1.00</td></tr><tr><td>2024-2</td><td>9</td><td>20</td><td>2.22</td></tr><tr><td>2024-3</td><td>7</td><td>9</td><td>1.29</td></tr><tr><td>2025-1</td><td>5</td><td>12</td><td>2.40</td></tr><tr><td>2025-2</td><td>4</td><td>8</td><td>2.00</td></tr><tr><td>2025-3</td><td>8</td><td>15</td><td>1.88</td></tr><tr><td>2026-1</td><td>2</td><td>2</td><td>1.00</td></tr></table></div>
+
+<div class="ex" id="ex7.6"><div class="ex-head"><span class="ex-badge">ฝึก 7.6</span><span class="ex-title">วิวสรุปรายสาขา</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงสร้างวิว <code>v_major_stat</code> แสดงสาขา (NULL ให้แสดง Undeclared) จำนวนนิสิต gpa สูงสุด ต่ำสุด และเฉลี่ย แล้วใช้วิวแสดงสาขาที่มี gpa เฉลี่ยมากกว่า 2.80</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_major_stat AS
+SELECT IFNULL(major, &#x27;Undeclared&#x27;) AS major,
+       COUNT(*)            AS n_student,
+       MAX(gpa)            AS max_gpa,
+       MIN(gpa)            AS min_gpa,
+       ROUND(AVG(gpa), 2)  AS avg_gpa
+FROM   student
+GROUP  BY major;
+
+SELECT * FROM v_major_stat WHERE avg_gpa &gt; 2.80 ORDER BY avg_gpa DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_student</th><th>max_gpa</th><th>min_gpa</th><th>avg_gpa</th></tr><tr><td>Art</td><td>2</td><td>3.98</td><td>3.05</td><td>3.52</td></tr><tr><td>English</td><td>4</td><td>3.98</td><td>1.55</td><td>3.17</td></tr><tr><td>CS</td><td>7</td><td>3.98</td><td>2.00</td><td>2.88</td></tr></table></div>
+<p>สังเกตว่าเงื่อนไข <code>avg_gpa &gt; 2.80</code> เขียนใน WHERE ได้แล้ว — เพราะในมุมของคำสั่งชั้นนอก avg_gpa เป็นแค่คอลัมน์หนึ่งของวิว (เทียบกับต้องใช้ HAVING ถ้าไม่มีวิว)</p></div></div></div>
+<div class="ex" id="ex7.7"><div class="ex-head"><span class="ex-badge">ฝึก 7.7</span><span class="ex-title">วิวสรุปรายวิชา</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงสร้างวิว <code>v_subject_stat</code> แสดงรหัสวิชา ชื่อวิชา จำนวนครั้งที่เปิดสอน จำนวนนิสิตที่เคยลงทั้งหมด (รวมวิชาที่ไม่เคยเปิด ให้เป็น 0) แล้วใช้วิวแสดงวิชาที่ไม่เคยมีคนลงเลย</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_subject_stat AS
+SELECT sub.subid, sub.name,
+       COUNT(DISTINCT sec.secid) AS n_open,
+       COUNT(e.stdid)            AS n_enroll
+FROM   subject sub
+       LEFT JOIN section sec ON sub.subid = sec.subid
+       LEFT JOIN enroll  e   ON sec.secid = e.secid
+GROUP  BY sub.subid, sub.name;
+
+SELECT * FROM v_subject_stat WHERE n_enroll = 0;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>n_open</th><th>n_enroll</th></tr><tr><td>EN002</td><td>Reading</td><td>0</td><td>0</td></tr><tr><td>EN004</td><td>Writing</td><td>0</td><td>0</td></tr><tr><td>PH001</td><td>Physics</td><td>0</td><td>0</td></tr><tr><td>TH002</td><td>Thai Writing</td><td>1</td><td>0</td></tr></table></div></div></div></div>
+
+<h2 id="s7"><span class="sec">7.7</span> ใช้วิวแก้โจทย์ที่ซับซ้อน</h2>
+<p>โจทย์บางข้อต้องคำนวณ “ผลสรุป” ก่อน แล้วค่อยเอาผลสรุปนั้นไปเปรียบเทียบ/จัดอันดับอีกชั้น — ถ้าเขียนในคำสั่งเดียวจะซ้อน Subquery หลายชั้นจนอ่านยาก วิธีคิดที่แนะนำคือ</p>
+<div class="flow">
+<div class="st">① อ่านโจทย์<small>ต้องสรุปอะไรก่อน?</small></div><span class="ar">→</span>
+<div class="st">② สร้างวิวชั้นที่ 1<small>JOIN ข้อมูลที่ต้องใช้</small></div><span class="ar">→</span>
+<div class="st">③ สร้างวิวชั้นที่ 2<small>GROUP BY สรุปผล</small></div><span class="ar">→</span>
+<div class="st">④ SELECT จากวิว<small>เปรียบเทียบ / จัดอันดับ</small></div>
+</div>
+
+<div class="box idea"><div class="box-t">💡 สัญญาณว่าโจทย์นี้ “ควรสร้างวิวก่อน”</div><ul>
+<li>โจทย์มีคำว่า <b>มากที่สุด / น้อยที่สุด / สูงกว่าค่าเฉลี่ย</b> ของสิ่งที่ต้อง <b>นับหรือรวมก่อน</b> (เช่น สาขาที่มีนิสิต<b>มากที่สุด</b> = MAX ของ COUNT)</li>
+<li>ต้องเปรียบเทียบผลสรุปของกลุ่มหนึ่งกับผลสรุปของกลุ่มอื่น หรือของกลุ่มที่ใหญ่กว่า (อาจารย์ vs ค่าเฉลี่ยของสาขา)</li>
+<li>ต้องใช้ผลสรุปเดียวกัน <b>มากกว่า 1 ครั้ง</b> ในคำสั่งเดียว (ทั้งชั้นนอกและใน Subquery)</li>
+<li>ต้องสรุปมากกว่า 1 ระดับ (นิสิต-ภาคเรียน → นิสิต) หรือต้อง JOIN 4–5 ตารางซ้ำหลายครั้ง</li>
+</ul></div>
+<p><b>แผนผังวิวที่ใช้ในหัวข้อนี้</b> — วิวแต่ละชั้นสร้างต่อจากชั้นก่อนหน้า ชั้นบนสุดคือตารางจริง ชั้นล่างสุดคือคำตอบของโจทย์</p>
+<div class="layers">
+<div class="ly"><span class="ly-t">ตารางจริง</span><span class="box2 tb">student</span><span class="box2 tb">subject</span><span class="box2 tb">lecturer</span><span class="box2 tb">section</span><span class="box2 tb">enroll</span></div>
+<div class="down">▼ JOIN</div>
+<div class="ly"><span class="ly-t">ชั้นที่ 1 · รวมข้อมูล</span><span class="box2">v_section_detail</span><span class="box2">v_enroll_detail</span><span class="box2">v_subject_pre</span></div>
+<div class="down">▼ GROUP BY</div>
+<div class="ly"><span class="ly-t">ชั้นที่ 2 · สรุป</span><span class="box2 v2">v_major_count</span><span class="box2 v2">v_section_summary</span><span class="box2 v2">v_student_gpa</span><span class="box2 v2">v_lecturer_load</span><span class="box2 v2">v_student_term_gpa</span><span class="box2 v2">v_passed</span></div>
+<div class="down">▼ สรุป / คำนวณต่อ</div>
+<div class="ly"><span class="ly-t">ชั้นที่ 3 · สรุปของสรุป</span><span class="box2 v3">v_section_rate</span><span class="box2 v3">v_term_subject</span></div>
+<div class="down">▼ SELECT + Subquery (MAX / AVG / NOT EXISTS)</div>
+<div class="ly"><span class="ly-t">คำตอบ</span><span class="box2 v3">โจทย์ที่ 1–7</span></div>
+</div>
+
+<h3>โจทย์ที่ 1 · สาขาที่มีนิสิตมากที่สุด — ฟังก์ชันรวมซ้อนฟังก์ชันรวม</h3>
+<p>โจทย์ดูง่าย แต่ต้องใช้ <b>MAX ของ COUNT</b> — ซึ่ง SQL ไม่อนุญาตให้ซ้อนฟังก์ชันรวมในระดับเดียวกัน</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ความพยายามแรก — ซ้อน MAX(COUNT(*)) ตรง ๆ → Error</span></div><pre class="sql">SELECT major, COUNT(*) AS n_student
+FROM   student
+GROUP  BY major
+HAVING COUNT(*) = MAX(COUNT(*));</pre></div>
+<div class="run-err"><b>✖ Error Code: 1111.</b> Invalid use of group function</div>
+<p>และถ้าใช้ <code>ORDER BY n_student DESC LIMIT 1</code> ก็ไม่ถูกต้องเสมอไป เพราะถ้ามีหลายสาขาที่จำนวนเท่ากัน จะได้เพียงสาขาเดียว วิธีที่ถูกคือ <b>สรุปก่อน 1 ชั้น</b> (นับนิสิตแต่ละสาขา) เก็บเป็นวิว แล้วค่อยหาค่าสูงสุดจากวิว</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 1 — วิวจำนวนนิสิตแต่ละสาขา</span></div><pre class="sql">CREATE VIEW v_major_count AS
+SELECT major, COUNT(*) AS n_student
+FROM   student
+WHERE  major IS NOT NULL
+GROUP  BY major;
+
+SELECT * FROM v_major_count ORDER BY n_student DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_student</th></tr><tr><td>CS</td><td>7</td></tr><tr><td>English</td><td>4</td></tr><tr><td>Physics</td><td>3</td></tr><tr><td>Math</td><td>2</td></tr><tr><td>Art</td><td>2</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 2 — เลือกสาขาที่จำนวนเท่ากับค่าสูงสุด (ถ้าเท่ากันได้ทุกสาขา)</span></div><pre class="sql">SELECT major, n_student
+FROM   v_major_count
+WHERE  n_student =
+       (SELECT MAX(n_student)
+        FROM   v_major_count);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_student</th></tr><tr><td>CS</td><td>7</td></tr></table></div>
+<p>สังเกตว่า Subquery ในขั้นที่ 2 คือ “MAX ของ COUNT” ที่เราต้องการตั้งแต่แรก — วิวทำให้ COUNT กลายเป็นคอลัมน์ธรรมดา (n_student) จึงนำไปใส่ MAX ได้</p>
+
+<h3>โจทย์ที่ 2 · กลุ่มเรียนที่มีอัตราการได้ A สูงกว่าค่าเฉลี่ยของทุกกลุ่ม</h3>
+<p>ต้องรู้อัตรา A ของแต่ละกลุ่มก่อน (สรุป) แล้วจึงเทียบกับค่าเฉลี่ยของอัตราเหล่านั้น (สรุปของสรุป) — ใช้ v_section_summary ที่มีอยู่แล้ว สร้างวิวเพิ่มอีกชั้น</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 1 — วิวอัตรา A ของแต่ละกลุ่ม (เฉพาะกลุ่มที่มีนิสิตได้เกรดแล้ว)</span></div><pre class="sql">CREATE VIEW v_section_rate AS
+SELECT secid, term, subject_name, lecturer_name, n_student,
+       ROUND(n_A * 100 / (n_student - n_waiting), 1) AS pct_A
+FROM   v_section_summary
+WHERE  n_student - n_waiting &gt; 0;
+
+SELECT * FROM v_section_rate ORDER BY pct_A DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 40 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>term</th><th>subject_name</th><th>lecturer_name</th><th>n_student</th><th>pct_A</th></tr><tr><td>11</td><td>2024-1</td><td>Programming</td><td>Peter Parker</td><td>1</td><td>100.0</td></tr><tr><td>41</td><td>2025-2</td><td>Project</td><td>Post Malone</td><td>1</td><td>100.0</td></tr><tr><td>30</td><td>2024-2</td><td>Java</td><td>Post Malone</td><td>1</td><td>100.0</td></tr><tr><td>35</td><td>2025-1</td><td>Programming</td><td>Peter Parker</td><td>2</td><td>100.0</td></tr><tr><td>47</td><td>2025-3</td><td>Statistics</td><td>Yoda</td><td>2</td><td>100.0</td></tr><tr><td>40</td><td>2025-2</td><td>AI</td><td>Yoda</td><td>2</td><td>100.0</td></tr><tr><td>28</td><td>2024-2</td><td>Project</td><td>Steve Roger</td><td>1</td><td>100.0</td></tr><tr><td>43</td><td>2025-3</td><td>Thai</td><td>Post Malone</td><td>3</td><td>66.7</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 2 — เทียบกับค่าเฉลี่ย</span></div><pre class="sql">SELECT *
+FROM   v_section_rate
+WHERE  pct_A &gt;
+       (SELECT AVG(pct_A)
+        FROM   v_section_rate)
+ORDER  BY pct_A DESC, secid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (19 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>term</th><th>subject_name</th><th>lecturer_name</th><th>n_student</th><th>pct_A</th></tr><tr><td>11</td><td>2024-1</td><td>Programming</td><td>Peter Parker</td><td>1</td><td>100.0</td></tr><tr><td>28</td><td>2024-2</td><td>Project</td><td>Steve Roger</td><td>1</td><td>100.0</td></tr><tr><td>30</td><td>2024-2</td><td>Java</td><td>Post Malone</td><td>1</td><td>100.0</td></tr><tr><td>35</td><td>2025-1</td><td>Programming</td><td>Peter Parker</td><td>2</td><td>100.0</td></tr><tr><td>40</td><td>2025-2</td><td>AI</td><td>Yoda</td><td>2</td><td>100.0</td></tr><tr><td>41</td><td>2025-2</td><td>Project</td><td>Post Malone</td><td>1</td><td>100.0</td></tr><tr><td>47</td><td>2025-3</td><td>Statistics</td><td>Yoda</td><td>2</td><td>100.0</td></tr><tr><td>34</td><td>2025-1</td><td>English</td><td>Goku</td><td>4</td><td>66.7</td></tr><tr><td>43</td><td>2025-3</td><td>Thai</td><td>Post Malone</td><td>3</td><td>66.7</td></tr><tr><td>19</td><td>2024-2</td><td>Discrete Math</td><td>IronMan</td><td>5</td><td>60.0</td></tr><tr><td>7</td><td>2023-2</td><td>Web Design</td><td>Peter Parker</td><td>2</td><td>50.0</td></tr><tr><td>8</td><td>2023-3</td><td>Database</td><td>Yoda</td><td>2</td><td>50.0</td></tr><tr><td>12</td><td>2024-1</td><td>Database</td><td>Peter Parker</td><td>4</td><td>50.0</td></tr><tr><td>13</td><td>2024-1</td><td>Graphics</td><td>Steve Roger</td><td>2</td><td>50.0</td></tr><tr><td>15</td><td>2024-2</td><td>Programming</td><td>Peter Parker</td><td>4</td><td>50.0</td></tr><tr><td>16</td><td>2024-2</td><td>Java</td><td>Peter Parker</td><td>2</td><td>50.0</td></tr><tr><td>31</td><td>2024-3</td><td>Project</td><td>Steve Roger</td><td>2</td><td>50.0</td></tr><tr><td>45</td><td>2025-3</td><td>Security</td><td>Steve Roger</td><td>3</td><td>50.0</td></tr><tr><td>48</td><td>2025-3</td><td>Conversation</td><td>Frieza</td><td>2</td><td>50.0</td></tr></table></div>
+<details class="nodetail"><summary>ดูคำสั่งเดียวกันแบบไม่ใช้วิว (เทียบความซับซ้อน) — ได้ผลลัพธ์เท่ากัน</summary>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ไม่ใช้วิว — Subquery ซ้อน 2 ชั้น + JOIN ซ้ำ</span></div><pre class="sql">SELECT t.*
+FROM   (SELECT sec.secid, sec.term, sub.name AS subject_name,
+               ROUND(SUM(e.grade = &#x27;A&#x27;) * 100 / COUNT(e.grade), 1) AS pct_A
+        FROM   section sec
+               JOIN subject sub ON sec.subid = sub.subid
+               JOIN enroll  e   ON sec.secid = e.secid
+        GROUP  BY sec.secid, sec.term, sub.name
+        HAVING COUNT(e.grade) &gt; 0) AS t
+WHERE  t.pct_A &gt;
+       (SELECT AVG(x.pct_A)
+        FROM   (SELECT ROUND(SUM(e.grade = &#x27;A&#x27;) * 100 / COUNT(e.grade), 1) AS pct_A
+                FROM   enroll e
+                GROUP  BY e.secid
+                HAVING COUNT(e.grade) &gt; 0) AS x)
+ORDER  BY t.pct_A DESC, t.secid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (19 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>term</th><th>subject_name</th><th>pct_A</th></tr><tr><td>11</td><td>2024-1</td><td>Programming</td><td>100.0</td></tr><tr><td>28</td><td>2024-2</td><td>Project</td><td>100.0</td></tr><tr><td>30</td><td>2024-2</td><td>Java</td><td>100.0</td></tr><tr><td>35</td><td>2025-1</td><td>Programming</td><td>100.0</td></tr><tr><td>40</td><td>2025-2</td><td>AI</td><td>100.0</td></tr><tr><td>41</td><td>2025-2</td><td>Project</td><td>100.0</td></tr><tr><td>47</td><td>2025-3</td><td>Statistics</td><td>100.0</td></tr><tr><td>34</td><td>2025-1</td><td>English</td><td>66.7</td></tr><tr><td>43</td><td>2025-3</td><td>Thai</td><td>66.7</td></tr><tr><td>19</td><td>2024-2</td><td>Discrete Math</td><td>60.0</td></tr><tr><td>7</td><td>2023-2</td><td>Web Design</td><td>50.0</td></tr><tr><td>8</td><td>2023-3</td><td>Database</td><td>50.0</td></tr><tr><td>12</td><td>2024-1</td><td>Database</td><td>50.0</td></tr><tr><td>13</td><td>2024-1</td><td>Graphics</td><td>50.0</td></tr><tr><td>15</td><td>2024-2</td><td>Programming</td><td>50.0</td></tr><tr><td>16</td><td>2024-2</td><td>Java</td><td>50.0</td></tr><tr><td>31</td><td>2024-3</td><td>Project</td><td>50.0</td></tr><tr><td>45</td><td>2025-3</td><td>Security</td><td>50.0</td></tr><tr><td>48</td><td>2025-3</td><td>Conversation</td><td>50.0</td></tr></table></div></details>
+
+<h3>โจทย์ที่ 3 · นิสิตที่มีเกรดเฉลี่ย (คำนวณจริง) สูงสุดในแต่ละสาขา</h3>
+<p>ต้องคำนวณเกรดเฉลี่ยของทุกคนก่อน (v_student_gpa) แล้วจึงหาค่าสูงสุดในแต่ละสาขา และเลือกคนที่ได้ค่านั้น (ถ้าเท่ากันต้องแสดงทุกคน)</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ใช้วิว v_student_gpa + Correlated Subquery</span></div><pre class="sql">SELECT g.student_major, g.student_id, g.student_name, g.gpa_calc
+FROM   v_student_gpa g
+WHERE  g.student_major IS NOT NULL
+  AND  g.gpa_calc =
+       (SELECT MAX(g2.gpa_calc)
+        FROM   v_student_gpa g2
+        WHERE  g2.student_major = g.student_major)
+ORDER  BY g.student_major;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_major</th><th>student_id</th><th>student_name</th><th>gpa_calc</th></tr><tr><td>Art</td><td>60007</td><td>L</td><td>3.44</td></tr><tr><td>CS</td><td>60012</td><td>Hisoka</td><td>3.50</td></tr><tr><td>English</td><td>60011</td><td>Kurapika</td><td>3.20</td></tr><tr><td>Math</td><td>60005</td><td class="null">NULL</td><td>2.96</td></tr></table></div>
+
+<h3>โจทย์ที่ 4 · วิชาที่มีผู้ลงทะเบียนมากที่สุดในแต่ละภาคเรียน</h3>
+<p>ภาคเรียนหนึ่งอาจเปิดวิชาเดียวกันหลายกลุ่ม จึงต้องรวมจำนวนนิสิตของทุกกลุ่มในวิชาเดียวกันก่อน (สรุปจาก v_section_summary ซึ่งเป็นผลสรุปอยู่แล้ว = สรุปของสรุป)</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 1 — วิวจำนวนผู้ลงทะเบียนต่อวิชาต่อภาค</span></div><pre class="sql">CREATE VIEW v_term_subject AS
+SELECT term, subject_name, SUM(n_student) AS n_student
+FROM   v_section_summary
+GROUP  BY term, subject_name;
+
+SELECT * FROM v_term_subject ORDER BY term, n_student DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 45 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>term</th><th>subject_name</th><th>n_student</th></tr><tr><td>2023-1</td><td>Programming</td><td>5</td></tr><tr><td>2023-1</td><td>Database</td><td>4</td></tr><tr><td>2023-1</td><td>Mobile Apps</td><td>4</td></tr><tr><td>2023-1</td><td>Web Design</td><td>1</td></tr><tr><td>2023-1</td><td>Graphics</td><td>0</td></tr><tr><td>2023-2</td><td>Java</td><td>4</td></tr><tr><td>2023-2</td><td>Web Design</td><td>2</td></tr><tr><td>2023-3</td><td>AI</td><td>3</td></tr><tr><td>2023-3</td><td>Database</td><td>2</td></tr><tr><td>2023-3</td><td>Robotics</td><td>2</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 2 — เลือกวิชาที่มากที่สุดของแต่ละภาค</span></div><pre class="sql">SELECT t.term, t.subject_name, t.n_student
+FROM   v_term_subject t
+WHERE  t.n_student =
+       (SELECT MAX(t2.n_student)
+        FROM   v_term_subject t2
+        WHERE  t2.term = t.term)
+  AND  t.n_student &gt; 0
+ORDER  BY t.term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (11 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>term</th><th>subject_name</th><th>n_student</th></tr><tr><td>2023-1</td><td>Programming</td><td>5</td></tr><tr><td>2023-2</td><td>Java</td><td>4</td></tr><tr><td>2023-3</td><td>AI</td><td>3</td></tr><tr><td>2024-1</td><td>Database</td><td>4</td></tr><tr><td>2024-2</td><td>Discrete Math</td><td>5</td></tr><tr><td>2024-3</td><td>Database</td><td>5</td></tr><tr><td>2025-1</td><td>English</td><td>6</td></tr><tr><td>2025-2</td><td>Conversation</td><td>3</td></tr><tr><td>2025-3</td><td>Security</td><td>3</td></tr><tr><td>2025-3</td><td>Thai</td><td>3</td></tr><tr><td>2026-1</td><td>Database</td><td>2</td></tr></table></div>
+
+<h3>โจทย์ที่ 5 · อาจารย์ที่ภาระงาน (จำนวนนิสิต) สูงกว่าค่าเฉลี่ยของอาจารย์ในสาขาเดียวกัน</h3>
+<p>ดูค่าเฉลี่ยของแต่ละสาขาก่อน เพื่อใช้ตรวจคำตอบ</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 1 — ค่าเฉลี่ยภาระงานของแต่ละสาขา (จาก v_lecturer_load)</span></div><pre class="sql">SELECT major, COUNT(*) AS n_lecturer, ROUND(AVG(n_student), 2) AS avg_student
+FROM   v_lecturer_load
+GROUP  BY major
+ORDER  BY major;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_lecturer</th><th>avg_student</th></tr><tr><td>Art</td><td>1</td><td>2.00</td></tr><tr><td>CS</td><td>3</td><td>18.67</td></tr><tr><td>DC</td><td>3</td><td>0.00</td></tr><tr><td>English</td><td>4</td><td>3.00</td></tr><tr><td>Math</td><td>2</td><td>7.00</td></tr><tr><td>Physics</td><td>1</td><td>0.00</td></tr><tr><td>Thai</td><td>2</td><td>8.00</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 2 — อาจารย์ที่สูงกว่าค่าเฉลี่ยของสาขาตนเอง</span></div><pre class="sql">SELECT a.lecid, a.name, a.major, a.n_student
+FROM   v_lecturer_load a
+WHERE  a.n_student &gt;
+       (SELECT AVG(b.n_student)
+        FROM   v_lecturer_load b
+        WHERE  b.major = a.major)
+ORDER  BY a.major, a.n_student DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>major</th><th>n_student</th></tr><tr><td>t01</td><td>Peter Parker</td><td>CS</td><td>37</td></tr><tr><td>t06</td><td>Goku</td><td>English</td><td>5</td></tr><tr><td>t03</td><td>Yoda</td><td>Math</td><td>13</td></tr><tr><td>t05</td><td>IronMan</td><td>Thai</td><td>11</td></tr></table></div>
+<p>คำสั่งนี้อ่านผลสรุปของอาจารย์ (v_lecturer_load) <b>2 ครั้ง</b> — ครั้งแรกเป็นแถวของอาจารย์แต่ละคน (a) ครั้งที่สองใช้คำนวณค่าเฉลี่ยของสาขา (b) ถ้าไม่มีวิว ต้องเขียน LEFT JOIN + GROUP BY ชุดเดียวกันซ้ำ 2 รอบ</p>
+
+<h3>โจทย์ที่ 6 · ภาคเรียนที่นิสิตแต่ละคนทำเกรดเฉลี่ยได้ดีที่สุด — สรุป 2 ระดับ</h3>
+<p>ต้องสรุประดับ “นิสิต × ภาคเรียน” ก่อน (เกรดเฉลี่ยรายภาค) แล้วจึงหาค่าสูงสุดของแต่ละนิสิต — สร้างวิวต่อจาก v_enroll_detail ที่มีคะแนนเกรด (point) และหน่วยกิตอยู่แล้ว</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 1 — วิวเกรดเฉลี่ยรายภาคของนิสิตแต่ละคน</span></div><pre class="sql">CREATE VIEW v_student_term_gpa AS
+SELECT student_id, student_name, term,
+       SUM(credit)                                 AS term_credit,
+       ROUND(SUM(credit * point) / SUM(credit), 2) AS term_gpa
+FROM   v_enroll_detail
+WHERE  grade IS NOT NULL
+GROUP  BY student_id, student_name, term;
+
+SELECT * FROM v_student_term_gpa ORDER BY student_id, term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 63 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_id</th><th>student_name</th><th>term</th><th>term_credit</th><th>term_gpa</th></tr><tr><td>60001</td><td>Rukawa</td><td>2023-1</td><td>6</td><td>3.00</td></tr><tr><td>60001</td><td>Rukawa</td><td>2023-2</td><td>3</td><td>3.00</td></tr><tr><td>60001</td><td>Rukawa</td><td>2023-3</td><td>6</td><td>4.00</td></tr><tr><td>60001</td><td>Rukawa</td><td>2024-2</td><td>7</td><td>3.43</td></tr><tr><td>60001</td><td>Rukawa</td><td>2024-3</td><td>6</td><td>4.00</td></tr><tr><td>60001</td><td>Rukawa</td><td>2025-3</td><td>3</td><td>3.00</td></tr><tr><td>60002</td><td>Sakuragi</td><td>2023-1</td><td>6</td><td>3.50</td></tr><tr><td>60002</td><td>Sakuragi</td><td>2023-2</td><td>3</td><td>0.00</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 2 — เลือกภาคที่ term_gpa สูงสุดของแต่ละคน (Correlated Subquery บนวิว)</span></div><pre class="sql">SELECT t.student_id, t.student_name, t.term, t.term_gpa
+FROM   v_student_term_gpa t
+WHERE  t.term_gpa =
+       (SELECT MAX(t2.term_gpa)
+        FROM   v_student_term_gpa t2
+        WHERE  t2.student_id = t.student_id)
+ORDER  BY t.student_id, t.term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 12 จาก 23 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_id</th><th>student_name</th><th>term</th><th>term_gpa</th></tr><tr><td>60001</td><td>Rukawa</td><td>2023-3</td><td>4.00</td></tr><tr><td>60001</td><td>Rukawa</td><td>2024-3</td><td>4.00</td></tr><tr><td>60002</td><td>Sakuragi</td><td>2024-1</td><td>4.00</td></tr><tr><td>60003</td><td>Mitsui</td><td>2024-2</td><td>3.57</td></tr><tr><td>60004</td><td>Sendoh</td><td>2024-1</td><td>4.00</td></tr><tr><td>60004</td><td>Sendoh</td><td>2024-2</td><td>4.00</td></tr><tr><td>60004</td><td>Sendoh</td><td>2025-2</td><td>4.00</td></tr><tr><td>60004</td><td>Sendoh</td><td>2025-3</td><td>4.00</td></tr><tr><td>60005</td><td class="null">NULL</td><td>2024-2</td><td>4.00</td></tr><tr><td>60005</td><td class="null">NULL</td><td>2025-3</td><td>4.00</td></tr><tr><td>60006</td><td>Nobita</td><td>2023-1</td><td>1.60</td></tr><tr><td>60007</td><td>L</td><td>2023-2</td><td>4.00</td></tr></table></div>
+<p>นิสิตบางคน (เช่น Sendoh) ได้เกรดเฉลี่ยสูงสุดเท่ากันหลายภาค จึงแสดงหลายแถว — เป็นข้อดีของการเทียบกับ MAX แทนการใช้ LIMIT</p>
+<p>ลำดับชั้นของวิวในโจทย์นี้: <code>section + subject + lecturer</code> → <b>v_section_detail</b> → <code>+ enroll + student</code> → <b>v_enroll_detail</b> → <code>GROUP BY นิสิต, ภาค</code> → <b>v_student_term_gpa</b> → SELECT ที่ต้องการ — แต่ละชั้นทดสอบผลได้ทันทีด้วย <code>SELECT * FROM วิว</code></p>
+
+<h3>โจทย์ที่ 7 · นิสิตที่ลงวิชาโดยยังไม่เคยผ่านวิชาบังคับก่อน</h3>
+<p>ต้องรู้ 2 เรื่องก่อน: (1) วิชาใดมีวิชาบังคับก่อนอะไร — มีอยู่แล้วใน v_subject_pre (2) นิสิตแต่ละคน “ผ่าน” วิชาใดแล้วบ้าง (เกรด A–D) — สร้างเป็นวิวใหม่</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 1 — วิวรายวิชาที่นิสิตสอบผ่านแล้ว</span></div><pre class="sql">CREATE VIEW v_passed AS
+SELECT DISTINCT student_id, subject_id
+FROM   v_enroll_detail
+WHERE  grade IN (&#x27;A&#x27;, &#x27;B&#x27;, &#x27;C&#x27;, &#x27;D&#x27;);
+
+SELECT * FROM v_passed ORDER BY student_id, subject_id;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 6 จาก 65 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_id</th><th>subject_id</th></tr><tr><td>60001</td><td>CS001</td></tr><tr><td>60001</td><td>CS002</td></tr><tr><td>60001</td><td>CS004</td></tr><tr><td>60001</td><td>CS008</td></tr><tr><td>60001</td><td>CS009</td></tr><tr><td>60001</td><td>CS010</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 2 — การลงทะเบียนที่วิชามี pre แต่นิสิตไม่อยู่ใน v_passed ของวิชา pre</span></div><pre class="sql">SELECT e.student_id, e.student_name, e.term,
+       e.subject_name, p.pre_name AS missing_pre
+FROM   v_enroll_detail e
+       INNER JOIN v_subject_pre p ON e.subject_id = p.subid
+WHERE  p.pre_id IS NOT NULL
+  AND  NOT EXISTS
+       (SELECT *
+        FROM   v_passed x
+        WHERE  x.student_id = e.student_id
+          AND  x.subject_id = p.pre_id)
+ORDER  BY e.student_id, e.term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 12 จาก 30 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_id</th><th>student_name</th><th>term</th><th>subject_name</th><th>missing_pre</th></tr><tr><td>60001</td><td>Rukawa</td><td>2024-2</td><td>Discrete Math</td><td>Mathematics</td></tr><tr><td>60002</td><td>Sakuragi</td><td>2024-2</td><td>Discrete Math</td><td>Mathematics</td></tr><tr><td>60003</td><td>Mitsui</td><td>2024-2</td><td>Discrete Math</td><td>Mathematics</td></tr><tr><td>60004</td><td>Sendoh</td><td>2023-1</td><td>Mobile Apps</td><td>Java</td></tr><tr><td>60004</td><td>Sendoh</td><td>2023-3</td><td>Robotics</td><td>Java</td></tr><tr><td>60004</td><td>Sendoh</td><td>2024-1</td><td>Graphics</td><td>Java</td></tr><tr><td>60004</td><td>Sendoh</td><td>2025-2</td><td>AI</td><td>Java</td></tr><tr><td>60005</td><td class="null">NULL</td><td>2023-1</td><td>Mobile Apps</td><td>Java</td></tr><tr><td>60006</td><td>Nobita</td><td>2023-1</td><td>Mobile Apps</td><td>Java</td></tr><tr><td>60006</td><td>Nobita</td><td>2024-1</td><td>Database</td><td>Programming</td></tr><tr><td>60006</td><td>Nobita</td><td>2024-1</td><td>Graphics</td><td>Java</td></tr><tr><td>60006</td><td>Nobita</td><td>2024-3</td><td>Database</td><td>Programming</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 3 (เพิ่มเติม) — สรุปจำนวนรายการที่ผิดกฎของนิสิตแต่ละคน</span></div><pre class="sql">SELECT e.student_id, e.student_name, COUNT(*) AS n_violation
+FROM   v_enroll_detail e
+       INNER JOIN v_subject_pre p ON e.subject_id = p.subid
+WHERE  p.pre_id IS NOT NULL
+  AND  NOT EXISTS
+       (SELECT *
+        FROM   v_passed x
+        WHERE  x.student_id = e.student_id
+          AND  x.subject_id = p.pre_id)
+GROUP  BY e.student_id, e.student_name
+ORDER  BY n_violation DESC, e.student_id;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 15 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_id</th><th>student_name</th><th>n_violation</th></tr><tr><td>60006</td><td>Nobita</td><td>5</td></tr><tr><td>60004</td><td>Sendoh</td><td>4</td></tr><tr><td>60007</td><td>L</td><td>4</td></tr><tr><td>60008</td><td>Kira</td><td>3</td></tr><tr><td>60009</td><td>Killua</td><td>3</td></tr><tr><td>60013</td><td>Gon</td><td>2</td></tr><tr><td>60001</td><td>Rukawa</td><td>1</td></tr><tr><td>60002</td><td>Sakuragi</td><td>1</td></tr></table></div>
+<div class="box note"><div class="box-t">📝 ข้อสังเกต</div><p>ผลลัพธ์นี้คือ “ข้อมูลที่ผิดกฎธุรกิจ” ที่หลุดเข้ามาในฐานข้อมูล เพราะ CHECK ตรวจข้ามตารางไม่ได้ — ในบทที่ 12 เราจะเขียน<b>ทริกเกอร์</b>ป้องกันไม่ให้เกิดขึ้นอีก ส่วนวิวนี้ใช้เป็นรายงานตรวจสอบข้อมูลที่มีอยู่เดิมได้ทุกเมื่อ</p></div>
+
+<div class="ex" id="ex7.8"><div class="ex-head"><span class="ex-badge">ฝึก 7.8</span><span class="ex-title">นิสิตที่เกรดคำนวณต่างจาก gpa ในตาราง</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>ใช้วิว v_student_gpa และตาราง student แสดงนิสิตที่ <code>gpa_calc</code> ต่างจาก <code>student.gpa</code> มากกว่า 0.50 พร้อมผลต่าง</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT s.stdid, s.name, s.gpa, g.gpa_calc,
+       ROUND(ABS(s.gpa - g.gpa_calc), 2) AS diff
+FROM   student s
+       INNER JOIN v_student_gpa g ON s.stdid = g.student_id
+WHERE  ABS(s.gpa - g.gpa_calc) &gt; 0.50
+ORDER  BY diff DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (9 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>gpa</th><th>gpa_calc</th><th>diff</th></tr><tr><td>60008</td><td>Kira</td><td>3.05</td><td>0.00</td><td>3.05</td></tr><tr><td>60012</td><td>Hisoka</td><td>2.00</td><td>3.50</td><td>1.50</td></tr><tr><td>70034</td><td>Luffy</td><td>1.55</td><td>0.60</td><td>0.95</td></tr><tr><td>60006</td><td>Nobita</td><td>1.55</td><td>0.65</td><td>0.90</td></tr><tr><td>60009</td><td>Killua</td><td>3.98</td><td>3.14</td><td>0.84</td></tr><tr><td>60011</td><td>Kurapika</td><td>3.98</td><td>3.20</td><td>0.78</td></tr><tr><td>70036</td><td>Sanji</td><td>2.78</td><td>2.00</td><td>0.78</td></tr><tr><td>60004</td><td>Sendoh</td><td>3.98</td><td>3.38</td><td>0.60</td></tr><tr><td>60007</td><td>L</td><td>3.98</td><td>3.44</td><td>0.54</td></tr></table></div></div></div></div>
+<div class="ex" id="ex7.9"><div class="ex-head"><span class="ex-badge">ฝึก 7.9</span><span class="ex-title">อาจารย์ที่ไม่มีใครสอบตก</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>แสดงชื่ออาจารย์ที่สอนอย่างน้อย 2 กลุ่มเรียน และ<b>ไม่มีนิสิตได้ F เลย</b>ในทุกกลุ่มที่สอน (แนะนำ: สร้างวิวสรุปรายอาจารย์จาก v_section_summary ก่อน)</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย ขั้นที่ 1 — วิวสรุปรายอาจารย์</span></div><pre class="sql">CREATE VIEW v_lecturer_result AS
+SELECT lecturer_name,
+       COUNT(*)   AS n_section,
+       SUM(n_F)   AS total_F,
+       SUM(n_A)   AS total_A
+FROM   v_section_summary
+GROUP  BY lecturer_name;
+
+SELECT * FROM v_lecturer_result ORDER BY lecturer_name;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (12 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecturer_name</th><th>n_section</th><th>total_F</th><th>total_A</th></tr><tr><td>Cell</td><td>1</td><td>1</td><td>0</td></tr><tr><td>Frieza</td><td>1</td><td>1</td><td>1</td></tr><tr><td>Gohan</td><td>1</td><td>0</td><td>0</td></tr><tr><td>Goku</td><td>2</td><td>0</td><td>2</td></tr><tr><td>IronMan</td><td>6</td><td>4</td><td>3</td></tr><tr><td>Peter Parker</td><td>14</td><td>8</td><td>12</td></tr><tr><td>Piccolo</td><td>1</td><td>0</td><td>0</td></tr><tr><td>Post Malone</td><td>4</td><td>0</td><td>4</td></tr><tr><td>Steve Roger</td><td>11</td><td>3</td><td>5</td></tr><tr><td>Thor</td><td>1</td><td>0</td><td>0</td></tr><tr><td>Vegeta</td><td>1</td><td>1</td><td>0</td></tr><tr><td>Yoda</td><td>9</td><td>1</td><td>5</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย ขั้นที่ 2</span></div><pre class="sql">SELECT * FROM v_lecturer_result
+WHERE  n_section &gt;= 2 AND total_F = 0;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecturer_name</th><th>n_section</th><th>total_F</th><th>total_A</th></tr><tr><td>Post Malone</td><td>4</td><td>0</td><td>4</td></tr><tr><td>Goku</td><td>2</td><td>0</td><td>2</td></tr></table></div>
+<p>ระวัง: จัดกลุ่มด้วยชื่ออาจารย์จะรวม Yoda (t03) กับ Yoda (t14) เป็นคนเดียว — ถ้าต้องการแม่นยำควรใส่ lecid ใน v_section_summary ด้วย</p></div></div></div>
+<div class="ex" id="ex7.10"><div class="ex-head"><span class="ex-badge">ฝึก 7.10</span><span class="ex-title">อาจารย์ที่สอนมากที่สุด</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>แสดงรหัสและชื่ออาจารย์ที่สอน<b>จำนวนกลุ่มเรียนมากที่สุด</b> (ถ้าเท่ากันให้แสดงทุกคน) — ทำไมโจทย์นี้ใช้ <code>ORDER BY … LIMIT 1</code> ไม่ได้</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย — ใช้ v_lecturer_load (หัวข้อ 7.6)</span></div><pre class="sql">SELECT lecid, name, n_section
+FROM   v_lecturer_load
+WHERE  n_section =
+       (SELECT MAX(n_section)
+        FROM   v_lecturer_load);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>n_section</th></tr><tr><td>t01</td><td>Peter Parker</td><td>14</td></tr></table></div>
+<p><code>LIMIT 1</code> จะได้เพียงคนเดียวแม้มีหลายคนสอนจำนวนเท่ากัน — เป็นโจทย์แบบเดียวกับโจทย์ที่ 1 (MAX ของ COUNT)</p></div></div></div>
+<div class="ex" id="ex7.11"><div class="ex-head"><span class="ex-badge">ฝึก 7.11</span><span class="ex-title">สาขาที่นิสิตมีเกรดเฉลี่ย (คำนวณจริง) สูงที่สุด</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>ใช้ v_student_gpa สร้างวิว <code>v_major_gpa</code> แสดงสาขา จำนวนนิสิต และค่าเฉลี่ยของ gpa_calc ของนิสิตในสาขา (ไม่นับนิสิตที่ไม่มีสาขา) แล้วแสดงสาขาที่ค่าเฉลี่ยนี้สูงที่สุด</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_major_gpa AS
+SELECT student_major       AS major,
+       COUNT(*)            AS n_student,
+       ROUND(AVG(gpa_calc), 2) AS avg_gpa_calc
+FROM   v_student_gpa
+WHERE  student_major IS NOT NULL
+GROUP  BY student_major;
+
+SELECT * FROM v_major_gpa
+WHERE  avg_gpa_calc =
+       (SELECT MAX(avg_gpa_calc)
+        FROM   v_major_gpa);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_student</th><th>avg_gpa_calc</th></tr><tr><td>CS</td><td>7</td><td>2.81</td></tr></table></div>
+<p>วิวสรุป 3 ชั้น: v_enroll_detail → v_student_gpa (ต่อคน) → v_major_gpa (ต่อสาขา) → เลือกค่าสูงสุด</p></div></div></div>
+
+<h2 id="s8"><span class="sec">7.8</span> วิวกับความปลอดภัยของข้อมูล</h2>
+<p>วิวใช้ซ่อน<b>คอลัมน์</b>ที่อ่อนไหว (เช่น gpa, birthday, salary) และ<b>แถว</b>ที่ไม่เกี่ยวข้อง แล้วให้สิทธิ์ผู้ใช้เฉพาะที่วิว (รายละเอียดการ GRANT ในบทที่ 10)</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>วิวข้อมูลนิสิตสาธารณะ — ไม่มี gpa และวันเกิด</span></div><pre class="sql">CREATE VIEW v_student_public AS
+SELECT stdid, name, major FROM student;
+
+SELECT * FROM v_student_public;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 5 จาก 22 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td></tr><tr><td>60002</td><td>Sakuragi</td><td>CS</td></tr><tr><td>60003</td><td>Mitsui</td><td>CS</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td></tr><tr><td>60005</td><td class="null">NULL</td><td>Math</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>วิวรายชื่อในกลุ่มเรียนของอาจารย์ t01 — ไม่เห็นเงินเดือนและข้อมูลกลุ่มอื่น</span></div><pre class="sql">CREATE VIEW v_t01_class_list AS
+SELECT d.secid, d.term, d.subject_name, s.stdid, s.name, e.grade
+FROM   v_section_detail d
+       INNER JOIN enroll  e ON d.secid = e.secid
+       INNER JOIN student s ON e.stdid = s.stdid
+WHERE  d.lecid = &#x27;t01&#x27;;
+
+SELECT * FROM v_t01_class_list ORDER BY term, secid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 37 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>term</th><th>subject_name</th><th>stdid</th><th>name</th><th>grade</th></tr><tr><td>1</td><td>2023-1</td><td>Programming</td><td>60001</td><td>Rukawa</td><td>A</td></tr><tr><td>1</td><td>2023-1</td><td>Programming</td><td>60002</td><td>Sakuragi</td><td>B</td></tr><tr><td>1</td><td>2023-1</td><td>Programming</td><td>60005</td><td class="null">NULL</td><td>C</td></tr><tr><td>1</td><td>2023-1</td><td>Programming</td><td>60006</td><td>Nobita</td><td>F</td></tr><tr><td>1</td><td>2023-1</td><td>Programming</td><td>60010</td><td>Gon</td><td>F</td></tr><tr><td>2</td><td>2023-1</td><td>Database</td><td>60001</td><td>Rukawa</td><td>C</td></tr><tr><td>2</td><td>2023-1</td><td>Database</td><td>60002</td><td>Sakuragi</td><td>A</td></tr><tr><td>2</td><td>2023-1</td><td>Database</td><td>60005</td><td class="null">NULL</td><td>D</td></tr></table></div>
+<div class="code"><div class="code-head"><span>ให้สิทธิ์เฉพาะวิว (ต้องใช้บัญชีผู้ดูแล — บทที่ 10)</span></div><pre class="sql">GRANT SELECT ON std_66011200.v_student_public TO 'guest'@'localhost';
+GRANT SELECT ON std_66011200.v_t01_class_list TO 'peter'@'localhost';</pre></div>
+
+<h2 id="s9"><span class="sec">7.9</span> การปรับปรุงข้อมูลผ่านวิว</h2>
+<p>INSERT / UPDATE / DELETE ผ่านวิวได้ ถ้าแต่ละแถวในวิว<b>ชี้กลับไปหาแถวเดียวในตารางจริงได้ชัดเจน</b> — การเปลี่ยนแปลงจะเกิดกับตารางจริง</p>
+<table class="tbl"><tr><th>ลักษณะของวิว</th><th>ปรับปรุงผ่านได้?</th><th>เหตุผล</th></tr>
+<tr><td>ตารางเดียว เลือกบางคอลัมน์/บางแถว</td><td>✔ ได้</td><td>ระบุแถวในตารางจริงได้ชัดเจน</td></tr>
+<tr><td>มีคอลัมน์ที่คำนวณ (เช่น age)</td><td>บางส่วน</td><td>แก้คอลัมน์ปกติได้ แต่แก้คอลัมน์ที่คำนวณไม่ได้</td></tr>
+<tr><td>มีฟังก์ชันรวม / GROUP BY / HAVING</td><td>✘ ไม่ได้</td><td>1 แถวในวิวมาจากหลายแถว</td></tr>
+<tr><td>มี DISTINCT / UNION / LIMIT</td><td>✘ ไม่ได้</td><td>ไม่รู้ว่าตรงกับแถวใด</td></tr>
+<tr><td>JOIN หลายตาราง</td><td>บางกรณี</td><td>UPDATE ได้ถ้าแก้คอลัมน์จากตารางเดียว · DELETE ไม่ได้</td></tr>
+</table>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>UPDATE ผ่านวิวตารางเดียว → ตาราง student เปลี่ยนจริง</span></div><pre class="sql">UPDATE v_cs_student SET gpa = 3.60 WHERE stdid = &#x27;60003&#x27;;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>gpa</th></tr><tr><td>60003</td><td>Mitsui</td><td>3.60</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>INSERT ผ่านวิว — คอลัมน์ที่ไม่อยู่ในวิวได้ค่า NULL</span></div><pre class="sql">INSERT INTO v_student_public (stdid, name, major) VALUES (&#x27;80002&#x27;, &#x27;Mikasa&#x27;, &#x27;Art&#x27;);</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>80002</td><td>Mikasa</td><td>Art</td><td class="null">NULL</td><td class="null">NULL</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>UPDATE คอลัมน์ที่คำนวณในวิว → ไม่ได้</span></div><pre class="sql">UPDATE v_student_profile SET age = 20 WHERE stdid = &#x27;60001&#x27;;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1348.</b> Column &#x27;age&#x27; is not updatable</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>UPDATE วิวสรุป (GROUP BY) → ไม่ได้</span></div><pre class="sql">UPDATE v_section_summary SET n_student = 0 WHERE secid = 1;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1288.</b> The target table v_section_summary of the UPDATE is not updatable</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>DELETE ผ่านวิวที่ JOIN หลายตาราง → ไม่ได้</span></div><pre class="sql">DELETE FROM v_section_detail WHERE secid = 52;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1395.</b> Can not delete from join view &#x27;std_66011200.v_section_detail&#x27;</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตรวจว่าวิวไหนปรับปรุงได้</span></div><pre class="sql">SELECT TABLE_NAME, IS_UPDATABLE
+FROM   information_schema.VIEWS
+WHERE  TABLE_SCHEMA = DATABASE()
+ORDER  BY TABLE_NAME;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (26 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>TABLE_NAME</th><th>IS_UPDATABLE</th></tr><tr><td>v_cs_honor</td><td>YES</td></tr><tr><td>v_cs_student</td><td>YES</td></tr><tr><td>v_english_lecturer</td><td>YES</td></tr><tr><td>v_enroll_detail</td><td>YES</td></tr><tr><td>v_lecturer_load</td><td>NO</td></tr><tr><td>v_lecturer_result</td><td>NO</td></tr><tr><td>v_lecturer_salary</td><td>YES</td></tr><tr><td>v_major_count</td><td>NO</td></tr><tr><td>v_major_gpa</td><td>NO</td></tr><tr><td>v_major_stat</td><td>NO</td></tr><tr><td>v_passed</td><td>NO</td></tr><tr><td>v_person</td><td>NO</td></tr><tr><td>v_section_detail</td><td>YES</td></tr><tr><td>v_section_rate</td><td>NO</td></tr><tr><td>v_section_summary</td><td>NO</td></tr><tr><td>v_student_gpa</td><td>NO</td></tr><tr><td>v_student_profile</td><td>YES</td></tr><tr><td>v_student_public</td><td>YES</td></tr><tr><td>v_student_term_gpa</td><td>NO</td></tr><tr><td>v_subject_pre</td><td>NO</td></tr><tr><td>v_subject_short</td><td>YES</td></tr><tr><td>v_subject_stat</td><td>NO</td></tr><tr><td>v_subject_type</td><td>YES</td></tr><tr><td>v_t01_class_list</td><td>YES</td></tr><tr><td>v_term_subject</td><td>NO</td></tr><tr><td>v_term_summary</td><td>NO</td></tr></table></div>
+<h3>WITH CHECK OPTION</h3>
+<p>ป้องกันการ INSERT / UPDATE ผ่านวิว แล้วทำให้แถวนั้น<b>หลุดออกจากเงื่อนไขของวิว</b> (มองไม่เห็นในวิวอีก)</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ไม่มี CHECK OPTION — ย้ายนิสิตออกจาก CS ผ่านวิวได้ แล้วแถวก็หายไปจากวิว</span></div><pre class="sql">UPDATE v_cs_student SET major = &#x27;Math&#x27; WHERE stdid = &#x27;60003&#x27;;
+SELECT COUNT(*) AS n_cs_in_view FROM v_cs_student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_cs_in_view</th></tr><tr><td>6</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>สร้างวิวพร้อม WITH CHECK OPTION</span></div><pre class="sql">CREATE VIEW v_cs_student_safe AS
+SELECT stdid, name, major, gpa FROM student WHERE major = &#x27;CS&#x27;
+WITH CHECK OPTION;</pre></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ย้ายสาขาผ่านวิว → ถูกปฏิเสธ</span></div><pre class="sql">UPDATE v_cs_student_safe SET major = &#x27;Math&#x27; WHERE stdid = &#x27;60003&#x27;;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1369.</b> CHECK OPTION failed &#x27;std_66011200.v_cs_student_safe&#x27;</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เพิ่มนิสิตสาขาอื่นผ่านวิว → ถูกปฏิเสธ</span></div><pre class="sql">INSERT INTO v_cs_student_safe VALUES (&#x27;80003&#x27;, &#x27;Eren&#x27;, &#x27;Art&#x27;, 2.50);</pre></div>
+<div class="run-err"><b>✖ Error Code: 1369.</b> CHECK OPTION failed &#x27;std_66011200.v_cs_student_safe&#x27;</div>
+<div class="box note"><div class="box-t">📝 CASCADED กับ LOCAL</div><p>เมื่อวิวสร้างซ้อนวิว <code>WITH CASCADED CHECK OPTION</code> (ค่าปริยาย) ตรวจเงื่อนไขของวิวทุกชั้น ส่วน <code>WITH LOCAL CHECK OPTION</code> ตรวจเฉพาะวิวชั้นที่มี LOCAL และชั้นล่างที่มี CHECK OPTION ของตัวเอง</p></div>
+
+<div class="ex" id="ex7.12"><div class="ex-head"><span class="ex-badge">ฝึก 7.12</span><span class="ex-title">UPDATE ได้หรือไม่</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จากวิวในบทนี้ จงทำนายว่าคำสั่งต่อไปนี้สำเร็จหรือไม่ แล้วตรวจคำตอบด้วย IS_UPDATABLE<br>(ก) <code>UPDATE v_english_lecturer SET salary = 30000 WHERE lecid = 't06'</code><br>(ข) <code>UPDATE v_major_stat SET avg_gpa = 3</code><br>(ค) <code>UPDATE v_section_detail SET term = '2026-2' WHERE secid = 52</code></p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>สำเร็จ</b> — ตารางเดียว คอลัมน์ปกติ<br>(ข) <b>ไม่สำเร็จ</b> — วิวมี GROUP BY<br>(ค) <b>สำเร็จ</b> — แม้วิวจะ JOIN 3 ตาราง แต่ term มาจากตาราง section ตารางเดียว</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตรวจ (ค) ใน transaction แล้ว rollback</span></div><pre class="sql">UPDATE v_section_detail SET term = &#x27;2026-2&#x27; WHERE secid = 52;</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>subid</th><th>term</th></tr><tr><td>52</td><td>CS009</td><td>2026-2</td></tr></table></div></div></div></div>
+
+<h2 id="s10"><span class="sec">7.10</span> ข้อควรระวัง และการเปรียบเทียบ</h2>
+<h3>7.10.1 SELECT * ในวิว “แช่แข็ง” รายชื่อคอลัมน์</h3>
+<p>MySQL ขยาย <code>*</code> เป็นรายชื่อคอลัมน์<b>ตอนสร้างวิว</b> — เพิ่มคอลัมน์ในตารางภายหลัง วิวจะไม่เห็น</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>สร้างวิวด้วย * แล้วเพิ่มคอลัมน์ email ในตาราง lecturer</span></div><pre class="sql">CREATE VIEW v_all_lecturer AS SELECT * FROM lecturer;
+ALTER TABLE lecturer ADD COLUMN email VARCHAR(60);
+SELECT * FROM v_all_lecturer LIMIT 3;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th><th>major</th></tr><tr><td>t01</td><td>Peter Parker</td><td>40000</td><td>CS</td></tr><tr><td>t02</td><td>Steve Roger</td><td>50000</td><td>CS</td></tr><tr><td>t03</td><td>Yoda</td><td>80000</td><td>Math</td></tr></table></div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>คืนตาราง</span></div><pre class="sql">ALTER TABLE lecturer DROP COLUMN email;</pre></div>
+<h3>7.10.2 ลบ/เปลี่ยนชื่อตารางหรือคอลัมน์ที่วิวใช้ → วิวเสีย</h3>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>วิวที่อ้างตารางที่ถูกลบ</span></div><pre class="sql">CREATE TABLE tmp_room (room_id INT, building VARCHAR(20));
+CREATE VIEW v_room AS SELECT room_id, building FROM tmp_room;
+DROP TABLE tmp_room;
+SELECT * FROM v_room;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1356.</b> View &#x27;std_66011200.v_room&#x27; references invalid table(s) or column(s) or function(s) or definer/invoker of view lack rights to use them</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ลบวิวที่เสีย</span></div><pre class="sql">DROP VIEW v_room;</pre></div>
+<h3>7.10.3 ประสิทธิภาพ</h3>
+<ul>
+<li>วิว<b>ไม่ได้ทำให้เร็วขึ้น</b> — ทุกครั้งที่เรียกจะประมวลผลคำสั่งเต็มใหม่ วิวซ้อนหลายชั้นที่มี GROUP BY อาจช้าเมื่อข้อมูลมาก</li>
+<li>MySQL มี 2 วิธีประมวลผลวิว: <b>MERGE</b> (รวมคำสั่งของวิวเข้ากับคำสั่งที่เรียก — เร็ว) และ <b>TEMPTABLE</b> (สร้างตารางชั่วคราว — ใช้เมื่อวิวมี GROUP BY, DISTINCT, UNION)</li>
+<li>ไม่ควรใส่ ORDER BY ไว้ในวิว — ให้คำสั่งที่เรียกใช้เป็นผู้กำหนดลำดับเอง</li>
+</ul>
+<h3>7.10.4 เปรียบเทียบวิว ตาราง Derived Table และ CTE</h3>
+<table class="tbl"><tr><th>ประเด็น</th><th>ตาราง</th><th>วิว</th><th>Derived Table</th><th>CTE (WITH)</th></tr>
+<tr><td>เก็บอะไร</td><td>ข้อมูลจริง</td><td>คำสั่ง SELECT</td><td>—</td><td>—</td></tr>
+<tr><td>อายุการใช้งาน</td><td>ถาวร</td><td>ถาวร (จนกว่า DROP)</td><td>เฉพาะคำสั่งนั้น</td><td>เฉพาะคำสั่งนั้น</td></tr>
+<tr><td>ใช้ซ้ำในหลายคำสั่ง</td><td>✔</td><td>✔</td><td>✘</td><td>✘ (ใช้ซ้ำได้ภายในคำสั่งเดียว)</td></tr>
+<tr><td>ข้อมูลล่าสุดเสมอ</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
+<tr><td>กำหนดสิทธิ์แยกได้</td><td>✔</td><td>✔</td><td>✘</td><td>✘</td></tr>
+</table>
+<p><b>CTE (Common Table Expression)</b> คือ “วิวชั่วคราว” ที่ประกาศด้วย <code>WITH</code> ใช้ได้เฉพาะในคำสั่งนั้น — เหมาะเมื่อต้องการแตกปัญหาเป็นขั้นแต่ไม่อยากสร้างวิวถาวร</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>โจทย์ที่ 2 (หัวข้อ 7.7) เขียนด้วย CTE แทนวิว</span></div><pre class="sql">WITH sec_rate AS (
+    SELECT secid, subject_name,
+           ROUND(n_A * 100 / (n_student - n_waiting), 1) AS pct_A
+    FROM   v_section_summary
+    WHERE  n_student - n_waiting &gt; 0
+)
+SELECT *
+FROM   sec_rate
+WHERE  pct_A &gt;
+       (SELECT AVG(pct_A)
+        FROM   sec_rate)
+ORDER  BY pct_A DESC, secid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (19 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>subject_name</th><th>pct_A</th></tr><tr><td>11</td><td>Programming</td><td>100.0</td></tr><tr><td>28</td><td>Project</td><td>100.0</td></tr><tr><td>30</td><td>Java</td><td>100.0</td></tr><tr><td>35</td><td>Programming</td><td>100.0</td></tr><tr><td>40</td><td>AI</td><td>100.0</td></tr><tr><td>41</td><td>Project</td><td>100.0</td></tr><tr><td>47</td><td>Statistics</td><td>100.0</td></tr><tr><td>34</td><td>English</td><td>66.7</td></tr><tr><td>43</td><td>Thai</td><td>66.7</td></tr><tr><td>19</td><td>Discrete Math</td><td>60.0</td></tr><tr><td>7</td><td>Web Design</td><td>50.0</td></tr><tr><td>8</td><td>Database</td><td>50.0</td></tr><tr><td>12</td><td>Database</td><td>50.0</td></tr><tr><td>13</td><td>Graphics</td><td>50.0</td></tr><tr><td>15</td><td>Programming</td><td>50.0</td></tr><tr><td>16</td><td>Java</td><td>50.0</td></tr><tr><td>31</td><td>Project</td><td>50.0</td></tr><tr><td>45</td><td>Security</td><td>50.0</td></tr><tr><td>48</td><td>Conversation</td><td>50.0</td></tr></table></div>
+
+<div class="ex" id="ex7.13"><div class="ex-head"><span class="ex-badge">ฝึก 7.13</span><span class="ex-title">สร้างหรือไม่สร้างวิว</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>สถานการณ์ต่อไปนี้ควรใช้ วิว, CTE, หรือตารางจริง พร้อมเหตุผล<br>(ก) รายงานทรานสคริปต์ที่หน้าเว็บเรียกวันละหลายพันครั้ง<br>(ข) คำถามวิเคราะห์ครั้งเดียวของผู้บริหาร<br>(ค) ให้ฝ่ายประชาสัมพันธ์เห็นเฉพาะชื่อและสาขานิสิต<br>(ง) เก็บผลการเรียนย้อนหลังที่ต้องไม่เปลี่ยนแม้ข้อมูลต้นทางเปลี่ยน</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>วิว</b> — ใช้ซ้ำบ่อย ตรรกะเดียวกันทุกที่<br>(ข) <b>CTE</b> — ใช้ครั้งเดียว ไม่ต้องสร้างของถาวร<br>(ค) <b>วิว</b> + GRANT เฉพาะวิว<br>(ง) <b>ตารางจริง</b> (snapshot ด้วย INSERT … SELECT / CREATE TABLE … AS SELECT) — เพราะวิวแสดงข้อมูลล่าสุดเสมอ ไม่เก็บค่าในอดีต</p></div></div></div>
+
+<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
+<li class="part">แนวคิดของวิว</li>
+<li>จงอธิบายความแตกต่างระหว่างวิวกับตารางจริง ในแง่สิ่งที่เก็บ การสร้าง ข้อกำหนดบังคับ และการปรับปรุงข้อมูล <span class="hint">(หัวข้อ 7.1)</span><div class="rv-ans"><ul><li><b>สิ่งที่เก็บ</b> — ตารางเก็บข้อมูลจริง วิวเก็บเพียงคำสั่ง SELECT</li><li><b>การสร้าง</b> — ตารางใช้ CREATE TABLE วิวใช้ CREATE VIEW … AS SELECT</li><li><b>ข้อกำหนดบังคับ</b> — ตารางมี PK / FK / CHECK ของตัวเอง วิวไม่มี (อาศัยของตารางจริง และเพิ่มได้เพียง WITH CHECK OPTION)</li><li><b>การปรับปรุงข้อมูล</b> — ตาราง INSERT/UPDATE/DELETE ได้เสมอ วิวทำได้บางกรณี (แต่ละแถวต้องชี้กลับไปยังแถวเดียวในตารางจริงได้) และการเปลี่ยนแปลงเกิดที่ตารางจริง</li></ul></div></li>
+<li>ถ้าแก้ข้อมูลในตาราง student หลังจากสร้างวิว v_cs_student แล้ว ผลลัพธ์ของ <code>SELECT * FROM v_cs_student</code> จะเปลี่ยนตามหรือไม่ เพราะเหตุใด <span class="hint">(วิวเก็บคำสั่ง ไม่ใช่ข้อมูล)</span><div class="rv-ans"><p><b>เปลี่ยนตาม</b> — วิวไม่ได้เก็บข้อมูล ทุกครั้งที่ SELECT จากวิว DBMS จะรันคำสั่งของวิวกับตาราง student ณ ขณะนั้น (ดูขั้นที่ 5 ของหัวข้อ 7.1.1)</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">UPDATE student SET gpa = 4.00 WHERE stdid = &#x27;60003&#x27;;
+SELECT * FROM v_cs_student WHERE stdid = &#x27;60003&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60003</td><td>Mitsui</td><td>CS</td><td>4.00</td><td>2013-06-25</td></tr></table></div></div></li>
+<li>จงอธิบายว่า MySQL ประมวลผลคำสั่ง <code>SELECT * FROM v_cs_student WHERE gpa &gt;= 3</code> อย่างไร และเขียนคำสั่งที่เทียบเท่าโดยไม่ใช้วิว <span class="hint">(MERGE)</span><div class="rv-ans"><p>MySQL แทนชื่อวิวด้วยนิยามของวิว แล้วรวมเงื่อนไขของวิว (major = 'CS') กับเงื่อนไขของคำสั่งที่เรียก (gpa &gt;= 3) เข้าด้วยกัน (วิธี MERGE) ได้คำสั่งเทียบเท่าคือ</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, major, gpa, birthday
+FROM   student
+WHERE  major = &#x27;CS&#x27;
+  AND  gpa &gt;= 3;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2010-05-13</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2012-12-08</td></tr></table></div></div></li>
+<li>จงอธิบายความแตกต่างของ <code>CREATE TABLE … AS SELECT</code> กับ <code>CREATE VIEW … AS SELECT</code> และยกตัวอย่างกรณีที่ควรใช้แต่ละแบบ <span class="hint">(เก็บข้อมูล vs เก็บคำสั่ง)</span><div class="rv-ans"><p><code>CREATE TABLE … AS SELECT</code> คัดลอก<b>ข้อมูล ณ ขณะนั้น</b>ไปเก็บเป็นตารางใหม่ (snapshot) ข้อมูลไม่เปลี่ยนตามต้นทาง — ใช้สำรองข้อมูลก่อนแก้ไข หรือเก็บผลการเรียนสิ้นภาคไว้เป็นหลักฐาน</p><p><code>CREATE VIEW … AS SELECT</code> เก็บเพียง<b>คำสั่ง</b> ผลลัพธ์เป็นข้อมูลล่าสุดเสมอ ไม่ใช้พื้นที่เก็บข้อมูล — ใช้ทำรายงานที่เรียกซ้ำบ่อย ซ่อนความซับซ้อนของ JOIN หรือจำกัดสิทธิ์การมองเห็น</p></div></li>
+<li class="part">สร้างและจัดการวิว</li>
+<li>สร้างวิว v_math_student แสดงรหัส ชื่อ gpa ของนิสิตสาขา Math แล้วใช้วิวแสดงคนที่ gpa ต่ำกว่า 3.00 <span class="hint">(WHERE ในวิว + WHERE ตอนเรียกใช้)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_math_student AS
+SELECT stdid, name, gpa
+FROM   student
+WHERE  major = &#x27;Math&#x27;;
+
+SELECT * FROM v_math_student WHERE gpa &lt; 3.00;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>gpa</th></tr><tr><td>60005</td><td class="null">NULL</td><td>2.78</td></tr><tr><td>60006</td><td>Nobita</td><td>1.55</td></tr></table></div></div></li>
+<li>สร้างวิว v_lecturer_income(lecturer_id, lecturer_name, monthly, yearly, tax) โดย tax = 7% ของ yearly แล้วแสดงอาจารย์ที่ต้องเสียภาษีเกิน 40,000 <span class="hint">(ตั้งชื่อคอลัมน์หลังชื่อวิว)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_lecturer_income (lecturer_id, lecturer_name, monthly, yearly, tax) AS
+SELECT lecid, name, salary, salary * 12, salary * 12 * 0.07
+FROM   lecturer;
+
+SELECT * FROM v_lecturer_income WHERE tax &gt; 40000 ORDER BY tax DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecturer_id</th><th>lecturer_name</th><th>monthly</th><th>yearly</th><th>tax</th></tr><tr><td>t03</td><td>Yoda</td><td>80000</td><td>960000</td><td>67200.00</td></tr><tr><td>t14</td><td>Yoda</td><td>80000</td><td>960000</td><td>67200.00</td></tr><tr><td>t08</td><td>Cell</td><td>70000</td><td>840000</td><td>58800.00</td></tr><tr><td>t05</td><td>IronMan</td><td>65000</td><td>780000</td><td>54600.00</td></tr><tr><td>t09</td><td>Frieza</td><td>60000</td><td>720000</td><td>50400.00</td></tr><tr><td>t13</td><td>Thor</td><td>60000</td><td>720000</td><td>50400.00</td></tr><tr><td>t02</td><td>Steve Roger</td><td>50000</td><td>600000</td><td>42000.00</td></tr></table></div></div></li>
+<li>สร้างวิว v_student_age แสดงรหัส ชื่อ สาขา (NULL แสดง Undeclared) อายุ และช่วงอายุ (“ต่ำกว่า 15” / “15 ขึ้นไป”) แล้วนับจำนวนนิสิตในแต่ละช่วงอายุ <span class="hint">(TIMESTAMPDIFF + CASE)</span><div class="rv-ans"><p>นิสิตที่ไม่มีวันเกิดจะมี age เป็น NULL จึงจัดเป็นกลุ่ม “ไม่ทราบ”</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_student_age AS
+SELECT stdid, name,
+       IFNULL(major, &#x27;Undeclared&#x27;)               AS major,
+       TIMESTAMPDIFF(YEAR, birthday, CURDATE())  AS age,
+       CASE
+           WHEN birthday IS NULL THEN &#x27;ไม่ทราบ&#x27;
+           WHEN TIMESTAMPDIFF(YEAR, birthday, CURDATE()) &lt; 15 THEN &#x27;ต่ำกว่า 15&#x27;
+           ELSE &#x27;15 ขึ้นไป&#x27;
+       END                                       AS age_group
+FROM   student;
+
+SELECT age_group, COUNT(*) AS n_student
+FROM   v_student_age
+GROUP  BY age_group;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>age_group</th><th>n_student</th></tr><tr><td>15 ขึ้นไป</td><td>5</td></tr><tr><td>ต่ำกว่า 15</td><td>13</td></tr><tr><td>ไม่ทราบ</td><td>4</td></tr></table></div></div></li>
+<li>แก้วิว v_math_student ให้มีคอลัมน์ birthday เพิ่ม แล้วตรวจโครงสร้างวิวใหม่ <span class="hint">(CREATE OR REPLACE VIEW / DESCRIBE)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_math_student AS
+SELECT stdid, name, gpa, birthday
+FROM   student
+WHERE  major = &#x27;Math&#x27;;
+
+DESCRIBE v_math_student;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>Field</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Extra</th></tr><tr><td>stdid</td><td>varchar(10)</td><td>NO</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>name</td><td>varchar(50)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>gpa</td><td>decimal(3,2)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>birthday</td><td>date</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr></table></div></div></li>
+<li>เขียนคำสั่งแสดงรายชื่อวิวทั้งหมดในฐานข้อมูล ดูคำสั่งที่ใช้สร้างวิว v_enroll_detail และลบวิว v_math_student <span class="hint">(SHOW FULL TABLES / SHOW CREATE VIEW / DROP VIEW)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SHOW FULL TABLES WHERE Table_type = &#x27;VIEW&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 31 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>Tables_in_zz_lecture_build</th><th>Table_type</th></tr><tr><td>v_all_lecturer</td><td>VIEW</td></tr><tr><td>v_cs_honor</td><td>VIEW</td></tr><tr><td>v_cs_student</td><td>VIEW</td></tr><tr><td>v_cs_student_safe</td><td>VIEW</td></tr><tr><td>v_english_lecturer</td><td>VIEW</td></tr><tr><td>v_enroll_detail</td><td>VIEW</td></tr><tr><td>v_lecturer_income</td><td>VIEW</td></tr><tr><td>v_lecturer_load</td><td>VIEW</td></tr></table></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SHOW CREATE VIEW v_enroll_detail;   -- ใน DBeaver ดูผลในคอลัมน์ Create View</pre></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DROP VIEW v_math_student;</pre></div></div></li>
+<li>สร้างวิว v_transcript แสดง stdid ชื่อนิสิต รหัสวิชา ชื่อวิชา หน่วยกิต เทอม ชื่อผู้สอน เกรด แล้วใช้แสดงทรานสคริปต์ของนิสิต 60007 <span class="hint">(JOIN 5 ตาราง)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_transcript AS
+SELECT s.stdid, s.name AS student_name,
+       sub.subid, sub.name AS subject_name, sub.credit,
+       sec.term, l.name AS lecturer_name, e.grade
+FROM   enroll e
+       INNER JOIN student  s   ON e.stdid   = s.stdid
+       INNER JOIN section  sec ON e.secid   = sec.secid
+       INNER JOIN subject  sub ON sec.subid = sub.subid
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid;
+
+SELECT term, subid, subject_name, credit, lecturer_name, grade
+FROM   v_transcript
+WHERE  stdid = &#x27;60007&#x27;
+ORDER  BY term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>term</th><th>subid</th><th>subject_name</th><th>credit</th><th>lecturer_name</th><th>grade</th></tr><tr><td>2023-2</td><td>CS002</td><td>Java</td><td>3</td><td>Peter Parker</td><td>A</td></tr><tr><td>2023-2</td><td>CS003</td><td>Web Design</td><td>2</td><td>Peter Parker</td><td>A</td></tr><tr><td>2023-3</td><td>CS004</td><td>Database</td><td>3</td><td>Yoda</td><td>B</td></tr><tr><td>2024-2</td><td>CS005</td><td>Graphics</td><td>3</td><td>Peter Parker</td><td>C</td></tr><tr><td>2024-2</td><td>MA002</td><td>Discrete Math</td><td>4</td><td>IronMan</td><td>A</td></tr><tr><td>2024-3</td><td>CS009</td><td>Project</td><td>6</td><td>Steve Roger</td><td>B</td></tr><tr><td>2025-2</td><td>CS009</td><td>Project</td><td>6</td><td>Post Malone</td><td>A</td></tr></table></div></div></li>
+<li>สร้างวิว v_subject_full แสดงรหัสวิชา ชื่อวิชา หน่วยกิต ชื่อวิชาบังคับก่อน (ไม่มีให้แสดง “-”) แล้วแสดงวิชาทุกวิชาที่ต้องผ่าน Programming ก่อน <span class="hint">(Self Join + LEFT JOIN)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_subject_full AS
+SELECT sub.subid, sub.name, sub.credit,
+       IFNULL(pre.name, &#x27;-&#x27;) AS pre_name
+FROM   subject sub
+       LEFT JOIN subject pre ON sub.pre = pre.subid;
+
+SELECT * FROM v_subject_full WHERE pre_name = &#x27;Programming&#x27;;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>credit</th><th>pre_name</th></tr><tr><td>CS002</td><td>Java</td><td>3</td><td>Programming</td></tr><tr><td>CS003</td><td>Web Design</td><td>2</td><td>Programming</td></tr><tr><td>CS004</td><td>Database</td><td>3</td><td>Programming</td></tr></table></div></div></li>
+<li>สร้างวิว v_section_full แสดง secid เทอม ชื่อวิชา ชื่ออาจารย์ จำนวนนิสิต จำนวนที่ได้ A และ F (กลุ่มที่ไม่มีคนลงให้แสดง 0) <span class="hint">(LEFT JOIN + SUM(CASE …))</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_section_full AS
+SELECT sec.secid, sec.term, sub.name AS subject_name, l.name AS lecturer_name,
+       COUNT(e.stdid)                                  AS n_student,
+       SUM(CASE WHEN e.grade = &#x27;A&#x27; THEN 1 ELSE 0 END)  AS n_A,
+       SUM(CASE WHEN e.grade = &#x27;F&#x27; THEN 1 ELSE 0 END)  AS n_F
+FROM   section sec
+       INNER JOIN subject  sub ON sec.subid = sub.subid
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid
+       LEFT  JOIN enroll   e   ON sec.secid = e.secid
+GROUP  BY sec.secid, sec.term, sub.name, l.name;
+
+SELECT * FROM v_section_full ORDER BY n_student, secid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 52 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>term</th><th>subject_name</th><th>lecturer_name</th><th>n_student</th><th>n_A</th><th>n_F</th></tr><tr><td>3</td><td>2023-1</td><td>Graphics</td><td>Peter Parker</td><td>0</td><td>0</td><td>0</td></tr><tr><td>24</td><td>2024-1</td><td>Programming</td><td>Steve Roger</td><td>0</td><td>0</td><td>0</td></tr><tr><td>25</td><td>2024-1</td><td>Mobile Apps</td><td>Yoda</td><td>0</td><td>0</td><td>0</td></tr><tr><td>26</td><td>2024-1</td><td>Robotics</td><td>Steve Roger</td><td>0</td><td>0</td><td>0</td></tr><tr><td>27</td><td>2024-1</td><td>Mathematics</td><td>IronMan</td><td>0</td><td>0</td><td>0</td></tr><tr><td>29</td><td>2024-2</td><td>Java</td><td>Steve Roger</td><td>0</td><td>0</td><td>0</td></tr><tr><td>32</td><td>2024-3</td><td>Java</td><td>Thor</td><td>0</td><td>0</td><td>0</td></tr><tr><td>33</td><td>2024-3</td><td>Java</td><td>IronMan</td><td>0</td><td>0</td><td>0</td></tr></table></div></div></li>
+<li>สร้างวิว v_lecturer_term แสดงรหัสอาจารย์ ชื่อ เทอม และจำนวนกลุ่มที่สอนในเทอมนั้น แล้วแสดงอาจารย์ที่สอนมากกว่า 1 กลุ่มในเทอมเดียวกัน <span class="hint">(GROUP BY lecid, name, term)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_lecturer_term AS
+SELECT l.lecid, l.name, sec.term, COUNT(*) AS n_section
+FROM   lecturer l
+       INNER JOIN section sec ON l.lecid = sec.lecid
+GROUP  BY l.lecid, l.name, sec.term;
+
+SELECT * FROM v_lecturer_term WHERE n_section &gt; 1 ORDER BY lecid, term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (10 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>term</th><th>n_section</th></tr><tr><td>t01</td><td>Peter Parker</td><td>2023-1</td><td>3</td></tr><tr><td>t01</td><td>Peter Parker</td><td>2023-2</td><td>2</td></tr><tr><td>t01</td><td>Peter Parker</td><td>2024-1</td><td>2</td></tr><tr><td>t01</td><td>Peter Parker</td><td>2024-2</td><td>3</td></tr><tr><td>t02</td><td>Steve Roger</td><td>2023-1</td><td>2</td></tr><tr><td>t02</td><td>Steve Roger</td><td>2024-1</td><td>3</td></tr><tr><td>t02</td><td>Steve Roger</td><td>2024-2</td><td>3</td></tr><tr><td>t04</td><td>Post Malone</td><td>2025-3</td><td>2</td></tr><tr><td>t05</td><td>IronMan</td><td>2024-3</td><td>3</td></tr><tr><td>t06</td><td>Goku</td><td>2025-1</td><td>2</td></tr></table></div></div></li>
+<li>สร้างวิว v_people รวมรหัส ชื่อ สาขา ของนิสิตและอาจารย์ พร้อมคอลัมน์บอกประเภท แล้วนับจำนวนคนในแต่ละสาขา (รวมทั้งนิสิตและอาจารย์) <span class="hint">(UNION ALL)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_people AS
+SELECT stdid AS id, name, major, &#x27;student&#x27;  AS type FROM student
+UNION ALL
+SELECT lecid,       name, major, &#x27;lecturer&#x27;         FROM lecturer;
+
+SELECT major,
+       SUM(type = &#x27;student&#x27;)  AS n_student,
+       SUM(type = &#x27;lecturer&#x27;) AS n_lecturer,
+       COUNT(*)               AS n_total
+FROM   v_people
+GROUP  BY major
+ORDER  BY n_total DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (8 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_student</th><th>n_lecturer</th><th>n_total</th></tr><tr><td>CS</td><td>7</td><td>3</td><td>10</td></tr><tr><td>English</td><td>4</td><td>4</td><td>8</td></tr><tr><td>Math</td><td>2</td><td>2</td><td>4</td></tr><tr><td>Physics</td><td>3</td><td>1</td><td>4</td></tr><tr><td class="null">NULL</td><td>4</td><td>0</td><td>4</td></tr><tr><td>Art</td><td>2</td><td>1</td><td>3</td></tr><tr><td>DC</td><td>0</td><td>3</td><td>3</td></tr><tr><td>Thai</td><td>0</td><td>2</td><td>2</td></tr></table></div></div></li>
+<li>สร้างวิว v_student_public ที่แสดงเฉพาะรหัส ชื่อ สาขา ของนิสิต แล้วอธิบายว่าจะใช้วิวนี้ร่วมกับ GRANT เพื่อปกป้องข้อมูลอย่างไร <span class="hint">(หัวข้อ 7.8)</span><div class="rv-ans"><p>วิวนี้สร้างไว้แล้วในหัวข้อ 7.8 (ใช้ CREATE OR REPLACE ได้) จากนั้นให้สิทธิ์ผู้ใช้อ่าน<b>เฉพาะวิว</b> โดยไม่ให้สิทธิ์ตาราง student — ผู้ใช้จะเห็นเพียง 3 คอลัมน์ ไม่เห็น gpa และวันเกิด</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_student_public AS
+SELECT stdid, name, major FROM student;</pre></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">GRANT SELECT ON std_66011200.v_student_public TO &#x27;guest&#x27;@&#x27;localhost&#x27;;
+-- ไม่มี GRANT ... ON std_66011200.student → guest อ่านตาราง student ตรง ๆ ไม่ได้</pre></div></div></li>
+<li class="part">SELECT ที่ซับซ้อน — สร้างวิวก่อนแล้วจึงตอบ</li>
+<li>แสดงสาขาที่มีอาจารย์มากที่สุด (ถ้าเท่ากันแสดงทุกสาขา) และอธิบายว่าทำไม <code>MAX(COUNT(*))</code> ใช้ไม่ได้ <span class="hint">(วิวนับอาจารย์ต่อสาขา → MAX)</span><div class="rv-ans"><p>SQL ไม่อนุญาตให้ซ้อนฟังก์ชันรวมในระดับเดียวกัน (Error 1111) ต้องนับก่อน 1 ชั้นแล้วจึงหาค่าสูงสุดจากผลนับ</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_major_lecturer AS
+SELECT major, COUNT(*) AS n_lecturer
+FROM   lecturer
+GROUP  BY major;
+
+SELECT major, n_lecturer
+FROM   v_major_lecturer
+WHERE  n_lecturer =
+       (SELECT MAX(n_lecturer)
+        FROM   v_major_lecturer);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_lecturer</th></tr><tr><td>English</td><td>4</td></tr></table></div></div></li>
+<li>แสดงภาคเรียนที่เปิดกลุ่มเรียนมากที่สุด และภาคเรียนที่เปิดน้อยที่สุด ในผลลัพธ์เดียว <span class="hint">(วิวนับ section ต่อ term + UNION)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_term_section AS
+SELECT term, COUNT(*) AS n_section
+FROM   section
+GROUP  BY term;
+
+SELECT &#x27;มากที่สุด&#x27; AS type, term, n_section
+FROM   v_term_section
+WHERE  n_section =
+       (SELECT MAX(n_section)
+        FROM   v_term_section)
+UNION
+SELECT &#x27;น้อยที่สุด&#x27;, term, n_section
+FROM   v_term_section
+WHERE  n_section =
+       (SELECT MIN(n_section)
+        FROM   v_term_section);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>type</th><th>term</th><th>n_section</th></tr><tr><td>มากที่สุด</td><td>2024-2</td><td>9</td></tr><tr><td>น้อยที่สุด</td><td>2023-2</td><td>2</td></tr><tr><td>น้อยที่สุด</td><td>2026-1</td><td>2</td></tr></table></div></div></li>
+<li>แสดงวิชาที่มีจำนวนผู้ลงทะเบียนรวมทุกภาค มากกว่าค่าเฉลี่ยของทุกวิชา <span class="hint">(วิวสรุปรายวิชา → AVG)</span><div class="rv-ans"><p>ใช้ v_subject_stat (แบบฝึกหัด 7.7) ซึ่งนับรวมวิชาที่ไม่มีคนลง (n_enroll = 0) ในค่าเฉลี่ยด้วย</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT subid, name, n_enroll
+FROM   v_subject_stat
+WHERE  n_enroll &gt;
+       (SELECT AVG(n_enroll)
+        FROM   v_subject_stat)
+ORDER  BY n_enroll DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>n_enroll</th></tr><tr><td>CS004</td><td>Database</td><td>17</td></tr><tr><td>CS001</td><td>Programming</td><td>16</td></tr><tr><td>CS002</td><td>Java</td><td>9</td></tr><tr><td>CS008</td><td>AI</td><td>7</td></tr><tr><td>MA002</td><td>Discrete Math</td><td>7</td></tr><tr><td>CS003</td><td>Web Design</td><td>6</td></tr><tr><td>EN001</td><td>English</td><td>6</td></tr></table></div></div></li>
+<li>แสดงนิสิตที่ลงทะเบียนจำนวนวิชามากที่สุดในแต่ละสาขา <span class="hint">(วิวนับวิชาต่อคน + Correlated Subquery)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_student_nsubject AS
+SELECT s.stdid, s.name, s.major, COUNT(e.secid) AS n_subject
+FROM   student s
+       LEFT JOIN enroll e ON s.stdid = e.stdid
+GROUP  BY s.stdid, s.name, s.major;
+
+SELECT a.major, a.stdid, a.name, a.n_subject
+FROM   v_student_nsubject a
+WHERE  a.major IS NOT NULL
+  AND  a.n_subject =
+       (SELECT MAX(b.n_subject)
+        FROM   v_student_nsubject b
+        WHERE  b.major = a.major)
+ORDER  BY a.major;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (8 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>stdid</th><th>name</th><th>n_subject</th></tr><tr><td>Art</td><td>60007</td><td>L</td><td>7</td></tr><tr><td>CS</td><td>60001</td><td>Rukawa</td><td>9</td></tr><tr><td>CS</td><td>60004</td><td>Sendoh</td><td>9</td></tr><tr><td>English</td><td>60010</td><td>Gon</td><td>9</td></tr><tr><td>Math</td><td>60005</td><td class="null">NULL</td><td>8</td></tr><tr><td>Physics</td><td>60014</td><td>Light</td><td>0</td></tr><tr><td>Physics</td><td>60015</td><td>Near</td><td>0</td></tr><tr><td>Physics</td><td>60016</td><td>Mello</td><td>0</td></tr></table></div></div></li>
+<li>แสดงนิสิตที่มี gpa_calc สูงกว่าค่าเฉลี่ย gpa_calc ของนิสิตในสาขาเดียวกัน พร้อมค่าเฉลี่ยของสาขา <span class="hint">(v_student_gpa ใช้ 2 ครั้ง)</span><div class="rv-ans"><p>ใช้ v_major_gpa (แบบฝึกหัด 7.11) ซึ่งเป็นค่าเฉลี่ยของ gpa_calc รายสาขา JOIN กลับกับ v_student_gpa</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT g.student_major, g.student_id, g.student_name, g.gpa_calc, m.avg_gpa_calc
+FROM   v_student_gpa g
+       INNER JOIN v_major_gpa m ON g.student_major = m.major
+WHERE  g.gpa_calc &gt; m.avg_gpa_calc
+ORDER  BY g.student_major, g.gpa_calc DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (8 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_major</th><th>student_id</th><th>student_name</th><th>gpa_calc</th><th>avg_gpa_calc</th></tr><tr><td>Art</td><td>60007</td><td>L</td><td>3.44</td><td>1.72</td></tr><tr><td>CS</td><td>60012</td><td>Hisoka</td><td>3.50</td><td>2.81</td></tr><tr><td>CS</td><td>60001</td><td>Rukawa</td><td>3.48</td><td>2.81</td></tr><tr><td>CS</td><td>60004</td><td>Sendoh</td><td>3.38</td><td>2.81</td></tr><tr><td>CS</td><td>60002</td><td>Sakuragi</td><td>2.84</td><td>2.81</td></tr><tr><td>English</td><td>60011</td><td>Kurapika</td><td>3.20</td><td>2.44</td></tr><tr><td>English</td><td>60009</td><td>Killua</td><td>3.14</td><td>2.44</td></tr><tr><td>Math</td><td>60005</td><td class="null">NULL</td><td>2.96</td><td>1.81</td></tr></table></div></div></li>
+<li>แสดงอาจารย์ที่อัตราการได้ A ของนิสิตในทุกกลุ่มที่ตนสอน (รวมกัน) สูงกว่าอัตราเฉลี่ยของทั้งมหาวิทยาลัย <span class="hint">(วิวสรุปรายอาจารย์ (ใช้ lecid))</span><div class="rv-ans"><p>จัดกลุ่มด้วย lecid (ไม่ใช่ชื่อ เพราะมี Yoda 2 คน) และนับเฉพาะการลงทะเบียนที่มีเกรดแล้ว</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_lecturer_rate AS
+SELECT l.lecid, l.name,
+       COUNT(e.grade)                               AS n_graded,
+       ROUND(SUM(e.grade = &#x27;A&#x27;) * 100 / COUNT(e.grade), 1) AS pct_A
+FROM   lecturer l
+       INNER JOIN section sec ON l.lecid  = sec.lecid
+       INNER JOIN enroll  e   ON sec.secid = e.secid
+WHERE  e.grade IS NOT NULL
+GROUP  BY l.lecid, l.name;
+
+SELECT *
+FROM   v_lecturer_rate
+WHERE  pct_A &gt;
+       (SELECT SUM(grade = &#x27;A&#x27;) * 100 / COUNT(grade)
+        FROM   enroll)
+ORDER  BY pct_A DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>n_graded</th><th>pct_A</th></tr><tr><td>t04</td><td>Post Malone</td><td>5</td><td>80.0</td></tr><tr><td>t06</td><td>Goku</td><td>3</td><td>66.7</td></tr><tr><td>t03</td><td>Yoda</td><td>10</td><td>50.0</td></tr><tr><td>t09</td><td>Frieza</td><td>2</td><td>50.0</td></tr><tr><td>t01</td><td>Peter Parker</td><td>34</td><td>35.3</td></tr></table></div></div></li>
+<li>แสดงภาคเรียนที่นิสิตแต่ละคนได้เกรดเฉลี่ยต่ำที่สุด พร้อมเกรดเฉลี่ยของภาคนั้น <span class="hint">(v_student_term_gpa + MIN)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT t.student_id, t.student_name, t.term, t.term_gpa
+FROM   v_student_term_gpa t
+WHERE  t.term_gpa =
+       (SELECT MIN(t2.term_gpa)
+        FROM   v_student_term_gpa t2
+        WHERE  t2.student_id = t.student_id)
+ORDER  BY t.student_id, t.term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 12 จาก 23 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_id</th><th>student_name</th><th>term</th><th>term_gpa</th></tr><tr><td>60001</td><td>Rukawa</td><td>2023-1</td><td>3.00</td></tr><tr><td>60001</td><td>Rukawa</td><td>2023-2</td><td>3.00</td></tr><tr><td>60001</td><td>Rukawa</td><td>2025-3</td><td>3.00</td></tr><tr><td>60002</td><td>Sakuragi</td><td>2023-2</td><td>0.00</td></tr><tr><td>60003</td><td>Mitsui</td><td>2023-1</td><td>0.00</td></tr><tr><td>60004</td><td>Sendoh</td><td>2023-1</td><td>1.50</td></tr><tr><td>60005</td><td class="null">NULL</td><td>2023-1</td><td>1.63</td></tr><tr><td>60006</td><td>Nobita</td><td>2024-1</td><td>0.00</td></tr><tr><td>60006</td><td>Nobita</td><td>2024-3</td><td>0.00</td></tr><tr><td>60007</td><td>L</td><td>2023-3</td><td>3.00</td></tr><tr><td>60007</td><td>L</td><td>2024-3</td><td>3.00</td></tr><tr><td>60008</td><td>Kira</td><td>2024-3</td><td>0.00</td></tr></table></div></div></li>
+<li>แสดงชื่อวิชาที่เปิดสอนทั้งในภาคเรียน 2024-1 และ 2024-2 <span class="hint">(วิวนับจำนวนภาคต่อวิชา = 2)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_subject_2024 AS
+SELECT subid, COUNT(DISTINCT term) AS n_term
+FROM   section
+WHERE  term IN (&#x27;2024-1&#x27;, &#x27;2024-2&#x27;)
+GROUP  BY subid;
+
+SELECT sub.subid, sub.name
+FROM   v_subject_2024 v
+       INNER JOIN subject sub ON v.subid = sub.subid
+WHERE  v.n_term = 2;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th></tr><tr><td>CS001</td><td>Programming</td></tr><tr><td>CS005</td><td>Graphics</td></tr><tr><td>MA001</td><td>Mathematics</td></tr></table></div></div></li>
+<li>แสดงวิชาที่ทุกกลุ่มเรียนไม่มีนิสิตได้ F เลย และมีผู้ได้เกรดแล้วอย่างน้อย 3 คน <span class="hint">(วิวสรุปรายวิชาจาก v_section_summary)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_subject_result AS
+SELECT subject_name,
+       COUNT(*)                     AS n_section,
+       SUM(n_student - n_waiting)   AS n_graded,
+       SUM(n_F)                     AS n_F
+FROM   v_section_summary
+GROUP  BY subject_name;
+
+SELECT *
+FROM   v_subject_result
+WHERE  n_F = 0 AND n_graded &gt;= 3;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subject_name</th><th>n_section</th><th>n_graded</th><th>n_F</th></tr><tr><td>Project</td><td>4</td><td>4</td><td>0</td></tr><tr><td>Mathematics</td><td>4</td><td>4</td><td>0</td></tr><tr><td>Thai</td><td>1</td><td>3</td><td>0</td></tr></table></div></div></li>
+<li>แสดงการลงทะเบียนที่นิสิตยังไม่เคยผ่านวิชาบังคับก่อน แล้วสรุปว่านิสิตแต่ละคนมีกี่รายการ เรียงจากมากไปน้อย <span class="hint">(v_passed + v_subject_pre + GROUP BY)</span><div class="rv-ans"><p>เป็นขั้นที่ 3 ของโจทย์ที่ 7 ในหัวข้อ 7.7 — เก็บรายการที่ผิดกฎเป็นวิวก่อน แล้วสรุป</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_violation AS
+SELECT e.student_id, e.student_name, e.term, e.subject_name, p.pre_name
+FROM   v_enroll_detail e
+       INNER JOIN v_subject_pre p ON e.subject_id = p.subid
+WHERE  p.pre_id IS NOT NULL
+  AND  NOT EXISTS
+       (SELECT *
+        FROM   v_passed x
+        WHERE  x.student_id = e.student_id
+          AND  x.subject_id = p.pre_id);
+
+SELECT student_id, student_name, COUNT(*) AS n_violation
+FROM   v_violation
+GROUP  BY student_id, student_name
+ORDER  BY n_violation DESC, student_id;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 15 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_id</th><th>student_name</th><th>n_violation</th></tr><tr><td>60006</td><td>Nobita</td><td>5</td></tr><tr><td>60004</td><td>Sendoh</td><td>4</td></tr><tr><td>60007</td><td>L</td><td>4</td></tr><tr><td>60008</td><td>Kira</td><td>3</td></tr><tr><td>60009</td><td>Killua</td><td>3</td></tr><tr><td>60013</td><td>Gon</td><td>2</td></tr><tr><td>60001</td><td>Rukawa</td><td>1</td></tr><tr><td>60002</td><td>Sakuragi</td><td>1</td></tr></table></div></div></li>
+<li>แสดงอาจารย์ที่เงินเดือนสูงสุดในแต่ละสาขา และส่วนต่างจากเงินเดือนเฉลี่ยของสาขานั้น <span class="hint">(วิวสรุปเงินเดือนรายสาขา แล้ว JOIN กลับ)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_major_salary AS
+SELECT major, MAX(salary) AS max_salary, ROUND(AVG(salary), 2) AS avg_salary
+FROM   lecturer
+GROUP  BY major;
+
+SELECT l.major, l.lecid, l.name, l.salary, m.avg_salary,
+       l.salary - m.avg_salary AS diff_from_avg
+FROM   lecturer l
+       INNER JOIN v_major_salary m ON l.major = m.major
+WHERE  l.salary = m.max_salary
+ORDER  BY l.major;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>lecid</th><th>name</th><th>salary</th><th>avg_salary</th><th>diff_from_avg</th></tr><tr><td>Art</td><td>t10</td><td>Piccolo</td><td>15000</td><td>15000.00</td><td>0.00</td></tr><tr><td>CS</td><td>t14</td><td>Yoda</td><td>80000</td><td>56666.67</td><td>23333.33</td></tr><tr><td>DC</td><td>t13</td><td>Thor</td><td>60000</td><td>60000.00</td><td>0.00</td></tr><tr><td>English</td><td>t08</td><td>Cell</td><td>70000</td><td>43750.00</td><td>26250.00</td></tr><tr><td>Math</td><td>t03</td><td>Yoda</td><td>80000</td><td>50000.00</td><td>30000.00</td></tr><tr><td>Thai</td><td>t05</td><td>IronMan</td><td>65000</td><td>56000.00</td><td>9000.00</td></tr></table></div></div></li>
+<li>ท้าทาย: แสดงนิสิตที่เกรดเฉลี่ยรายภาคไม่เคยลดลงเลย (ภาคหลังไม่ต่ำกว่าภาคก่อน) และมีเกรดอย่างน้อย 2 ภาค <span class="hint">(Self Join v_student_term_gpa + NOT EXISTS)</span><div class="rv-ans"><p>“ไม่เคยลดลง” = ไม่มีคู่ภาคใดเลยที่ภาคหลังได้เกรดเฉลี่ย<b>น้อยกว่า</b>ภาคก่อน (ถ้าโจทย์ต้องการ “ดีขึ้นทุกภาค” ให้เปลี่ยน &lt; เป็น &lt;= — ข้อมูลกรณีศึกษาไม่มีนิสิตแบบนั้น)</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT t.student_id, t.student_name,
+       COUNT(*)                                       AS n_term,
+       GROUP_CONCAT(t.term_gpa ORDER BY t.term SEPARATOR &#x27; → &#x27;) AS gpa_by_term
+FROM   v_student_term_gpa t
+WHERE  NOT EXISTS
+       (SELECT *
+        FROM   v_student_term_gpa a
+               INNER JOIN v_student_term_gpa b
+                       ON a.student_id = b.student_id AND a.term &lt; b.term
+        WHERE  a.student_id = t.student_id
+          AND  b.term_gpa &lt; a.term_gpa)
+GROUP  BY t.student_id, t.student_name
+HAVING COUNT(*) &gt;= 2;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_id</th><th>student_name</th><th>n_term</th><th>gpa_by_term</th></tr><tr><td>60004</td><td>Sendoh</td><td>6</td><td>1.50 → 2.00 → 4.00 → 4.00 → 4.00 → 4.00</td></tr><tr><td>60005</td><td class="null">NULL</td><td>5</td><td>1.63 → 3.00 → 3.00 → 4.00 → 4.00</td></tr><tr><td>70034</td><td>Luffy</td><td>4</td><td>0.00 → 0.00 → 1.00 → 2.00</td></tr></table></div></div></li>
+<li>จงเขียนคำตอบข้อใดข้อหนึ่งข้างต้นอีกแบบด้วย CTE (WITH) แล้วเปรียบเทียบข้อดีข้อเสียกับการสร้างวิว <span class="hint">(หัวข้อ 7.10.4)</span><div class="rv-ans"><p>ตัวอย่าง — ข้อ “สาขาที่มีอาจารย์มากที่สุด” ด้วย CTE ได้ผลเท่ากัน แต่ไม่สร้างวัตถุถาวรในฐานข้อมูล</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">WITH major_lecturer AS (
+    SELECT major, COUNT(*) AS n_lecturer
+    FROM   lecturer
+    GROUP  BY major
+)
+SELECT major, n_lecturer
+FROM   major_lecturer
+WHERE  n_lecturer =
+       (SELECT MAX(n_lecturer)
+        FROM   major_lecturer);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_lecturer</th></tr><tr><td>English</td><td>4</td></tr></table></div><p><b>CTE</b> — ไม่ต้องมีสิทธิ์ CREATE VIEW ไม่ทิ้งวัตถุค้างในฐานข้อมูล เหมาะกับคำถามครั้งเดียว แต่ใช้ได้เฉพาะคำสั่งนั้น <b>วิว</b> — ใช้ซ้ำได้ทุกคำสั่งและทุกผู้ใช้ กำหนดสิทธิ์แยกได้ แต่ต้องจัดการ (ตั้งชื่อ ลบ) และอาจเสียเมื่อตารางต้นทางเปลี่ยน</p></div></li>
+<li class="part">การปรับปรุงข้อมูลผ่านวิว</li>
+<li>จงระบุว่าวิวต่อไปนี้ UPDATE ผ่านได้หรือไม่ พร้อมเหตุผล:<br>(ก) SELECT จากตารางเดียว<br>(ข) มี GROUP BY<br>(ค) มี DISTINCT<br>(ง) มี UNION<br>(จ) JOIN 3 ตาราง แก้คอลัมน์จากตารางเดียว <span class="hint">(หัวข้อ 7.9)</span><div class="rv-ans"><p>(ก) <b>ได้</b> — แต่ละแถวของวิวตรงกับแถวเดียวในตาราง<br>(ข) <b>ไม่ได้</b> — 1 แถวของวิวมาจากหลายแถว<br>(ค) <b>ไม่ได้</b> — ไม่รู้ว่าแถวที่เห็นตรงกับแถวใดในบรรดาแถวที่ซ้ำ<br>(ง) <b>ไม่ได้</b> — ไม่รู้ว่าแถวมาจากตารางใด<br>(จ) <b>ได้</b> — ถ้าทุกคอลัมน์ที่แก้มาจากตารางเดียวกัน (แต่ DELETE ไม่ได้)</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT TABLE_NAME, IS_UPDATABLE
+FROM   information_schema.VIEWS
+WHERE  TABLE_SCHEMA = DATABASE()
+  AND  TABLE_NAME IN (&#x27;v_cs_student&#x27;, &#x27;v_section_summary&#x27;, &#x27;v_passed&#x27;, &#x27;v_people&#x27;, &#x27;v_section_detail&#x27;);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>TABLE_NAME</th><th>IS_UPDATABLE</th></tr><tr><td>v_cs_student</td><td>YES</td></tr><tr><td>v_passed</td><td>NO</td></tr><tr><td>v_people</td><td>NO</td></tr><tr><td>v_section_detail</td><td>YES</td></tr><tr><td>v_section_summary</td><td>NO</td></tr></table></div></div></li>
+<li>INSERT นิสิตใหม่ผ่านวิว v_student_public แล้วตรวจว่าคอลัมน์ gpa และ birthday ในตารางจริงมีค่าอะไร <span class="hint">(NULL)</span><div class="rv-ans"><p>คอลัมน์ที่ไม่อยู่ในวิวได้ค่าปริยายของตาราง ซึ่งในที่นี้คือ <b>NULL</b></p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">INSERT INTO v_student_public (stdid, name, major) VALUES (&#x27;80010&#x27;, &#x27;Armin&#x27;, &#x27;Math&#x27;);</pre></div>
+<div class="run-msg">✔ Query OK · 1 row(s) affected</div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>80010</td><td>Armin</td><td>Math</td><td class="null">NULL</td><td class="null">NULL</td></tr></table></div></div></li>
+<li>สร้างวิวนิสิตสาขา CS พร้อม WITH CHECK OPTION แล้วลองเปลี่ยนสาขานิสิตผ่านวิวเป็น Math อธิบายผลที่ได้ <span class="hint">(Error 1369)</span><div class="rv-ans"><p>ถูกปฏิเสธด้วย <b>Error 1369 CHECK OPTION failed</b> เพราะแถวที่แก้แล้วจะไม่ผ่านเงื่อนไข <code>major = 'CS'</code> ของวิว (หลุดออกจากวิว) — ใช้วิว v_cs_student_safe จากหัวข้อ 7.9</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">UPDATE v_cs_student_safe SET major = &#x27;Math&#x27; WHERE stdid = &#x27;60003&#x27;;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1369.</b> CHECK OPTION failed &#x27;std_66011200.v_cs_student_safe&#x27;</div></div></li>
+<li>สร้างวิวอาจารย์ที่เงินเดือน ≥ 40,000 พร้อม WITH CHECK OPTION แล้วทดลองลดเงินเดือนอาจารย์ผ่านวิวให้ต่ำกว่า 40,000 <span class="hint">(CHECK OPTION ใช้กับเงื่อนไขทุกแบบ)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE VIEW v_senior_lecturer AS
+SELECT lecid, name, salary, major
+FROM   lecturer
+WHERE  salary &gt;= 40000
+WITH CHECK OPTION;</pre></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">UPDATE v_senior_lecturer SET salary = 30000 WHERE lecid = &#x27;t01&#x27;;</pre></div>
+<div class="run-err"><b>✖ Error Code: 1369.</b> CHECK OPTION failed &#x27;std_66011200.v_senior_lecturer&#x27;</div><p>ถูกปฏิเสธด้วย Error 1369 เช่นกัน — CHECK OPTION ตรวจเงื่อนไขใน WHERE ของวิวทุกรูปแบบ ไม่ใช่เฉพาะเงื่อนไขเท่ากับ ส่วนการขึ้นเงินเดือนผ่านวิวยังทำได้ตามปกติ</p></div></li>
+<li>อธิบายข้อเสียของการใช้ <code>SELECT *</code> ในวิว และผลที่เกิดเมื่อลบตารางหรือคอลัมน์ที่วิวอ้างถึง <span class="hint">(หัวข้อ 7.10)</span><div class="rv-ans"><p>MySQL ขยาย <code>*</code> เป็นรายชื่อคอลัมน์<b>ตอนสร้างวิว</b> — คอลัมน์ที่เพิ่มในตารางภายหลังจะไม่ปรากฏในวิว ต้องสร้างวิวใหม่ และอ่านนิยามวิวแล้วไม่รู้ว่ามีคอลัมน์อะไรบ้าง</p><p>ถ้าลบตารางหรือลบ/เปลี่ยนชื่อคอลัมน์ที่วิวอ้างถึง วิวยังอยู่แต่<b>ใช้งานไม่ได้</b> SELECT จากวิวจะเกิด Error 1356 (View references invalid table(s) or column(s)) จนกว่าจะแก้นิยามวิวหรือลบวิวทิ้ง</p></div></li>
+</ol></div>
+
+<div class="pager"><a class="pg" href="06-join.html">← 06 · JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</a><a class="pg next" href="08-index.html">08 · ดัชนี (Index) →</a></div>
+<footer>Lecture Note · 1204202 การออกแบบและการจัดการฐานข้อมูล · อ.ดร.พรทิวา ปะวะระ · ภาควิชาวิทยาการคอมพิวเตอร์ คณะวิทยาการสารสนเทศ มหาวิทยาลัยมหาสารคาม</footer>
+</main>
+<script src="assets/password.js"></script>
+<script src="assets/nav.js"></script>
+</body>
+</html>
