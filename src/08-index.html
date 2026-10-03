@@ -1,0 +1,214 @@
+<!--meta {"title":"บทที่ 8 · ดัชนี (Index) และการเพิ่มประสิทธิภาพการค้นหา","kicker":"CHAPTER 08 · สัปดาห์ที่ 13","sub":"แนวคิดของดัชนี B-Tree การอ่าน EXPLAIN การสร้างและจัดการดัชนี ดัชนีหลายคอลัมน์ Covering Index กรณีที่ดัชนีใช้ไม่ได้ และแนวทางการเลือกสร้างดัชนี","img":"electricity.png"} -->
+
+<div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
+<li>อธิบายหลักการทำงานของดัชนี และความแตกต่างระหว่าง Full Table Scan กับการค้นผ่านดัชนีได้</li>
+<li>อ่านผล EXPLAIN เพื่อตรวจว่าคำสั่งใช้ดัชนีหรือไม่ได้</li>
+<li>สร้าง ตรวจสอบ และลบดัชนีได้ รวมถึงดัชนีหลายคอลัมน์และดัชนี UNIQUE</li>
+<li>อธิบายกฎ Leftmost Prefix และกรณีที่ดัชนีใช้ไม่ได้</li>
+<li>เลือกคอลัมน์ที่ควรสร้างดัชนีได้อย่างมีเหตุผล โดยคำนึงถึงต้นทุน</li>
+</ol></div>
+
+<toc/>
+
+<h2 id="s1"><span class="sec">8.1</span> แนวคิดของดัชนี</h2>
+<p><span class="term">ดัชนี (Index)</span> คือโครงสร้างข้อมูลเสริมที่ DBMS สร้างขึ้นจากค่าของคอลัมน์ที่เลือก เพื่อให้<b>หาแถวที่ต้องการได้โดยไม่ต้องอ่านทุกแถว</b> — เหมือนดัชนีท้ายเล่มหนังสือที่บอกว่าคำนี้อยู่หน้าไหน</p>
+<div class="vs">
+<div class="bad"><h4>ไม่มีดัชนี — Full Table Scan</h4><p>หา <code>stdid = '60010'</code> ต้องอ่านทีละแถวตั้งแต่แถวแรกจนแถวสุดท้าย — ตาราง 1 ล้านแถว ต้องตรวจ 1 ล้านแถว เวลาที่ใช้<b>เพิ่มตามจำนวนแถว</b></p></div>
+<div class="good"><h4>มีดัชนี — Index Lookup</h4><p>ดัชนีเรียงค่าไว้แล้วในโครงสร้างต้นไม้ ไล่จากราก → กิ่ง → ใบ ไม่กี่ขั้นก็เจอ — ตาราง 1 ล้านแถว ใช้ราว 3–4 ขั้น เวลาเพิ่มตาม<b>ลอการิทึม</b>ของจำนวนแถว</p></div>
+</div>
+<h3>โครงสร้าง B-Tree (แบบย่อ)</h3>
+<p>MySQL (InnoDB) เก็บดัชนีเป็น <b>B+Tree</b> — โหนดบนสุดเป็นตัวแบ่งช่วง โหนดใบเก็บค่าที่เรียงแล้วพร้อมตัวชี้ไปยังแถวจริง</p>
+<div class="code"><div class="code-head"><span>ดัชนีบนคอลัมน์ major (แนวคิด)</span></div><pre>                       [ English | Physics ]                  ← ราก (root)
+                 /               |               \
+      [ Art | CS ]        [ English | Math ]       [ Physics ]   ← กิ่ง
+        |      |              |        |               |
+   Art→60007  CS→60001    English→60009 Math→60005  Physics→60014  ← ใบ (leaf)
+   Art→60008  CS→60002    English→60010 Math→60006  Physics→60015     เรียงตามค่า
+              CS→60003    ...                       Physics→60016     + ตัวชี้ไปยังแถว
+              ...</pre></div>
+<p>ค้นหา <code>major = 'Math'</code>: เริ่มที่ราก → 'Math' อยู่ระหว่าง English กับ Physics → ไปกิ่งกลาง → ไปใบ Math → ได้ตัวชี้ไปยังแถวของ 60005, 60006 ทันที</p>
+<div class="box idea"><div class="box-t">💡 ดัชนีที่มีอยู่แล้วโดยอัตโนมัติ</div><p>MySQL สร้างดัชนีให้เองกับ <b>PRIMARY KEY</b>, <b>UNIQUE</b> และ <b>FOREIGN KEY</b> — ตารางในกรณีศึกษาจึงมีดัชนีอยู่แล้วหลายตัว</p></div>
+<sql title="ดัชนีที่มีอยู่แล้วในตาราง enroll" run>SHOW INDEX FROM enroll;</sql>
+<p>enroll มีดัชนี PRIMARY (secid, stdid) และ <code>enroll_fk_std</code> (stdid) ที่ MySQL สร้างให้สำหรับคีย์นอก</p>
+
+<h2 id="s2"><span class="sec">8.2</span> อ่านแผนการทำงานด้วย EXPLAIN</h2>
+<p>เติม <code>EXPLAIN</code> หน้า SELECT เพื่อดูว่า DBMS <b>วางแผน</b>จะหาข้อมูลอย่างไร (ไม่ได้รันคำสั่งจริง)</p>
+<sql title="EXPLAIN — ค้นด้วยคีย์หลัก" run>EXPLAIN SELECT * FROM student WHERE stdid = '60010';</sql>
+<sql title="EXPLAIN — ค้นด้วยคอลัมน์ที่ไม่มีดัชนี" run>EXPLAIN SELECT * FROM student WHERE name = 'Gon';</sql>
+<table class="tbl"><tr><th>คอลัมน์</th><th>ความหมาย</th></tr>
+<tr><td><code>type</code></td><td>วิธีเข้าถึงข้อมูล (ดูตารางถัดไป) — <b>สำคัญที่สุด</b></td></tr>
+<tr><td><code>possible_keys</code></td><td>ดัชนีที่ใช้ได้</td></tr>
+<tr><td><code>key</code></td><td>ดัชนีที่เลือกใช้จริง (NULL = ไม่ใช้ดัชนี)</td></tr>
+<tr><td><code>rows</code></td><td>จำนวนแถวที่คาดว่าต้องตรวจ — ยิ่งน้อยยิ่งดี</td></tr>
+<tr><td><code>filtered</code></td><td>ร้อยละของแถวที่คาดว่าผ่านเงื่อนไข</td></tr>
+<tr><td><code>Extra</code></td><td>ข้อมูลเพิ่ม เช่น Using where, Using index, Using filesort</td></tr>
+</table>
+<table class="tbl"><tr><th>type (ดี → แย่)</th><th>ความหมาย</th></tr>
+<tr><td><code>const</code></td><td>หาด้วย PK/UNIQUE ได้แถวเดียว — เร็วที่สุด</td></tr>
+<tr><td><code>eq_ref</code></td><td>JOIN ด้วย PK/UNIQUE ทีละแถว</td></tr>
+<tr><td><code>ref</code></td><td>หาด้วยดัชนีที่ไม่ unique ได้หลายแถว</td></tr>
+<tr><td><code>range</code></td><td>หาช่วงค่าด้วยดัชนี เช่น BETWEEN, &gt;, &lt;, LIKE 'S%'</td></tr>
+<tr><td><code>index</code></td><td>อ่านดัชนีทั้งหมด (ดีกว่า ALL เล็กน้อย)</td></tr>
+<tr><td><code>ALL</code></td><td>Full Table Scan — อ่านทุกแถว</td></tr>
+</table>
+
+<ex no="8.1" title="อ่าน EXPLAIN" level="1">
+<p>รัน <code>EXPLAIN SELECT * FROM enroll WHERE stdid = '60001';</code> แล้วตอบว่าใช้ดัชนีใด type อะไร และทำไมใช้ดัชนีได้ทั้งที่เราไม่เคยสร้างดัชนีเอง</p>
+<answer><sql title="เฉลย" run>EXPLAIN SELECT * FROM enroll WHERE stdid = '60001';</sql>
+<p>ใช้ดัชนี <b>enroll_fk_std</b> (type = <b>ref</b>) ซึ่ง MySQL สร้างให้อัตโนมัติเพราะ stdid เป็นคีย์นอก</p></answer>
+</ex>
+
+<h2 id="s3"><span class="sec">8.3</span> การสร้าง ตรวจสอบ และลบดัชนี</h2>
+<div class="code"><div class="code-head"><span>รูปแบบคำสั่ง</span></div><pre class="sql">-- สร้างดัชนี
+CREATE [UNIQUE] INDEX ชื่อดัชนี ON ชื่อตาราง (คอลัมน์1 [, คอลัมน์2, ...]);
+ALTER TABLE ชื่อตาราง ADD INDEX ชื่อดัชนี (คอลัมน์);
+
+-- สร้างพร้อมตาราง
+CREATE TABLE t ( ..., INDEX idx_name (คอลัมน์) );
+
+-- ดู / ลบ
+SHOW INDEX FROM ชื่อตาราง;
+DROP INDEX ชื่อดัชนี ON ชื่อตาราง;</pre></div>
+<p>ตั้งชื่อด้วย <code>idx_ตาราง_คอลัมน์</code> (หรือ <code>uidx_</code> สำหรับ UNIQUE) จะรู้ทันทีว่าดัชนีนี้ใช้กับอะไร</p>
+<sql title="ก่อนสร้างดัชนี — major ไม่มีดัชนี" run>EXPLAIN SELECT stdid, name FROM student WHERE major = 'CS';</sql>
+<sql title="สร้างดัชนี" exec>CREATE INDEX idx_student_major ON student(major);</sql>
+<sql title="หลังสร้างดัชนี — type = ref" run>EXPLAIN SELECT stdid, name FROM student WHERE major = 'CS';</sql>
+<sql title="ดูดัชนีของตาราง student" run>SHOW INDEX FROM student;</sql>
+<sql title="ลบดัชนี" exec>DROP INDEX idx_student_major ON student;</sql>
+<div class="box note"><div class="box-t">📝 ตารางเล็กมาก</div><p>student มีแค่ 22 แถว แม้มีดัชนี DBMS บางครั้งก็เลือกอ่านทั้งตาราง เพราะเร็วกว่าการไล่ดัชนี — ผลต่างของดัชนีจะเห็นชัดเมื่อข้อมูลมาก (หัวข้อถัดไป)</p></div>
+
+<h2 id="s4"><span class="sec">8.4</span> ทดลองกับข้อมูลขนาดใหญ่</h2>
+<p>สร้างตาราง <code>enroll_log</code> ขนาด 50,000 แถวด้วย Recursive CTE เพื่อเห็นผลของดัชนีชัดเจน</p>
+<sql title="สร้างตารางทดลอง 50,000 แถว" run>CREATE TABLE enroll_log (
+    log_id    INT AUTO_INCREMENT PRIMARY KEY,
+    stdid     VARCHAR(10),
+    secid     INT,
+    grade     CHAR(1),
+    log_date  DATE
+);
+
+SET SESSION cte_max_recursion_depth = 100000;
+
+INSERT INTO enroll_log (stdid, secid, grade, log_date)
+WITH RECURSIVE n AS (SELECT 1 AS i UNION ALL SELECT i + 1 FROM n WHERE i < 50000)
+SELECT CONCAT('6', LPAD(MOD(i * 37, 5000), 4, '0')),
+       MOD(i, 52) + 1,
+       ELT(MOD(i, 5) + 1, 'A', 'B', 'C', 'D', 'F'),
+       DATE_ADD('2023-01-01', INTERVAL MOD(i, 1200) DAY)
+FROM   n;
+
+ANALYZE TABLE enroll_log;
+SELECT COUNT(*) AS n_rows, COUNT(DISTINCT stdid) AS n_student FROM enroll_log;</sql>
+<sql title="ไม่มีดัชนีบน stdid — ต้องตรวจราว 50,000 แถว" run>EXPLAIN SELECT * FROM enroll_log WHERE stdid = '61234';</sql>
+<sql title="สร้างดัชนี แล้ว EXPLAIN อีกครั้ง" run>CREATE INDEX idx_log_stdid ON enroll_log(stdid);
+EXPLAIN SELECT * FROM enroll_log WHERE stdid = '61234';</sql>
+<p>จำนวนแถวที่ต้องตรวจ (<code>rows</code>) ลดจากราว 50,000 เหลือไม่กี่แถว — ยิ่งตารางใหญ่ ความต่างยิ่งมาก</p>
+<sql title="ค้นช่วงวันที่ — ก่อนมีดัชนี" run>EXPLAIN SELECT COUNT(*) FROM enroll_log WHERE log_date BETWEEN '2024-03-01' AND '2024-03-07';</sql>
+<sql title="ค้นช่วงวันที่ — หลังมีดัชนี (type = range)" run>CREATE INDEX idx_log_date ON enroll_log(log_date);
+EXPLAIN SELECT COUNT(*) FROM enroll_log WHERE log_date BETWEEN '2024-03-01' AND '2024-03-07';</sql>
+
+<ex no="8.2" title="ดัชนีสำหรับ secid" level="1">
+<p>จงตรวจด้วย EXPLAIN ว่า <code>SELECT * FROM enroll_log WHERE secid = 10</code> ใช้ดัชนีหรือไม่ แล้วสร้างดัชนีให้เหมาะสมและตรวจอีกครั้ง</p>
+<answer><sql title="ก่อน" run>EXPLAIN SELECT * FROM enroll_log WHERE secid = 10;</sql>
+<sql title="หลัง" run>CREATE INDEX idx_log_secid ON enroll_log(secid);
+EXPLAIN SELECT * FROM enroll_log WHERE secid = 10;</sql>
+<p>rows ลดลงจากราว 50,000 เหลือราว 1,000 (ทุก 52 แถวมี secid เดียวกัน 1 แถว)</p></answer>
+</ex>
+
+<h2 id="s5"><span class="sec">8.5</span> ดัชนีหลายคอลัมน์ และกฎ Leftmost Prefix</h2>
+<p>ดัชนีหลายคอลัมน์ <code>(a, b)</code> เรียงตาม a ก่อน แล้วจึงเรียงตาม b ภายใน a เดียวกัน — เหมือนสมุดโทรศัพท์ที่เรียงตาม<b>นามสกุลก่อน แล้วจึงชื่อ</b></p>
+<div class="box idea"><div class="box-t">💡 Leftmost Prefix</div><p>ดัชนี <code>(a, b, c)</code> ใช้ได้กับเงื่อนไขบน <code>a</code>, <code>(a, b)</code>, <code>(a, b, c)</code> — แต่<b>ใช้ไม่ได้</b>กับเงื่อนไขบน <code>b</code> หรือ <code>c</code> อย่างเดียว (เปิดสมุดโทรศัพท์หาคนชื่อ “สมชาย” โดยไม่รู้นามสกุล ต้องอ่านทั้งเล่ม)</p></div>
+<sql title="สร้างดัชนี (grade, log_date)" exec>CREATE INDEX idx_log_grade_date ON enroll_log(grade, log_date);</sql>
+<sql title="เงื่อนไขบน grade + log_date → ใช้ดัชนีได้" run>EXPLAIN SELECT COUNT(*) FROM enroll_log
+WHERE  grade = 'F' AND log_date BETWEEN '2024-01-01' AND '2024-01-31';</sql>
+<sql title="เงื่อนไขบน grade อย่างเดียว → ใช้ได้ (คอลัมน์ซ้ายสุด)" run>EXPLAIN SELECT COUNT(*) FROM enroll_log WHERE grade = 'F';</sql>
+<sql title="ลบ idx_log_date แล้วค้นด้วย log_date อย่างเดียว → ดัชนี (grade, log_date) ใช้ค้นแบบ range ไม่ได้" run>DROP INDEX idx_log_date ON enroll_log;
+EXPLAIN SELECT COUNT(*) FROM enroll_log WHERE log_date BETWEEN '2024-01-01' AND '2024-01-31';</sql>
+<div class="box note"><div class="box-t">📝 สังเกต type = index</div><p>บางครั้ง MySQL เลือก “อ่านดัชนีทั้งหมด” (type = index) แทนการอ่านตาราง เพราะดัชนีเล็กกว่า — แต่ก็ยังต้องอ่านทุกรายการ (rows ≈ 50,000) ไม่ได้ใช้ประโยชน์จากการเรียงลำดับ</p></div>
+
+<ex no="8.3" title="ลำดับคอลัมน์ในดัชนี" level="2">
+<p>ถ้าคำสั่งที่ใช้บ่อยคือ (1) <code>WHERE secid = ?</code> (2) <code>WHERE secid = ? AND grade = ?</code> (3) <code>WHERE grade = ?</code> (นาน ๆ ครั้ง) ควรสร้างดัชนี <code>(secid, grade)</code> หรือ <code>(grade, secid)</code> เพราะเหตุใด</p>
+<answer><p>ควรเลือก <b>(secid, grade)</b> — ใช้ได้กับคำสั่ง (1) และ (2) ซึ่งใช้บ่อย ตามกฎ Leftmost Prefix ส่วน (3) นาน ๆ ครั้งยอมให้ช้าได้ หรือถ้าสำคัญจริงก็สร้างดัชนีแยกบน grade (แต่ grade มีแค่ 5 ค่า ประโยชน์น้อย)</p></answer>
+</ex>
+
+<h2 id="s6"><span class="sec">8.6</span> Covering Index</h2>
+<p>ถ้าทุกคอลัมน์ที่คำสั่งต้องใช้ (ทั้งใน SELECT และ WHERE) <b>อยู่ในดัชนีครบ</b> DBMS ตอบจากดัชนีได้เลยโดยไม่ต้องไปอ่านแถวจริง — EXPLAIN จะแสดง <code>Extra = Using index</code></p>
+<sql title="ต้องการแค่ stdid ของผู้ที่ได้ F ในช่วงเวลาหนึ่ง" run>CREATE INDEX idx_log_cover ON enroll_log(grade, log_date, stdid);
+EXPLAIN SELECT stdid FROM enroll_log
+WHERE  grade = 'F' AND log_date BETWEEN '2024-01-01' AND '2024-01-31';</sql>
+<sql title="ถ้า SELECT * → ต้องกลับไปอ่านแถวจริง (ไม่มี Using index)" run>EXPLAIN SELECT * FROM enroll_log
+WHERE  grade = 'F' AND log_date BETWEEN '2024-01-01' AND '2024-01-31';</sql>
+<p>นี่คืออีกเหตุผลที่ไม่ควรใช้ <code>SELECT *</code> ในโปรแกรมจริง</p>
+
+<h2 id="s7"><span class="sec">8.7</span> กรณีที่ดัชนีใช้ไม่ได้</h2>
+<table class="tbl"><tr><th>กรณี</th><th>ตัวอย่างที่ใช้ดัชนีไม่ได้</th><th>เขียนใหม่ให้ใช้ดัชนีได้</th></tr>
+<tr><td>ใช้ฟังก์ชันกับคอลัมน์</td><td><code>WHERE YEAR(log_date) = 2024</code></td><td><code>WHERE log_date BETWEEN '2024-01-01' AND '2024-12-31'</code></td></tr>
+<tr><td>LIKE ขึ้นต้นด้วย %</td><td><code>WHERE stdid LIKE '%234'</code></td><td><code>WHERE stdid LIKE '61%'</code> (ถ้าโจทย์อนุญาต)</td></tr>
+<tr><td>ชนิดข้อมูลไม่ตรง</td><td><code>WHERE stdid = 61234</code> (ตัวเลข เทียบกับ VARCHAR)</td><td><code>WHERE stdid = '61234'</code></td></tr>
+<tr><td>คำนวณกับคอลัมน์</td><td><code>WHERE secid + 1 = 11</code></td><td><code>WHERE secid = 10</code></td></tr>
+<tr><td>ข้ามคอลัมน์ซ้ายสุด</td><td>ดัชนี (grade, log_date) กับ <code>WHERE log_date = …</code></td><td>สร้างดัชนีที่ขึ้นต้นด้วย log_date</td></tr>
+</table>
+<sql title="ใช้ฟังก์ชัน YEAR() กับคอลัมน์ → ใช้ดัชนีแบบ range ไม่ได้" run>CREATE INDEX idx_log_date ON enroll_log(log_date);
+EXPLAIN SELECT COUNT(*) FROM enroll_log WHERE YEAR(log_date) = 2024;</sql>
+<sql title="เขียนเป็นช่วงวันที่ → type = range" run>EXPLAIN SELECT COUNT(*) FROM enroll_log WHERE log_date BETWEEN '2024-01-01' AND '2024-12-31';</sql>
+<sql title="ชนิดข้อมูลไม่ตรง: stdid เป็น VARCHAR แต่เทียบกับตัวเลข" run>EXPLAIN SELECT * FROM enroll_log WHERE stdid = 61234;</sql>
+<sql title="ใส่เครื่องหมายคำพูด → ใช้ดัชนีได้" run>EXPLAIN SELECT * FROM enroll_log WHERE stdid = '61234';</sql>
+<sql title="LIKE ขึ้นต้นด้วย % → ใช้ดัชนีแบบ range ไม่ได้" run>EXPLAIN SELECT * FROM enroll_log WHERE stdid LIKE '%234';</sql>
+
+<ex no="8.4" title="เขียนใหม่ให้ใช้ดัชนี" level="2">
+<p>คำสั่ง <code>SELECT * FROM enroll_log WHERE MONTH(log_date) = 3 AND YEAR(log_date) = 2025;</code> ใช้ดัชนี idx_log_date ไม่ได้ จงเขียนใหม่ให้ใช้ได้ แล้วตรวจด้วย EXPLAIN</p>
+<answer><sql title="เฉลย" run>EXPLAIN SELECT * FROM enroll_log
+WHERE  log_date >= '2025-03-01' AND log_date < '2025-04-01';</sql>
+<p>ใช้ <code>&lt; '2025-04-01'</code> แทน <code>&lt;= '2025-03-31'</code> จะปลอดภัยกว่าเมื่อคอลัมน์เป็น DATETIME (มีเวลาด้วย)</p></answer>
+</ex>
+
+<h2 id="s8"><span class="sec">8.8</span> ดัชนี UNIQUE และดัชนีกับการเรียงลำดับ</h2>
+<p><b>UNIQUE INDEX</b> ทำหน้าที่ทั้งเร่งการค้นหาและ<b>บังคับไม่ให้ค่าซ้ำ</b> (เหมือนข้อกำหนด UNIQUE)</p>
+<sql title="บังคับชื่อวิชาไม่ให้ซ้ำ" exec>CREATE UNIQUE INDEX uidx_subject_name ON subject(name);</sql>
+<sql title="เพิ่มวิชาชื่อซ้ำ → ถูกปฏิเสธ" error>INSERT INTO subject (subid, name, credit, major) VALUES ('CS011', 'Database', 3, 'CS');</sql>
+<sql title="สร้าง UNIQUE บนคอลัมน์ที่มีค่าซ้ำอยู่แล้ว → สร้างไม่ได้ (Gon มี 2 คน)" error>CREATE UNIQUE INDEX uidx_student_name ON student(name);</sql>
+<p>ดัชนีช่วย ORDER BY ได้ด้วย เพราะข้อมูลในดัชนีเรียงอยู่แล้ว — ถ้าไม่มี MySQL ต้องเรียงเอง (<code>Using filesort</code>)</p>
+<sql title="เรียงตามคอลัมน์ที่มีดัชนี + LIMIT → ไม่ต้อง filesort" run>EXPLAIN SELECT * FROM enroll_log ORDER BY log_date LIMIT 10;</sql>
+<sql title="เรียงตามคอลัมน์ที่ไม่มีดัชนีเดี่ยว → Using filesort" run>EXPLAIN SELECT * FROM enroll_log ORDER BY secid DESC, stdid LIMIT 10;</sql>
+
+<h2 id="s9"><span class="sec">8.9</span> ต้นทุนของดัชนี และแนวทางการเลือก</h2>
+<p>ดัชนีไม่ใช่ของฟรี — ทุกครั้งที่ INSERT / UPDATE / DELETE DBMS ต้องปรับดัชนีทุกตัวที่เกี่ยวข้อง และดัชนีใช้เนื้อที่ดิสก์เพิ่ม</p>
+<sql title="ดูขนาดข้อมูลและขนาดดัชนีของ enroll_log" run>SELECT TABLE_NAME,
+       ROUND(DATA_LENGTH  / 1024) AS data_kb,
+       ROUND(INDEX_LENGTH / 1024) AS index_kb
+FROM   information_schema.TABLES
+WHERE  TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'enroll_log';</sql>
+<div class="vs">
+<div class="good"><h4>✅ ควรสร้างดัชนีเมื่อ</h4><ul><li>ใช้ใน WHERE บ่อย และค่ามีความหลากหลายสูง</li><li>ใช้เป็นเงื่อนไข JOIN (FK มีให้อัตโนมัติ)</li><li>ใช้ใน ORDER BY / GROUP BY บ่อย</li><li>ต้องบังคับไม่ให้ซ้ำ (UNIQUE)</li><li>ตารางใหญ่และอ่านบ่อยกว่าเขียน</li></ul></div>
+<div class="bad"><h4>❌ ไม่ควรสร้างเมื่อ</h4><ul><li>ตารางเล็กมาก (อ่านทั้งตารางเร็วกว่า)</li><li>ค่าซ้ำกันมาก เช่น เพศ, grade</li><li>ตารางถูกเพิ่ม/แก้ถี่มาก เช่น log</li><li>คอลัมน์แทบไม่เคยใช้ในเงื่อนไข</li><li>มีดัชนีที่ขึ้นต้นด้วยคอลัมน์เดียวกันอยู่แล้ว</li></ul></div>
+</div>
+<div class="box tip"><div class="box-t">✅ ขั้นตอนการปรับประสิทธิภาพ</div><ol><li>หาคำสั่งที่ช้า / ใช้บ่อย</li><li>EXPLAIN ดูว่า type = ALL หรือ rows มากหรือไม่</li><li>สร้างดัชนีที่ตรงกับ WHERE / JOIN / ORDER BY ของคำสั่งนั้น</li><li>EXPLAIN อีกครั้งเพื่อยืนยัน</li><li>ลบดัชนีที่ไม่มีใครใช้</li></ol></div>
+
+<ex no="8.5" title="ดัชนีซ้ำซ้อน" level="2">
+<p>ตาราง enroll_log มีดัชนี <code>idx_log_grade_date (grade, log_date)</code> และ <code>idx_log_cover (grade, log_date, stdid)</code> — ดัชนีใดซ้ำซ้อน ควรลบตัวใด เพราะเหตุใด</p>
+<answer><p><b>idx_log_grade_date ซ้ำซ้อน</b> เพราะ idx_log_cover ขึ้นต้นด้วย (grade, log_date) เหมือนกัน ใช้แทนได้ทุกกรณี (Leftmost Prefix) — ลบ idx_log_grade_date เพื่อลดต้นทุนการเขียนและเนื้อที่</p>
+<sql title="ลบดัชนีซ้ำซ้อน" run>DROP INDEX idx_log_grade_date ON enroll_log;
+SELECT DISTINCT INDEX_NAME FROM information_schema.STATISTICS
+WHERE  TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'enroll_log';</sql></answer>
+</ex>
+
+<review>
+<li class="part">แนวคิดและ EXPLAIN</li>
+<li>จงอธิบายแนวคิดของดัชนี เปรียบเทียบกับดัชนีท้ายเล่มหนังสือ <span class="hint">(B-Tree)</span><div class="rv-ans"><p>ดัชนีท้ายเล่มเรียงคำตามตัวอักษรพร้อมเลขหน้า ทำให้หาคำได้ทันทีโดยไม่ต้องอ่านทุกหน้า — ดัชนีของฐานข้อมูลก็เช่นกัน DBMS เก็บค่าของคอลัมน์ที่เลือก<b>เรียงลำดับ</b>ไว้ในโครงสร้าง <b>B-Tree</b> พร้อมตัวชี้ไปยังแถวจริง การค้นหาจึงไล่จากรากลงไปไม่กี่ชั้น (เวลา ~log n) แทนการอ่านทุกแถว (Full Table Scan) แลกกับพื้นที่เพิ่มและต้องปรับดัชนีทุกครั้งที่ข้อมูลเปลี่ยน</p></div></li>
+<li>ใช้ EXPLAIN ตรวจคำสั่ง <code>SELECT * FROM student WHERE name = 'Rukawa'</code> แล้วอธิบายค่าในคอลัมน์ type, key, rows <span class="hint">(type = ALL)</span><div class="rv-ans"><sql title="เฉลย" run reset>EXPLAIN SELECT * FROM student WHERE name = 'Rukawa';</sql><p><b>type = ALL</b> คืออ่านทุกแถวของตาราง (Full Table Scan) · <b>key = NULL</b> คือไม่ได้ใช้ดัชนีใด เพราะคอลัมน์ name ยังไม่มีดัชนี · <b>rows</b> คือจำนวนแถวที่ MySQL ประมาณว่าต้องอ่าน (เกือบทั้งตาราง)</p></div></li>
+<li class="part">สร้างและใช้ดัชนี</li>
+<li>สร้างดัชนีให้คอลัมน์ section.term แล้วเปรียบเทียบผล EXPLAIN ก่อนและหลัง <span class="hint">(type: ALL → ref)</span><div class="rv-ans"><sql run title="ก่อนสร้างดัชนี">EXPLAIN SELECT * FROM section WHERE term = '2024-1';</sql><sql run title="สร้างดัชนี แล้ว EXPLAIN อีกครั้ง">CREATE INDEX idx_section_term ON section(term);
+EXPLAIN SELECT * FROM section WHERE term = '2024-1';</sql><p>ก่อนสร้าง type = <b>index</b> — MySQL อ่านดัชนี sec_uk <b>ทั้งหมด</b> (term เป็นคอลัมน์ที่ 3 ของ sec_uk จึงค้นตรง ๆ ไม่ได้ ต้องไล่ทุกค่า) rows ≈ ทั้งตาราง หลังสร้าง type = <b>ref</b> key = idx_section_term และ rows ลดเหลือเฉพาะแถวของเทอมนั้น</p></div></li>
+<li>สร้างดัชนีให้ student.name แล้วตรวจว่าคำสั่ง <code>WHERE name LIKE 'Ru%'</code> และ <code>WHERE name LIKE '%wa'</code> ใช้ดัชนีหรือไม่ <span class="hint">(wildcard นำหน้า)</span><div class="rv-ans"><sql title="เฉลย" run>CREATE INDEX idx_student_name ON student(name);
+EXPLAIN SELECT * FROM student WHERE name LIKE 'Ru%';</sql><sql title="เฉลย" run>EXPLAIN SELECT * FROM student WHERE name LIKE '%wa';</sql><p><code>'Ru%'</code> ใช้ดัชนีได้ (type = range) เพราะรู้ตัวอักษรต้น จึงกระโดดไปยังช่วงที่ขึ้นต้นด้วย Ru ในดัชนีที่เรียงไว้ได้ ส่วน <code>'%wa'</code> ใช้ไม่ได้ (type = ALL) เพราะไม่รู้ว่าขึ้นต้นด้วยอะไร ต้องตรวจทุกแถว — เหมือนหาคำที่ “ลงท้ายด้วย wa” ในพจนานุกรม</p></div></li>
+<li>ดัชนี <code>idx(term, lecid)</code> จะช่วยคำสั่ง <code>WHERE lecid = 't01'</code> อย่างเดียวได้หรือไม่ เพราะเหตุใด <span class="hint">(Leftmost prefix)</span><div class="rv-ans"><p><b>ไม่ได้</b> — ดัชนีหลายคอลัมน์เรียงตาม term ก่อน แล้วจึงเรียง lecid ภายในแต่ละ term (เหมือนสมุดโทรศัพท์ที่เรียงนามสกุลก่อนชื่อ) จะใช้ได้ต้องมีเงื่อนไขของคอลัมน์ซ้ายสุด (term) — กฎ Leftmost Prefix</p><sql title="เฉลย" run>CREATE INDEX idx_sec_term_lec ON section(term, lecid);
+EXPLAIN SELECT * FROM section WHERE lecid = 't01';</sql><p>สังเกตว่า idx_sec_term_lec <b>ไม่อยู่ใน possible_keys</b> — MySQL ใช้ดัชนี sec_fk_lec ที่สร้างขึ้นอัตโนมัติพร้อม FK ของ lecid แทน</p></div></li>
+<li>ออกแบบดัชนีที่ทำให้คำสั่ง <code>SELECT name FROM lecturer WHERE major = 'English'</code> เป็น Covering Index <span class="hint">(Using index)</span><div class="rv-ans"><p>สร้างดัชนี (major, name) — major ใช้ค้น และ name เป็นคอลัมน์เดียวที่ต้องแสดง เมื่อทุกคอลัมน์ที่ต้องใช้อยู่ในดัชนีแล้ว MySQL ตอบได้จากดัชนีโดยไม่ต้องอ่านแถวจริง (Extra = <b>Using index</b>)</p><sql title="เฉลย" run>CREATE INDEX idx_lec_major_name ON lecturer(major, name);
+EXPLAIN SELECT name FROM lecturer WHERE major = 'English';</sql><sql run title="เพิ่มคอลัมน์ salary ที่ไม่อยู่ในดัชนี → ไม่เป็น Covering แล้ว">EXPLAIN SELECT name, salary FROM lecturer WHERE major = 'English';</sql></div></li>
+<li>คำสั่ง <code>WHERE YEAR(birthday) = 2010</code> ใช้ดัชนีของ birthday ได้หรือไม่ จงเขียนใหม่ให้ใช้ดัชนีได้ <span class="hint">(BETWEEN '2010-01-01' AND '2010-12-31')</span><div class="rv-ans"><p><b>ไม่ได้</b> — ดัชนีเก็บค่า birthday ไม่ใช่ YEAR(birthday) เมื่อครอบคอลัมน์ด้วยฟังก์ชัน MySQL ต้องคำนวณทุกแถว ต้องเขียนเงื่อนไขเป็นช่วงของคอลัมน์ตรง ๆ แทน</p><sql title="เฉลย" run>CREATE INDEX idx_student_bday ON student(birthday);
+EXPLAIN SELECT * FROM student WHERE YEAR(birthday) = 2010;</sql><sql title="เฉลย" run>EXPLAIN SELECT * FROM student WHERE birthday BETWEEN '2010-01-01' AND '2010-12-31';</sql></div></li>
+<li class="part">การเลือกดัชนี</li>
+<li>จงระบุว่าควรสร้างดัชนีให้คอลัมน์ใดในกรณีศึกษา และไม่ควรสร้างที่ใด พร้อมเหตุผล <span class="hint">(ใช้ค้นบ่อย / ค่าซ้ำมาก)</span><div class="rv-ans"><ul><li><b>ควรสร้าง</b>: section.term (ค้นรายภาคบ่อย), enroll.stdid (ทรานสคริปต์ของนิสิต — PK เริ่มด้วย secid จึงช่วยไม่ได้; ใน MySQL มีดัชนีจาก FK enroll_fk_std ให้อยู่แล้ว), student.name และ subject.name (ค้นด้วยชื่อ)</li><li><b>มีอยู่แล้ว ไม่ต้องสร้าง</b>: PK ทุกตาราง, UNIQUE sec_uk และคอลัมน์ FK (InnoDB สร้างให้อัตโนมัติ)</li><li><b>ไม่ควรสร้าง</b>: enroll.grade หรือ student.major (ค่าซ้ำมาก มีไม่กี่ค่า ดัชนีคัดแถวออกได้น้อย), คอลัมน์ที่แทบไม่ใช้ค้น เช่น birthday ถ้าไม่มีรายงานตามวันเกิด</li></ul></div></li>
+<li>จงอธิบายต้นทุนของดัชนี และยกตัวอย่างสถานการณ์ที่สร้างดัชนีแล้วทำให้ระบบช้าลง <span class="hint">(INSERT/UPDATE ถี่)</span><div class="rv-ans"><p>ดัชนี (1) ใช้พื้นที่ดิสก์และหน่วยความจำเพิ่ม (2) ทุก INSERT / UPDATE / DELETE ต้องปรับดัชนีทุกตัวของตาราง (3) ดัชนีที่ซ้ำซ้อนทำให้ optimizer เลือกยากขึ้น</p><p>ตัวอย่าง: ตาราง log ที่บันทึกการเข้าใช้ระบบหลายพันแถวต่อนาที แต่แทบไม่เคยค้นหา ถ้าสร้างดัชนี 5–6 ตัว การบันทึกแต่ละครั้งต้องเขียนเพิ่มอีก 5–6 จุด ระบบช้าลงโดยไม่ได้ประโยชน์ หรือช่วงลงทะเบียนเรียนที่ INSERT enroll พร้อมกันจำนวนมาก</p></div></li>
+<li>เหตุใด PRIMARY KEY และ UNIQUE จึงมีดัชนีอยู่แล้วโดยอัตโนมัติ <span class="hint">(ต้องตรวจค่าซ้ำทุกครั้งที่ INSERT)</span><div class="rv-ans"><p>ทุกครั้งที่ INSERT หรือ UPDATE DBMS ต้องตรวจว่าค่าใหม่<b>ซ้ำ</b>กับค่าที่มีอยู่หรือไม่ ถ้าไม่มีดัชนีต้องอ่านทั้งตารางทุกครั้ง จึงสร้างดัชนีให้อัตโนมัติเพื่อตรวจได้เร็ว (InnoDB ยังใช้ PK เป็น Clustered Index ที่เก็บแถวเรียงตาม PK ด้วย)</p><sql title="เฉลย" run>SHOW INDEX FROM section;</sql></div></li>
+</review>

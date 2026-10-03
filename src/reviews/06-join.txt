@@ -1,0 +1,545 @@
+# คำถามท้ายบท + เฉลย — ดูรูปแบบที่ apply_reviews.py
+## INNER JOIN (Lab 5.1)
+แสดงรหัสและชื่อนิสิตที่เคยเรียนวิชา CS001 โดยไม่ซ้ำ || enroll ⋈ section ⋈ student, DISTINCT
+```run max="10"
+SELECT DISTINCT s.stdid, s.name
+FROM   enroll e
+       INNER JOIN section sec ON e.secid = sec.secid
+       INNER JOIN student s   ON e.stdid = s.stdid
+WHERE  sec.subid = 'CS001';
+```
+แสดงรหัสและชื่อนิสิตที่เคยเรียนวิชา Programming (ใช้ชื่อวิชาเป็นเงื่อนไข) || JOIN subject
+```run max="10"
+SELECT DISTINCT s.stdid, s.name
+FROM   enroll e
+       INNER JOIN section sec ON e.secid  = sec.secid
+       INNER JOIN subject sub ON sec.subid = sub.subid
+       INNER JOIN student s   ON e.stdid  = s.stdid
+WHERE  sub.name = 'Programming';
+```
+แสดงรหัสและชื่อนิสิตที่เคยเรียนกับอาจารย์ชื่อ Peter Parker || 4 ตาราง → 3 เงื่อนไข
+```run max="10"
+SELECT DISTINCT s.stdid, s.name
+FROM   enroll e
+       INNER JOIN section  sec ON e.secid  = sec.secid
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid
+       INNER JOIN student  s   ON e.stdid  = s.stdid
+WHERE  l.name = 'Peter Parker';
+```
+แสดงรหัสและชื่อนิสิตที่ได้เกรด A วิชา Programming || e.grade = 'A' AND sub.name = …
+```run max="10"
+SELECT DISTINCT s.stdid, s.name
+FROM   enroll e
+       INNER JOIN section sec ON e.secid  = sec.secid
+       INNER JOIN subject sub ON sec.subid = sub.subid
+       INNER JOIN student s   ON e.stdid  = s.stdid
+WHERE  e.grade = 'A' AND sub.name = 'Programming';
+```
+แสดงรหัส ชื่อนิสิต และเกรด ของนิสิตที่เรียน section 6 || JOIN student
+```run
+SELECT s.stdid, s.name, e.grade
+FROM   enroll e
+       INNER JOIN student s ON e.stdid = s.stdid
+WHERE  e.secid = 6;
+```
+แสดงรหัส ชื่อนิสิต และเกรด ของนิสิตที่เรียนวิชา Database ในเทอม 2024-3 (มีหลายกลุ่มเรียน) || sub.name = 'Database' AND sec.term = …
+```run max="10"
+SELECT s.stdid, s.name, e.secid, e.grade
+FROM   enroll e
+       INNER JOIN section sec ON e.secid  = sec.secid
+       INNER JOIN subject sub ON sec.subid = sub.subid
+       INNER JOIN student s   ON e.stdid  = s.stdid
+WHERE  sub.name = 'Database' AND sec.term = '2024-3';
+```
+แสดงรหัสและชื่อนิสิตที่เคยเรียนวิชา CS001 หรือ CS002 || IN ('CS001','CS002')
+```run max="10"
+SELECT DISTINCT s.stdid, s.name
+FROM   enroll e
+       INNER JOIN section sec ON e.secid = sec.secid
+       INNER JOIN student s   ON e.stdid = s.stdid
+WHERE  sec.subid IN ('CS001', 'CS002');
+```
+แสดงชื่อวิชาและเทอมที่เปิดสอน เรียงตามเทอม || ORDER BY term
+```run max="10"
+SELECT sub.name, sec.term
+FROM   section sec
+       INNER JOIN subject sub ON sec.subid = sub.subid
+ORDER  BY sec.term;
+```
+แสดงวิชา เทอม อาจารย์ผู้สอน และเกรด ของนิสิตชื่อ Rukawa || 5 ตาราง
+```run
+SELECT sub.name AS subject, sec.term, l.name AS lecturer, e.grade
+FROM   student s
+       INNER JOIN enroll   e   ON s.stdid   = e.stdid
+       INNER JOIN section  sec ON e.secid   = sec.secid
+       INNER JOIN subject  sub ON sec.subid = sub.subid
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid
+WHERE  s.name = 'Rukawa'
+ORDER  BY sec.term;
+```
+แสดงชื่อวิชา เทอม ชื่อผู้สอน ของทุกวิชาที่สอนโดยอาจารย์สาขา CS || l.major = 'CS'
+```run max="10"
+SELECT sub.name AS subject, sec.term, l.name AS lecturer
+FROM   section sec
+       INNER JOIN subject  sub ON sec.subid = sub.subid
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid
+WHERE  l.major = 'CS'
+ORDER  BY sec.term;
+```
+แสดงรหัสนิสิต ชื่อนิสิต ชื่อวิชา ชื่อผู้สอน เทอม ของการเรียนที่ได้เกรด F || e.grade = 'F'
+```run max="10"
+SELECT s.stdid, s.name, sub.name AS subject, l.name AS lecturer, sec.term
+FROM   enroll e
+       INNER JOIN student  s   ON e.stdid   = s.stdid
+       INNER JOIN section  sec ON e.secid   = sec.secid
+       INNER JOIN subject  sub ON sec.subid = sub.subid
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid
+WHERE  e.grade = 'F'
+ORDER  BY s.stdid;
+```
+## Self Join และ OUTER JOIN (Lab 5.1–5.2)
+แสดงรหัสและชื่อวิชาที่เป็น prerequisite ของวิชา CS002 และของวิชา AI || subject sub JOIN subject pre ON sub.pre = pre.subid
+```run
+SELECT sub.subid, sub.name, pre.subid AS pre_id, pre.name AS pre_name
+FROM   subject sub
+       INNER JOIN subject pre ON sub.pre = pre.subid
+WHERE  sub.subid = 'CS002' OR sub.name = 'AI';
+```
+แสดงรหัสและชื่อวิชาทุกวิชาที่มีวิชา Programming เป็น prerequisite || pre.name = 'Programming'
+```run
+SELECT sub.subid, sub.name
+FROM   subject sub
+       INNER JOIN subject pre ON sub.pre = pre.subid
+WHERE  pre.name = 'Programming';
+```
+แสดงชื่ออาจารย์และเทอมที่สอนของอาจารย์ทุกคน รวมทั้งอาจารย์ที่ไม่เคยสอน || LEFT JOIN
+```run max="10"
+SELECT l.name, sec.term
+FROM   lecturer l
+       LEFT JOIN section sec ON l.lecid = sec.lecid
+ORDER  BY l.lecid, sec.term;
+```
+แสดงชื่ออาจารย์ ชื่อวิชา เทอม ของอาจารย์ทุกคน ถ้าไม่เคยสอนให้แสดง “ไม่เคยสอน” ในคอลัมน์วิชาและเทอม || LEFT JOIN + IFNULL
+A: ต้องใช้ LEFT JOIN ทั้งสองครั้ง ถ้า JOIN subject แบบ INNER แถวของอาจารย์ที่ไม่เคยสอนจะหายไป
+```run max="10"
+SELECT l.name,
+       IFNULL(sub.name, 'ไม่เคยสอน') AS subject,
+       IFNULL(sec.term, 'ไม่เคยสอน') AS term
+FROM   lecturer l
+       LEFT JOIN section sec ON l.lecid   = sec.lecid
+       LEFT JOIN subject sub ON sec.subid = sub.subid
+ORDER  BY sec.term IS NULL DESC, l.lecid;
+```
+แสดงรหัสนิสิตและรหัสวิชาที่ลงทะเบียนของนิสิตทุกคน รวมทั้งคนที่ไม่เคยลงทะเบียน || LEFT JOIN 2 ครั้ง
+```run max="10"
+SELECT s.stdid, sec.subid
+FROM   student s
+       LEFT JOIN enroll  e   ON s.stdid = e.stdid
+       LEFT JOIN section sec ON e.secid = sec.secid
+ORDER  BY sec.subid IS NULL DESC, s.stdid;
+```
+แสดงรหัสนิสิต ชื่อวิชา เทอม เกรด ของนิสิตทุกคน รวมทั้งคนที่ไม่เคยลงทะเบียน || LEFT JOIN enroll → section → subject
+```run max="10"
+SELECT s.stdid, sub.name AS subject, sec.term, e.grade
+FROM   student s
+       LEFT JOIN enroll  e   ON s.stdid   = e.stdid
+       LEFT JOIN section sec ON e.secid   = sec.secid
+       LEFT JOIN subject sub ON sec.subid = sub.subid
+ORDER  BY sec.term IS NULL DESC, s.stdid;
+```
+แสดงจำนวนรายวิชาที่นิสิตแต่ละคนลงทะเบียน รวมคนที่ไม่เคยลงให้แสดง 0 || COUNT(e.secid) ไม่ใช่ COUNT(*)
+A: <code>COUNT(*)</code> นับแถว NULL ที่ LEFT JOIN เติมให้ด้วย คนที่ไม่เคยลงจะได้ 1 แทน 0 จึงต้องนับคอลัมน์จากฝั่งขวา
+```run max="10"
+SELECT s.stdid, s.name, COUNT(e.secid) AS n_subject
+FROM   student s
+       LEFT JOIN enroll e ON s.stdid = e.stdid
+GROUP  BY s.stdid, s.name
+ORDER  BY n_subject, s.stdid;
+```
+## Set Operator (Lab 5.3)
+แสดงรหัสและชื่อนิสิตที่เคยเรียนทั้งวิชา CS001 และ CS002 || INTERSECT
+```run
+SELECT s.stdid, s.name
+FROM   student s JOIN enroll e ON s.stdid = e.stdid JOIN section sec ON e.secid = sec.secid
+WHERE  sec.subid = 'CS001'
+INTERSECT
+SELECT s.stdid, s.name
+FROM   student s JOIN enroll e ON s.stdid = e.stdid JOIN section sec ON e.secid = sec.secid
+WHERE  sec.subid = 'CS002';
+```
+แสดงรหัสและชื่อนิสิตที่เคยเรียน CS001 แต่ไม่เคยเรียน CS002 || EXCEPT
+```run
+SELECT s.stdid, s.name
+FROM   student s JOIN enroll e ON s.stdid = e.stdid JOIN section sec ON e.secid = sec.secid
+WHERE  sec.subid = 'CS001'
+EXCEPT
+SELECT s.stdid, s.name
+FROM   student s JOIN enroll e ON s.stdid = e.stdid JOIN section sec ON e.secid = sec.secid
+WHERE  sec.subid = 'CS002';
+```
+แสดงชื่อและสาขาของอาจารย์ที่สอนในเทอม 2025-1 แต่ไม่ได้สอนเทอม 2025-2 || EXCEPT
+```run
+SELECT l.name, l.major
+FROM   lecturer l JOIN section sec ON l.lecid = sec.lecid
+WHERE  sec.term = '2025-1'
+EXCEPT
+SELECT l.name, l.major
+FROM   lecturer l JOIN section sec ON l.lecid = sec.lecid
+WHERE  sec.term = '2025-2';
+```
+แสดงรหัสและชื่ออาจารย์ที่สอน Programming แต่ไม่เคยสอน Database || EXCEPT / NOT IN
+```run
+SELECT l.lecid, l.name
+FROM   lecturer l JOIN section sec ON l.lecid = sec.lecid JOIN subject sub ON sec.subid = sub.subid
+WHERE  sub.name = 'Programming'
+EXCEPT
+SELECT l.lecid, l.name
+FROM   lecturer l JOIN section sec ON l.lecid = sec.lecid JOIN subject sub ON sec.subid = sub.subid
+WHERE  sub.name = 'Database';
+```
+แสดงรหัสและชื่อนิสิตที่เคยเรียน Programming แต่ไม่เคยเรียน Graphics || EXCEPT
+```run max="10"
+SELECT s.stdid, s.name
+FROM   student s JOIN enroll e ON s.stdid = e.stdid
+       JOIN section sec ON e.secid = sec.secid JOIN subject sub ON sec.subid = sub.subid
+WHERE  sub.name = 'Programming'
+EXCEPT
+SELECT s.stdid, s.name
+FROM   student s JOIN enroll e ON s.stdid = e.stdid
+       JOIN section sec ON e.secid = sec.secid JOIN subject sub ON sec.subid = sub.subid
+WHERE  sub.name = 'Graphics';
+```
+แสดงชื่อ ปีเกิด อายุ ของนิสิตที่อายุน้อยที่สุดและอายุมากที่สุดในผลลัพธ์เดียว (ทั้งหมด และเฉพาะ major CS) || UNION + MIN/MAX(birthday)
+A: อายุน้อยที่สุด = วันเกิดมากที่สุด (MAX(birthday))
+```run
+SELECT name, YEAR(birthday) AS birth_year, TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age
+FROM   student
+WHERE  birthday =
+       (SELECT MAX(birthday)
+        FROM   student)
+UNION
+SELECT name, YEAR(birthday), TIMESTAMPDIFF(YEAR, birthday, CURDATE())
+FROM   student
+WHERE  birthday =
+       (SELECT MIN(birthday)
+        FROM   student);
+```
+```run
+SELECT name, YEAR(birthday) AS birth_year, TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age
+FROM   student
+WHERE  major = 'CS'
+  AND  birthday =
+       (SELECT MAX(birthday)
+        FROM   student
+        WHERE  major = 'CS')
+UNION
+SELECT name, YEAR(birthday), TIMESTAMPDIFF(YEAR, birthday, CURDATE())
+FROM   student
+WHERE  major = 'CS'
+  AND  birthday =
+       (SELECT MIN(birthday)
+        FROM   student
+        WHERE  major = 'CS');
+```
+## Subquery (Lab 5.4)
+แสดงข้อมูลนิสิตสาขา CS ที่ไม่เคยเรียนวิชา Programming เลย || NOT IN / NOT EXISTS
+```run
+SELECT *
+FROM   student s
+WHERE  s.major = 'CS'
+  AND  NOT EXISTS
+       (SELECT *
+        FROM   enroll e
+               JOIN section sec ON e.secid   = sec.secid
+               JOIN subject sub ON sec.subid = sub.subid
+        WHERE  e.stdid = s.stdid
+          AND  sub.name = 'Programming');
+```
+แสดงชื่ออาจารย์สาขา CS ที่ไม่เคยสอนวิชา Programming || NOT EXISTS
+```run
+SELECT l.name
+FROM   lecturer l
+WHERE  l.major = 'CS'
+  AND  NOT EXISTS
+       (SELECT *
+        FROM   section sec
+               JOIN subject sub ON sec.subid = sub.subid
+        WHERE  sec.lecid = l.lecid
+          AND  sub.name = 'Programming');
+```
+แสดงจำนวนนิสิต (ไม่นับซ้ำ) ที่ลงทะเบียนในเทอม 2025-2 || COUNT(DISTINCT stdid)
+```run
+SELECT COUNT(DISTINCT stdid) AS n_student
+FROM   enroll
+WHERE  secid IN
+       (SELECT secid
+        FROM   section
+        WHERE  term = '2025-2');
+```
+แสดงรหัสและชื่ออาจารย์ที่ไม่ได้สอนในภาคเรียน 2026-1 || NOT IN (SELECT lecid … WHERE term = …)
+```run max="16"
+SELECT lecid, name
+FROM   lecturer
+WHERE  lecid NOT IN
+       (SELECT lecid
+        FROM   section
+        WHERE  term = '2026-1');
+```
+แสดงชื่อ ปีเกิด อายุ ของนิสิตที่อายุน้อยที่สุด และนิสิตที่อายุมากที่สุดใน major CS || = (SELECT MAX(birthday) …)
+A: ดูเฉลยข้อสุดท้ายของหมวด Set Operator (คำสั่งที่สอง) — ใช้ Subquery หา MAX/MIN(birthday) ของสาขา CS แล้วรวมด้วย UNION หรือใช้ OR ในคำสั่งเดียว
+```run
+SELECT name, YEAR(birthday) AS birth_year, TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age
+FROM   student
+WHERE  major = 'CS'
+  AND  (birthday = (SELECT MAX(birthday) FROM student WHERE major = 'CS')
+    OR  birthday = (SELECT MIN(birthday) FROM student WHERE major = 'CS'));
+```
+แสดงข้อมูลนิสิตที่ได้ GPA สูงที่สุดในมหาวิทยาลัย และสูงที่สุดใน major CS || = (SELECT MAX(gpa) …)
+```run
+SELECT *
+FROM   student
+WHERE  gpa =
+       (SELECT MAX(gpa)
+        FROM   student);
+```
+```run
+SELECT *
+FROM   student
+WHERE  major = 'CS'
+  AND  gpa =
+       (SELECT MAX(gpa)
+        FROM   student
+        WHERE  major = 'CS');
+```
+แสดงข้อมูลนิสิตที่ได้ GPA สูงที่สุดใน major Thai — ผลลัพธ์เป็นอย่างไร เพราะเหตุใด || ไม่มีนิสิตสาขา Thai
+A: ได้ <b>0 แถว</b> — ไม่มีนิสิตสาขา Thai Subquery จึงคืน NULL และ <code>gpa = NULL</code> ไม่เป็นจริงกับแถวใดเลย (ไม่เกิด error)
+```run
+SELECT *
+FROM   student
+WHERE  major = 'Thai'
+  AND  gpa =
+       (SELECT MAX(gpa)
+        FROM   student
+        WHERE  major = 'Thai');
+```
+แสดงข้อมูลนิสิตที่เคยลงทะเบียนเรียน และไม่เคยติด F เลย || EXISTS AND NOT EXISTS
+```run max="10"
+SELECT *
+FROM   student s
+WHERE  EXISTS
+       (SELECT * FROM enroll e WHERE e.stdid = s.stdid)
+  AND  NOT EXISTS
+       (SELECT * FROM enroll e WHERE e.stdid = s.stdid AND e.grade = 'F');
+```
+แสดงรหัสและชื่อวิชาที่ไม่เคยเปิดสอนเลย ด้วย 2 วิธี || NOT IN / LEFT JOIN … IS NULL
+```run title="วิธีที่ 1 — NOT IN"
+SELECT subid, name
+FROM   subject
+WHERE  subid NOT IN
+       (SELECT subid
+        FROM   section);
+```
+```run title="วิธีที่ 2 — LEFT JOIN … IS NULL"
+SELECT sub.subid, sub.name
+FROM   subject sub
+       LEFT JOIN section sec ON sub.subid = sec.subid
+WHERE  sec.secid IS NULL;
+```
+แสดงนิสิตที่มี gpa สูงกว่าค่าเฉลี่ยของนิสิตในสาขาเดียวกัน || Correlated Subquery
+```run max="10"
+SELECT s.stdid, s.name, s.major, s.gpa
+FROM   student s
+WHERE  s.gpa >
+       (SELECT AVG(s2.gpa)
+        FROM   student s2
+        WHERE  s2.major = s.major)
+ORDER  BY s.major, s.gpa DESC;
+```
+## GROUP BY กับ JOIN (Lab 5.5)
+แสดงรหัสนิสิตและจำนวนครั้งที่ลงเรียน เฉพาะนิสิตสาขา CS || JOIN student WHERE major = 'CS' GROUP BY
+```run
+SELECT e.stdid, COUNT(*) AS n_enroll
+FROM   enroll e
+       JOIN student s ON e.stdid = s.stdid
+WHERE  s.major = 'CS'
+GROUP  BY e.stdid;
+```
+แสดงเกรดและจำนวนครั้งที่ได้เกรดนั้นของนิสิตชื่อ Sakuragi || WHERE s.name = … GROUP BY grade
+```run
+SELECT e.grade, COUNT(*) AS n
+FROM   enroll e
+       JOIN student s ON e.stdid = s.stdid
+WHERE  s.name = 'Sakuragi'
+GROUP  BY e.grade;
+```
+แสดงข้อมูลทุกคอลัมน์ของอาจารย์ที่เคยสอนมากกว่า 3 ครั้ง || IN (SELECT lecid … HAVING COUNT(*) > 3)
+```run
+SELECT *
+FROM   lecturer
+WHERE  lecid IN
+       (SELECT lecid
+        FROM   section
+        GROUP  BY lecid
+        HAVING COUNT(*) > 3);
+```
+แสดงข้อมูลอาจารย์สาขา CS ที่เคยสอนวิชา Programming มากกว่า 2 ครั้ง || HAVING COUNT(*) > 2
+```run
+SELECT l.lecid, l.name, l.salary, l.major, COUNT(*) AS n_programming
+FROM   lecturer l
+       JOIN section sec ON l.lecid   = sec.lecid
+       JOIN subject sub ON sec.subid = sub.subid
+WHERE  l.major = 'CS' AND sub.name = 'Programming'
+GROUP  BY l.lecid, l.name, l.salary, l.major
+HAVING COUNT(*) > 2;
+```
+แสดงรหัสอาจารย์ เทอม และจำนวนวิชาที่สอนในเทอมนั้น เฉพาะที่สอนมากกว่า 1 วิชาในเทอมนั้น เรียงตามรหัสอาจารย์ || GROUP BY lecid, term HAVING
+```run
+SELECT lecid, term, COUNT(DISTINCT subid) AS n_subject
+FROM   section
+GROUP  BY lecid, term
+HAVING COUNT(DISTINCT subid) > 1
+ORDER  BY lecid, term;
+```
+แสดงชื่ออาจารย์ที่สอนกลุ่มเรียนมากที่สุด (ถ้าเท่ากันต้องแสดงทุกคน) || HAVING COUNT(*) = (SELECT MAX(…))
+```run
+SELECT l.name, COUNT(*) AS n_section
+FROM   lecturer l
+       JOIN section sec ON l.lecid = sec.lecid
+GROUP  BY l.lecid, l.name
+HAVING COUNT(*) =
+       (SELECT MAX(c)
+        FROM   (SELECT COUNT(*) AS c
+                FROM   section
+                GROUP  BY lecid) AS t);
+```
+ท้าทาย: แสดง secid ชื่อวิชา ชื่ออาจารย์ จำนวนนิสิต และร้อยละของนิสิตที่ได้ A ในแต่ละกลุ่มเรียน || SUM(CASE WHEN grade = 'A' …) * 100 / COUNT(*)
+```run max="10"
+SELECT sec.secid, sub.name AS subject, l.name AS lecturer,
+       COUNT(*) AS n_student,
+       ROUND(SUM(CASE WHEN e.grade = 'A' THEN 1 ELSE 0 END) * 100 / COUNT(*), 1) AS pct_A
+FROM   section sec
+       JOIN subject  sub ON sec.subid = sub.subid
+       JOIN lecturer l   ON sec.lecid = l.lecid
+       JOIN enroll   e   ON sec.secid = e.secid
+GROUP  BY sec.secid, sub.name, l.name
+ORDER  BY sec.secid;
+```
+ท้าทาย: แสดงนิสิตที่ลงทะเบียนวิชาที่มีวิชาบังคับก่อน แต่ไม่เคยลงวิชาบังคับก่อนนั้นมาก่อน || NOT EXISTS + sub.pre
+A: “มาก่อน” เปรียบเทียบด้วยภาคเรียน — ต้องไม่มีการลงวิชา pre ในภาคที่<b>ก่อน</b>ภาคที่ลงวิชานี้ (รูปแบบ term 'YYYY-n' เทียบเป็นข้อความได้)
+```run max="10"
+SELECT s.stdid, s.name, sub.name AS subject, sec.term, sub.pre
+FROM   enroll e
+       JOIN student s   ON e.stdid   = s.stdid
+       JOIN section sec ON e.secid   = sec.secid
+       JOIN subject sub ON sec.subid = sub.subid
+WHERE  sub.pre IS NOT NULL
+  AND  NOT EXISTS
+       (SELECT *
+        FROM   enroll e2
+               JOIN section sec2 ON e2.secid = sec2.secid
+        WHERE  e2.stdid    = e.stdid
+          AND  sec2.subid  = sub.pre
+          AND  sec2.term   < sec.term)
+ORDER  BY s.stdid, sec.term;
+```
+## จัดการข้อมูลขั้นสูง (Lab 5.6)
+ให้นิสิตทุกคนที่เรียนวิชา CS004 ในเทอม 2024-1 ได้เกรด A || UPDATE … WHERE secid IN (SELECT …)
+```run temp show="SELECT e.* FROM enroll e JOIN section sec ON e.secid = sec.secid WHERE sec.subid = 'CS004' AND sec.term = '2024-1'"
+UPDATE enroll
+SET    grade = 'A'
+WHERE  secid IN
+       (SELECT secid
+        FROM   section
+        WHERE  subid = 'CS004' AND term = '2024-1');
+```
+เพิ่มเงินเดือน 10% ให้อาจารย์ทุกคนที่สอนในปี 2025 || term LIKE '2025-%'
+```run temp
+UPDATE lecturer
+SET    salary = salary * 1.10
+WHERE  lecid IN
+       (SELECT lecid
+        FROM   section
+        WHERE  term LIKE '2025-%');
+```
+เพิ่มเงินเดือน 20% ให้อาจารย์ที่มีเงินเดือนต่ำกว่าค่าเฉลี่ยเงินเดือนของอาจารย์ทั้งหมด (ระวัง Error 1093) || Derived Table
+A: อ้าง lecturer ใน Subquery ตรง ๆ จะเกิด Error 1093 ต้องครอบด้วย Derived Table ให้ MySQL คำนวณค่าเฉลี่ยเก็บไว้ก่อน
+```run temp
+UPDATE lecturer
+SET    salary = salary * 1.20
+WHERE  salary <
+       (SELECT avg_salary
+        FROM   (SELECT AVG(salary) AS avg_salary
+                FROM   lecturer) AS t);
+```
+เพิ่มเงินเดือน 10% ให้อาจารย์ที่สอนมากกว่า 1 วิชาในเทอม 2025-1 || GROUP BY lecid HAVING COUNT(DISTINCT subid) > 1
+```run temp
+UPDATE lecturer
+SET    salary = salary * 1.10
+WHERE  lecid IN
+       (SELECT lecid
+        FROM   section
+        WHERE  term = '2025-1'
+        GROUP  BY lecid
+        HAVING COUNT(DISTINCT subid) > 1);
+```
+ปรับเงินเดือนอาจารย์: ≤ 30000 เพิ่ม 20%, 30001–40000 เพิ่ม 10%, 40001–50000 เพิ่ม 5%, > 50000 ไม่เพิ่ม || UPDATE … SET salary = CASE …
+```run temp show="SELECT lecid, name, salary FROM lecturer ORDER BY lecid"
+UPDATE lecturer
+SET    salary = CASE
+                    WHEN salary <= 30000 THEN salary * 1.20
+                    WHEN salary <= 40000 THEN salary * 1.10
+                    WHEN salary <= 50000 THEN salary * 1.05
+                    ELSE salary
+                END;
+```
+สร้างตาราง fail_log แล้วคัดลอกการลงทะเบียนที่ได้ F ทั้งหมด พร้อมชื่อนิสิตและชื่อวิชาเข้าไป || INSERT … SELECT … JOIN
+```run show="SELECT * FROM fail_log"
+CREATE TABLE fail_log (
+    secid         INT,
+    stdid         VARCHAR(10),
+    student_name  VARCHAR(50),
+    subject_name  VARCHAR(30),
+    term          VARCHAR(6),
+    PRIMARY KEY (secid, stdid)
+);
+INSERT INTO fail_log
+SELECT e.secid, e.stdid, s.name, sub.name, sec.term
+FROM   enroll e
+       JOIN student s   ON e.stdid   = s.stdid
+       JOIN section sec ON e.secid   = sec.secid
+       JOIN subject sub ON sec.subid = sub.subid
+WHERE  e.grade = 'F';
+```
+สร้างตาราง student_backup ด้วย CREATE TABLE … AS SELECT แล้วอธิบายว่าอะไรบ้างที่ไม่ถูกคัดลอกมา || DESCRIBE
+A: คัดลอกมาเฉพาะคอลัมน์ ชนิดข้อมูล และข้อมูล แต่<b>ไม่คัดลอก</b> PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, ดัชนี และ AUTO_INCREMENT (คอลัมน์ Key ว่าง)
+```run
+CREATE TABLE student_backup AS SELECT * FROM student;
+DESCRIBE student_backup;
+```
+ลบการลงทะเบียนที่ยังไม่มีเกรด ในกลุ่มเรียนของภาคเรียน 2025-3 || grade IS NULL AND secid IN (…)
+```run temp
+DELETE FROM enroll
+WHERE  grade IS NULL
+  AND  secid IN
+       (SELECT secid
+        FROM   section
+        WHERE  term = '2025-3');
+```
+เพิ่มคอลัมน์ status ใน student แล้วกำหนดค่า “พ้นสภาพ” (gpa < 1.60) “รอพินิจ” (1.60–1.99) “ปกติ” (อื่น ๆ) || ALTER + UPDATE CASE
+A: นิสิตที่ไม่มี gpa จะได้ “ปกติ” ตาม ELSE
+```run show="SELECT stdid, name, gpa, status FROM student ORDER BY gpa" max="8"
+ALTER TABLE student ADD COLUMN status VARCHAR(20);
+UPDATE student
+SET    status = CASE
+                    WHEN gpa < 1.60 THEN 'พ้นสภาพ'
+                    WHEN gpa < 2.00 THEN 'รอพินิจ'
+                    ELSE 'ปกติ'
+                END;
+```
+เมื่อแก้ข้อมูลใน lab เสร็จ ทำอย่างไรให้ตารางกลับมาเหมือนเดิมทุกตาราง อธิบายขั้นตอน || DROP ตามลำดับ แล้วรันสคริปต์ใหม่
+A: (1) ลบตารางที่สร้างเพิ่ม (fail_log, student_backup) (2) ลบตารางกรณีศึกษาตามลำดับลูก → แม่: enroll, section, subject, lecturer, student (3) รันสคริปต์ prymania_DBLabScript.sql ทั้งไฟล์ใหม่ (ภาคผนวก ก) ซึ่งสร้างตารางและเพิ่มข้อมูลกลับมา — สคริปต์มีคำสั่ง DROP TABLE IF EXISTS อยู่ต้นไฟล์แล้ว จึงรันซ้ำได้ทันที
+```
+DROP TABLE IF EXISTS fail_log, student_backup;
+DROP TABLE IF EXISTS enroll, section, subject, lecturer, student;
+-- แล้วเปิด prymania_DBLabScript.sql ใน DBeaver กด Execute Script (Alt+X)
+```

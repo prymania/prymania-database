@@ -1,0 +1,106 @@
+<!--meta {"title":"ภาคผนวก ข · สรุปคำสั่ง SQL ที่ใช้บ่อย","kicker":"APPENDIX B · CHEAT SHEET","sub":"ทบทวนก่อนสอบ — กดคัดลอกโครงคำสั่งไปแก้ใช้ได้ทันที","img":"nap.png"} -->
+
+<toc/>
+
+<h2 id="ddl"><span class="sec">DDL</span> ฐานข้อมูลและโครงสร้างตาราง</h2>
+<table class="tbl"><tr><th>งานที่ต้องการทำ</th><th>คำสั่ง MySQL</th><th>บท</th></tr>
+<tr><td>สร้างฐานข้อมูล</td><td><code>CREATE DATABASE ชื่อ CHARACTER SET utf8mb4;</code></td><td>4</td></tr>
+<tr><td>เลือกฐานข้อมูล</td><td><code>USE ชื่อ;</code></td><td>4</td></tr>
+<tr><td>ดูรายชื่อตาราง</td><td><code>SHOW TABLES;</code></td><td>4</td></tr>
+<tr><td>ดูโครงสร้างตาราง</td><td><code>DESCRIBE ชื่อตาราง;</code></td><td>4</td></tr>
+<tr><td>เพิ่มคอลัมน์</td><td><code>ALTER TABLE t ADD COLUMN c ชนิด;</code></td><td>4</td></tr>
+<tr><td>แก้ชนิดคอลัมน์</td><td><code>ALTER TABLE t MODIFY COLUMN c ชนิดใหม่;</code></td><td>4</td></tr>
+<tr><td>เปลี่ยนชื่อคอลัมน์</td><td><code>ALTER TABLE t CHANGE COLUMN เก่า ใหม่ ชนิด;</code></td><td>4</td></tr>
+<tr><td>ลบคอลัมน์</td><td><code>ALTER TABLE t DROP COLUMN c;</code></td><td>4</td></tr>
+<tr><td>ลบตาราง</td><td><code>DROP TABLE IF EXISTS t;</code></td><td>4</td></tr>
+<tr><td>ลบข้อมูลทั้งตาราง (คงโครงสร้าง)</td><td><code>TRUNCATE TABLE t;</code></td><td>4</td></tr>
+</table>
+<sql title="โครง CREATE TABLE ครบทุกข้อกำหนด">CREATE TABLE ชื่อตาราง (
+    id        INT AUTO_INCREMENT,
+    code      VARCHAR(10) NOT NULL,
+    amount    DECIMAL(10,2) DEFAULT 0,
+    ref_id    VARCHAR(10),
+    CONSTRAINT pk_x    PRIMARY KEY (id),
+    CONSTRAINT uk_x    UNIQUE (code),
+    CONSTRAINT chk_x   CHECK (amount >= 0),
+    CONSTRAINT fk_x    FOREIGN KEY (ref_id) REFERENCES ตารางแม่(pk)
+                       ON DELETE CASCADE      -- หรือ SET NULL / RESTRICT
+);</sql>
+
+<h2 id="dml"><span class="sec">DML</span> เพิ่ม แก้ ลบข้อมูล</h2>
+<table class="tbl"><tr><th>งานที่ต้องการทำ</th><th>คำสั่ง MySQL</th><th>บท</th></tr>
+<tr><td>เพิ่มข้อมูล</td><td><code>INSERT INTO t (c1, c2) VALUES (v1, v2), (v3, v4);</code></td><td>4</td></tr>
+<tr><td>เพิ่มจากผล SELECT</td><td><code>INSERT INTO t2 (c1, c2) SELECT a, b FROM t1 WHERE …;</code></td><td>6</td></tr>
+<tr><td>แก้ไขข้อมูล</td><td><code>UPDATE t SET c = v WHERE เงื่อนไข;</code></td><td>4</td></tr>
+<tr><td>แก้ไขตามเงื่อนไขหลายแบบ</td><td><code>UPDATE t SET c = CASE WHEN … THEN … ELSE … END;</code></td><td>6</td></tr>
+<tr><td>ลบข้อมูล</td><td><code>DELETE FROM t WHERE เงื่อนไข;</code></td><td>4</td></tr>
+<tr><td>เลขล่าสุดของ AUTO_INCREMENT</td><td><code>SELECT LAST_INSERT_ID();</code></td><td>4</td></tr>
+</table>
+<div class="box warn"><div class="box-t">⚠️ จำให้ขึ้นใจ</div><p>UPDATE / DELETE <b>ต้องมี WHERE</b> และควร SELECT ด้วยเงื่อนไขเดียวกันดูก่อนทุกครั้ง</p></div>
+
+<h2 id="select"><span class="sec">DQL</span> SELECT</h2>
+<sql title="โครง SELECT เต็ม (เขียนตามลำดับนี้)">SELECT   [DISTINCT] คอลัมน์, ฟังก์ชันรวม(...) AS ชื่อแทน
+FROM     ตาราง1 t1
+         [INNER | LEFT] JOIN ตาราง2 t2 ON t1.fk = t2.pk
+WHERE    เงื่อนไขของแถว
+GROUP BY คอลัมน์ที่ใช้จัดกลุ่ม
+HAVING   เงื่อนไขของกลุ่ม (ใช้ฟังก์ชันรวมได้)
+ORDER BY คอลัมน์ [ASC | DESC]
+LIMIT    จำนวน [OFFSET ข้าม];</sql>
+<div class="flow">
+<div class="st">① FROM / JOIN</div><span class="ar">→</span><div class="st">② WHERE</div><span class="ar">→</span><div class="st">③ GROUP BY</div><span class="ar">→</span><div class="st">④ HAVING</div><span class="ar">→</span><div class="st">⑤ SELECT</div><span class="ar">→</span><div class="st">⑥ ORDER BY</div><span class="ar">→</span><div class="st">⑦ LIMIT</div>
+</div>
+<table class="tbl"><tr><th>งานที่ต้องการทำ</th><th>คำสั่ง</th><th>บท</th></tr>
+<tr><td>ตรวจค่าว่าง</td><td><code>WHERE c IS NULL</code> / <code>IS NOT NULL</code></td><td>5</td></tr>
+<tr><td>แทนค่าว่าง</td><td><code>IFNULL(c, ค่าแทน)</code> / <code>COALESCE(c1, c2, …)</code></td><td>5</td></tr>
+<tr><td>อยู่ในช่วง / ในรายการ</td><td><code>BETWEEN a AND b</code> / <code>IN ('x','y')</code></td><td>5</td></tr>
+<tr><td>ค้นหาข้อความ</td><td><code>LIKE 'S%'</code> (% = กี่ตัวก็ได้, _ = 1 ตัว)</td><td>5</td></tr>
+<tr><td>นับแถว / นับค่าไม่ว่าง / นับไม่ซ้ำ</td><td><code>COUNT(*)</code> / <code>COUNT(c)</code> / <code>COUNT(DISTINCT c)</code></td><td>5</td></tr>
+<tr><td>เงื่อนไขแบบมีทางเลือก</td><td><code>CASE WHEN … THEN … ELSE … END</code></td><td>5</td></tr>
+<tr><td>อายุจากวันเกิด</td><td><code>TIMESTAMPDIFF(YEAR, birthday, CURDATE())</code></td><td>5</td></tr>
+<tr><td>แถวที่ไม่มีคู่</td><td><code>LEFT JOIN … WHERE ฝั่งขวา.key IS NULL</code></td><td>6</td></tr>
+<tr><td>Self Join</td><td><code>FROM subject sub JOIN subject pre ON sub.pre = pre.subid</code></td><td>6</td></tr>
+<tr><td>รวม / ร่วม / ผลต่าง</td><td><code>UNION</code> / <code>INTERSECT</code> / <code>EXCEPT</code></td><td>6</td></tr>
+<tr><td>ตรวจการมีอยู่</td><td><code>WHERE [NOT] EXISTS (SELECT 1 FROM … WHERE …)</code></td><td>6</td></tr>
+<tr><td>เทียบกับค่าสรุป</td><td><code>WHERE c &gt; (SELECT AVG(c) FROM t)</code></td><td>6</td></tr>
+</table>
+
+<h2 id="adv"><span class="sec">ADV</span> View, Index, Transaction</h2>
+<table class="tbl"><tr><th>งานที่ต้องการทำ</th><th>คำสั่ง</th><th>บท</th></tr>
+<tr><td>สร้าง / ลบวิว</td><td><code>CREATE VIEW v AS SELECT …;</code> / <code>DROP VIEW v;</code></td><td>7</td></tr>
+<tr><td>สร้าง / ลบดัชนี</td><td><code>CREATE INDEX i ON t(c);</code> / <code>DROP INDEX i ON t;</code></td><td>8</td></tr>
+<tr><td>ดูแผนการทำงาน</td><td><code>EXPLAIN SELECT …;</code></td><td>8</td></tr>
+<tr><td>ทรานแซกชัน</td><td><code>START TRANSACTION; … COMMIT;</code> หรือ <code>ROLLBACK;</code></td><td>9</td></tr>
+<tr><td>ย้อนกลับบางส่วน</td><td><code>SAVEPOINT sp; … ROLLBACK TO SAVEPOINT sp;</code></td><td>9</td></tr>
+</table>
+
+<h2 id="sec"><span class="sec">DCL</span> ผู้ใช้ สิทธิ์ Procedure Trigger</h2>
+<table class="tbl"><tr><th>งานที่ต้องการทำ</th><th>คำสั่ง</th><th>บท</th></tr>
+<tr><td>สร้างผู้ใช้</td><td><code>CREATE USER 'u'@'localhost' IDENTIFIED BY 'pw';</code></td><td>10</td></tr>
+<tr><td>ให้สิทธิ์</td><td><code>GRANT SELECT, INSERT ON db.* TO 'u'@'localhost';</code></td><td>10</td></tr>
+<tr><td>ยกเลิกสิทธิ์</td><td><code>REVOKE ALL PRIVILEGES ON db.* FROM 'u'@'localhost';</code></td><td>10</td></tr>
+<tr><td>เรียกโพรซีเยอร์</td><td><code>CALL sp(พารามิเตอร์, @out);</code></td><td>11</td></tr>
+<tr><td>สำรองข้อมูล</td><td><code>mysqldump -u root -p db &gt; backup.sql</code></td><td>10</td></tr>
+</table>
+<sql title="โครง Stored Procedure">DELIMITER $$
+CREATE PROCEDURE sp_name (IN p_in VARCHAR(10), OUT p_out INT)
+BEGIN
+    DECLARE v INT DEFAULT 0;
+    SELECT COUNT(*) INTO v FROM ตาราง WHERE คอลัมน์ = p_in;
+    IF v > 0 THEN
+        SET p_out = v;
+    ELSE
+        SET p_out = 0;
+    END IF;
+END $$
+DELIMITER ;</sql>
+<sql title="โครง Trigger">DELIMITER $$
+CREATE TRIGGER tg_name
+BEFORE INSERT ON ตาราง          -- BEFORE | AFTER  ×  INSERT | UPDATE | DELETE
+FOR EACH ROW
+BEGIN
+    IF NEW.คอลัมน์ < 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ข้อความแจ้งเตือน';
+    END IF;
+END $$
+DELIMITER ;</sql>

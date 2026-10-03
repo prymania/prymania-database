@@ -1,0 +1,233 @@
+# คำถามท้ายบท + เฉลย — ดูรูปแบบที่ apply_reviews.py
+## ประเภทคำสั่งและชนิดข้อมูล
+จงอธิบายความแตกต่างระหว่าง DDL, DML, DQL, DCL และ TCL พร้อมยกตัวอย่างคำสั่งกลุ่มละ 2 คำสั่ง || ตารางที่ 4.1
+A- <b>DDL</b> (นิยามโครงสร้าง) — CREATE TABLE, ALTER TABLE, DROP TABLE, TRUNCATE
+A- <b>DML</b> (จัดการข้อมูล) — INSERT, UPDATE, DELETE
+A- <b>DQL</b> (แสดงข้อมูล) — SELECT, SHOW / DESCRIBE
+A- <b>DCL</b> (ควบคุมสิทธิ์) — GRANT, REVOKE
+A- <b>TCL</b> (ควบคุมทรานแซกชัน) — START TRANSACTION, COMMIT, ROLLBACK, SAVEPOINT
+จงเลือกชนิดข้อมูลที่เหมาะสม: เลขบัตรประชาชน, ราคาสินค้า, วันเวลาที่บันทึก, เพศ, รายละเอียดสินค้า, จำนวนหน่วยกิต || CHAR / DECIMAL / DATETIME / ENUM / TEXT / TINYINT
+A: เลขบัตรประชาชน = <code>CHAR(13)</code> · ราคาสินค้า = <code>DECIMAL(10,2)</code> · วันเวลาที่บันทึก = <code>DATETIME</code> (หรือ TIMESTAMP) · เพศ = <code>ENUM('M','F','X')</code> หรือ <code>CHAR(1)</code> + CHECK · รายละเอียดสินค้า = <code>TEXT</code> · จำนวนหน่วยกิต = <code>TINYINT</code>
+เหตุใดจึงควรใช้ DECIMAL แทน FLOAT สำหรับเกรดเฉลี่ยและจำนวนเงิน || ค่าโดยประมาณ
+A: FLOAT/DOUBLE เก็บค่าแบบเลขฐานสองโดยประมาณ ทศนิยมบางค่า (เช่น 0.1) เก็บได้ไม่ตรง เมื่อบวกสะสมจะคลาดเคลื่อน ส่วน DECIMAL เก็บตัวเลขฐานสิบแบบ<b>ตรงทุกหลัก</b>ตามที่กำหนด จึงเหมาะกับเงินและเกรด
+```run
+SELECT 0.1 + 0.2 = 0.3                                   AS decimal_equal,
+       CAST(0.1 AS DOUBLE) + CAST(0.2 AS DOUBLE) = 0.3   AS double_equal;
+```
+CHAR(5) กับ VARCHAR(5) ต่างกันอย่างไร ถ้าเก็บรหัสนิสิต 5 หลักควรเลือกแบบใด || ยาวคงที่
+A: <code>CHAR(5)</code> ใช้พื้นที่คงที่ 5 ตัวอักษรเสมอ (เติมช่องว่างให้ครบ) ส่วน <code>VARCHAR(5)</code> ใช้พื้นที่ตามความยาวจริง + 1 ไบต์เก็บความยาว รหัสนิสิตยาว 5 หลักเท่ากันทุกคนจึงควรใช้ <b>CHAR(5)</b>
+## CREATE TABLE (Lab 3)
+จงสร้างตาราง student โดย stdid CHAR(5) (PK ชื่อ std_pk), name VARCHAR(30), major CHAR(30), gpa NUMERIC(3,2) (CHECK 0.00–4.00 ชื่อ std_gpa), birthday DATE || CONSTRAINT ชื่อ PRIMARY KEY
+A: เฉลยหมวด CREATE / ALTER / INSERT / UPDATE สร้างตารางตาม Lab 3 ใหม่ทั้งหมด จึงลบตารางของกรณีศึกษาเดิมก่อน
+```title="ลบตารางเดิมของกรณีศึกษาก่อน (ลูกก่อนแม่)" exec
+DROP TABLE IF EXISTS enroll, section, subject, lecturer, student;
+```
+```exec
+CREATE TABLE student (
+    stdid     CHAR(5),
+    name      VARCHAR(30),
+    major     CHAR(30),
+    gpa       NUMERIC(3,2),
+    birthday  DATE,
+    CONSTRAINT std_pk  PRIMARY KEY (stdid),
+    CONSTRAINT std_gpa CHECK (gpa BETWEEN 0.00 AND 4.00)
+);
+```
+จงสร้างตาราง subject (subid CHAR(5), name, credit, major, pre CHAR(5)) โดย pre อ้างอิง subject(subid) ชื่อ constraint sub_fk_pre || FK อ้างอิงตัวเอง
+```exec
+CREATE TABLE subject (
+    subid   CHAR(5),
+    name    VARCHAR(30) NOT NULL,
+    credit  INT,
+    major   VARCHAR(20),
+    pre     CHAR(5),
+    CONSTRAINT sub_pk     PRIMARY KEY (subid),
+    CONSTRAINT sub_fk_pre FOREIGN KEY (pre) REFERENCES subject(subid)
+);
+```
+จงสร้างตาราง section ที่ secid เป็น AUTO_INCREMENT และมี `sec_uk UNIQUE (subid, lecid, term)` พร้อม FK ไปยัง subject และ lecturer || AUTO_INCREMENT
+A: ต้องมีตาราง lecturer ก่อน (ข้อมูลอาจารย์ของ Lab 3 ใช้ในข้อ INSERT ถัดไป)
+```title="ตาราง lecturer" exec
+CREATE TABLE lecturer (
+    lecid   VARCHAR(10) PRIMARY KEY,
+    name    VARCHAR(30),
+    salary  INT,
+    major   VARCHAR(30)
+);
+INSERT INTO lecturer VALUES
+    ('L01', 'Dumbledore', 50000, 'CS'),
+    ('L02', 'Juon',       35000, 'CS'),
+    ('L03', 'Peter',      28000, 'Thai'),
+    ('L04', 'Ryota',      32000, 'English');
+```
+```exec
+CREATE TABLE section (
+    secid  INT AUTO_INCREMENT,
+    subid  CHAR(5),
+    lecid  VARCHAR(10),
+    term   VARCHAR(6),
+    CONSTRAINT sec_pk     PRIMARY KEY (secid),
+    CONSTRAINT sec_fk_sub FOREIGN KEY (subid) REFERENCES subject(subid)  ON DELETE CASCADE,
+    CONSTRAINT sec_fk_lec FOREIGN KEY (lecid) REFERENCES lecturer(lecid) ON DELETE CASCADE,
+    CONSTRAINT sec_uk     UNIQUE (subid, lecid, term)
+);
+```
+จงสร้างตาราง enroll ที่มี PK ผสม (secid, stdid) และ CHECK เกรดให้อยู่ใน A, B, C, D, F || IN ('A','B','C','D','F')
+```exec
+CREATE TABLE enroll (
+    secid  INT,
+    stdid  CHAR(5),
+    grade  CHAR(1),
+    CONSTRAINT enroll_pk     PRIMARY KEY (secid, stdid),
+    CONSTRAINT enroll_fk_sec FOREIGN KEY (secid) REFERENCES section(secid) ON DELETE CASCADE,
+    CONSTRAINT enroll_fk_std FOREIGN KEY (stdid) REFERENCES student(stdid) ON DELETE CASCADE,
+    CONSTRAINT enroll_grade  CHECK (grade IN ('A', 'B', 'C', 'D', 'F'))
+);
+```
+ถ้าต้องสร้างทั้ง 5 ตาราง ต้องสร้างตามลำดับใด และถ้าจะ DROP ทั้ง 5 ตาราง ต้องลบตามลำดับใด เพราะเหตุใด || ตารางที่ถูกอ้างอิงก่อน
+A: <b>สร้าง</b>: student, subject, lecturer (ไม่มี FK ไปตารางอื่น — ลำดับระหว่างสามตารางนี้สลับได้) → section (อ้าง subject, lecturer) → enroll (อ้าง section, student)
+A: <b>ลบ</b>: กลับลำดับ enroll → section → student, subject, lecturer เพราะ FK บังคับว่าตารางที่ถูกอ้างอิง (แม่) ต้องมีอยู่ก่อนตารางที่อ้างอิง (ลูก) และลบแม่ก่อนไม่ได้ขณะที่ลูกยังอ้างอยู่
+จงสร้างตาราง product ที่มี pid (PK 8 ตัวอักษร), pname (ห้ามว่าง), price (> 0), stock (ค่าปริยาย 0) และ cid อ้างอิง category โดยห้ามลบหมวดที่ยังมีสินค้า || ON DELETE RESTRICT
+```exec
+CREATE TABLE category (
+    cid    VARCHAR(5) PRIMARY KEY,
+    cname  VARCHAR(30) NOT NULL
+);
+CREATE TABLE product (
+    pid    CHAR(8)       PRIMARY KEY,
+    pname  VARCHAR(50)   NOT NULL,
+    price  DECIMAL(10,2) CHECK (price > 0),
+    stock  INT           DEFAULT 0,
+    cid    VARCHAR(5),
+    CONSTRAINT prod_fk_cat FOREIGN KEY (cid) REFERENCES category(cid) ON DELETE RESTRICT
+);
+```
+จงอธิบายความแตกต่างของ ON DELETE CASCADE, SET NULL และ RESTRICT พร้อมยกตัวอย่างว่าคอลัมน์ใดในกรณีศึกษาควรใช้แบบใด || ตารางที่ 4.4
+A- <b>CASCADE</b> — ลบแถวแม่แล้วลบแถวลูกตามอัตโนมัติ เช่น enroll.secid (ลบกลุ่มเรียน การลงทะเบียนของกลุ่มนั้นไม่มีความหมายแล้ว)
+A- <b>SET NULL</b> — ลบแถวแม่แล้วตั้ง FK ของลูกเป็น NULL เช่น subject.pre (ลบวิชาบังคับก่อน วิชาอื่นยังอยู่แต่ไม่มี pre) หรือ student.advisor_id
+A- <b>RESTRICT / NO ACTION</b> (ค่าปริยาย) — ไม่ยอมให้ลบแถวแม่ที่ยังมีลูกอ้างอยู่ เช่น section.lecid ในระบบจริงควรห้ามลบอาจารย์ที่มีประวัติการสอน เพื่อรักษาข้อมูลย้อนหลัง
+## ALTER / DROP
+จงเขียนคำสั่ง (ก) เพิ่มคอลัมน์ email ใน student (ข) กำหนดให้ email ห้ามซ้ำ (ค) ลบคอลัมน์ email || ADD COLUMN / ADD CONSTRAINT UNIQUE
+```exec
+ALTER TABLE student ADD COLUMN email VARCHAR(60);              -- (ก)
+ALTER TABLE student ADD CONSTRAINT std_uk_email UNIQUE (email); -- (ข)
+ALTER TABLE student DROP COLUMN email;                          -- (ค) ดัชนี UNIQUE ถูกลบตามไปด้วย
+```
+จงเพิ่มคอลัมน์ advisor_id ใน student ให้เป็น FK อ้างอิง lecturer(lecid) โดยลบอาจารย์แล้วให้เป็น NULL จากนั้นลบคอลัมน์ออก || ต้อง DROP FOREIGN KEY ก่อน
+```exec
+ALTER TABLE student ADD COLUMN advisor_id VARCHAR(10);
+ALTER TABLE student ADD CONSTRAINT std_fk_adv
+      FOREIGN KEY (advisor_id) REFERENCES lecturer(lecid) ON DELETE SET NULL;
+
+ALTER TABLE student DROP FOREIGN KEY std_fk_adv;   -- ต้องลบ FK ก่อน
+ALTER TABLE student DROP COLUMN advisor_id;
+```
+จงเปรียบเทียบ DROP TABLE, TRUNCATE TABLE และ DELETE FROM ในแง่โครงสร้าง เงื่อนไข AUTO_INCREMENT และ ROLLBACK || ตารางที่ 4.5
+A- <b>DROP TABLE</b> — ลบทั้งโครงสร้างและข้อมูล ใช้เงื่อนไขไม่ได้ ROLLBACK ไม่ได้ (DDL)
+A- <b>TRUNCATE TABLE</b> — ลบข้อมูลทั้งหมดแต่เก็บโครงสร้าง ใช้ WHERE ไม่ได้ รีเซ็ต AUTO_INCREMENT กลับเป็น 1 ROLLBACK ไม่ได้ (DDL) เร็วมาก
+A- <b>DELETE FROM</b> — ลบเฉพาะแถวตาม WHERE ได้ โครงสร้างอยู่ AUTO_INCREMENT ไม่รีเซ็ต ROLLBACK ได้ (DML) ทำงานผ่าน FK/ทริกเกอร์ทีละแถว
+## INSERT (Lab 3)
+จงเพิ่มนิสิต: 50001 Jim CS 3.25 2011-10-20 · 50002 Jack CS 2.25 2010-08-30 · 50003 Joe CS 3.00 2010-02-15 · 50004 Joy Thai (ไม่มี gpa และวันเกิด) · 50005 Jane MATH 2.78 2012-09-22 · 50006 Joey CS || NULL
+```run show="SELECT * FROM student"
+INSERT INTO student VALUES
+    ('50001', 'Jim',  'CS',   3.25, '2011-10-20'),
+    ('50002', 'Jack', 'CS',   2.25, '2010-08-30'),
+    ('50003', 'Joe',  'CS',   3.00, '2010-02-15'),
+    ('50004', 'Joy',  'Thai', NULL, NULL),
+    ('50005', 'Jane', 'MATH', 2.78, '2012-09-22');
+INSERT INTO student (stdid, name, major) VALUES ('50006', 'Joey', 'CS');
+```
+จงเพิ่มวิชา: CS001 Programming 3 หน่วยกิต ไม่มีวิชาเงื่อนไข · CS002 Java 3 (pre Programming) · CS003 Graphics 2 (pre Programming) · CS004 Database 3 (pre Java) · TH001 Thai Reading 3 · EN001 English 3 || ต้องเพิ่มตามลำดับ pre
+A: ต้องเพิ่ม CS001 ก่อน CS002/CS003 และ CS002 ก่อน CS004 เพราะ pre เป็น FK อ้างอิงตารางเดียวกัน
+```run show="SELECT * FROM subject"
+INSERT INTO subject VALUES
+    ('CS001', 'Programming',  3, 'CS',      NULL),
+    ('CS002', 'Java',         3, 'CS',      'CS001'),
+    ('CS003', 'Graphics',     2, 'CS',      'CS001'),
+    ('CS004', 'Database',     3, 'CS',      'CS002'),
+    ('TH001', 'Thai Reading', 3, 'Thai',    NULL),
+    ('EN001', 'English',      3, 'English', NULL);
+```
+จงเพิ่มกลุ่มเรียน: Dumbledore สอน Programming 2025-1 · Dumbledore สอน Database 2025-3 · Juon สอน Database และ Graphics 2026-1 · Peter สอน Thai Reading 2026-1 · Ryota สอน English 2026-3 || ไม่ต้องระบุ secid
+A: ไม่ระบุ secid — AUTO_INCREMENT กำหนดให้เป็น 1, 2, 3, … (รหัสอาจารย์ดูจากตาราง lecturer ที่สร้างไว้)
+```run show="SELECT * FROM section"
+INSERT INTO section (subid, lecid, term) VALUES
+    ('CS001', 'L01', '2025-1'),
+    ('CS004', 'L01', '2025-3'),
+    ('CS004', 'L02', '2026-1'),
+    ('CS003', 'L02', '2026-1'),
+    ('TH001', 'L03', '2026-1'),
+    ('EN001', 'L04', '2026-3');
+```
+นิสิต 50001 ลงทะเบียน section 1 ได้เกรด C แล้วลงซ้ำ section 1 ได้เกรด B จะเกิดอะไรขึ้น เพราะเหตุใด || Duplicate entry
+A: คำสั่งแรกสำเร็จ คำสั่งที่สองเกิด <b>Error 1062 Duplicate entry</b> เพราะ (secid, stdid) = (1, '50001') ซ้ำกับ PK ที่มีอยู่ — ถ้าต้องการเปลี่ยนเกรดต้องใช้ UPDATE
+```exec
+INSERT INTO enroll VALUES (1, '50001', 'C');
+```
+```error
+INSERT INTO enroll VALUES (1, '50001', 'B');
+```
+Joy ลงทะเบียน Database เทอม 2026-1 ยังไม่รู้เกรด จงเขียนคำสั่ง INSERT โดยไม่พิมพ์ secid เอง || INSERT … SELECT secid FROM section WHERE …
+```run show="SELECT * FROM enroll"
+INSERT INTO enroll (secid, stdid)
+SELECT secid, '50004'
+FROM   section
+WHERE  subid = 'CS004' AND term = '2026-1';
+```
+## UPDATE / DELETE (Lab 3)
+จงเขียนคำสั่ง: นิสิต 50001 เปลี่ยนชื่อเป็น Jimmy · นิสิต 50003 ได้ gpa เพิ่ม 0.25 · อาจารย์ Peter ได้เงินเดือนเพิ่ม 5000 · Dumbledore ได้เงินเดือนเพิ่ม 10% || SET col = col + …
+```run show="SELECT * FROM lecturer"
+UPDATE student  SET name   = 'Jimmy'        WHERE stdid = '50001';
+UPDATE student  SET gpa    = gpa + 0.25     WHERE stdid = '50003';
+UPDATE lecturer SET salary = salary + 5000  WHERE name  = 'Peter';
+UPDATE lecturer SET salary = salary * 1.10  WHERE name  = 'Dumbledore';
+```
+นิสิตทุกคนที่เรียน section 1 ได้เกรดเป็น A จงเขียนคำสั่ง และระบุว่าต้องตรวจอะไรก่อนรัน || SELECT ด้วยเงื่อนไขเดียวกันก่อน
+A: ตรวจก่อนด้วย SELECT ที่ใช้ WHERE เดียวกัน ว่าแถวที่จะถูกแก้ถูกต้องและจำนวนตรงตามที่คาด แล้วจึง UPDATE
+```run
+SELECT * FROM enroll WHERE secid = 1;
+```
+```run show="SELECT * FROM enroll WHERE secid = 1"
+UPDATE enroll SET grade = 'A' WHERE secid = 1;
+```
+จงเขียนคำสั่ง (ก) ลบวิชา CS004 (ข) ลบ section รหัส 3 (ค) ลบอาจารย์ t04 แล้วอธิบายผลต่อตารางอื่นในกรณีศึกษา || CASCADE / RESTRICT
+A: ข้อนี้และข้อถัดไปใช้ฐานข้อมูลกรณีศึกษา (โหลดใหม่)
+A: (ก) <b>ลบไม่ได้</b> — CS004 เป็นวิชาบังคับก่อนของ CS009 และ CS010 ซึ่ง sub_fk_pre ไม่ได้กำหนด ON DELETE จึงเป็น RESTRICT (Error 1451)
+```reset error
+DELETE FROM subject WHERE subid = 'CS004';
+```
+A: (ข) ลบได้ — แถวใน enroll ของ section 3 ถูกลบตามด้วย CASCADE
+```run temp show="SELECT COUNT(*) AS enroll_left_in_sec3 FROM enroll WHERE secid = 3"
+DELETE FROM section WHERE secid = 3;
+```
+A: (ค) ลบได้ — section ทุกกลุ่มของ t04 ถูกลบ (CASCADE) และ enroll ของกลุ่มเหล่านั้นถูกลบต่อเป็นทอด ๆ
+```run temp show="SELECT (SELECT COUNT(*) FROM section) AS n_section, (SELECT COUNT(*) FROM enroll) AS n_enroll"
+DELETE FROM lecturer WHERE lecid = 't04';
+```
+ในฐานข้อมูลกรณีศึกษา ถ้าสั่ง `DELETE FROM subject WHERE subid = 'CS001';` จะเกิดอะไรขึ้น เพราะเหตุใด || sub_fk_pre
+A: เกิด <b>Error 1451</b> ลบไม่ได้ เพราะ CS001 เป็นวิชาบังคับก่อน (pre) ของ CS002, CS003, CS004 — FK sub_fk_pre ไม่ได้กำหนด ON DELETE จึงห้ามลบแถวแม่ที่ยังถูกอ้างอิง
+```error
+DELETE FROM subject WHERE subid = 'CS001';
+```
+ถ้าลบอาจารย์ t01 ออกจากฐานข้อมูลกรณีศึกษา จะมีกี่แถวใน section และ enroll ที่ถูกลบตามไปด้วย จงเขียนคำสั่งตรวจสอบก่อนลบ || COUNT(*) + JOIN
+```run
+SELECT (SELECT COUNT(*) FROM section WHERE lecid = 't01')        AS section_rows,
+       (SELECT COUNT(*)
+        FROM   enroll e
+               JOIN section sec ON e.secid = sec.secid
+        WHERE  sec.lecid = 't01')                                 AS enroll_rows;
+```
+จงเขียนคำสั่ง UPDATE ที่ลืมใส่ WHERE แล้วอธิบายผลที่เกิดขึ้น และวิธีป้องกัน 2 วิธี || SELECT ก่อน / START TRANSACTION
+A: คำสั่งด้านล่างตั้งใจขึ้นเงินเดือนให้ t01 คนเดียว แต่ลืม WHERE — <b>อาจารย์ทุกคน</b>ได้เงินเดือน 60000 เท่ากันหมด
+```run temp show="SELECT lecid, name, salary FROM lecturer LIMIT 5"
+UPDATE lecturer SET salary = 60000;
+```
+A- วิธีที่ 1: เขียน <code>SELECT … WHERE …</code> ตรวจแถวเป้าหมายก่อน แล้วค่อยเปลี่ยนเป็น UPDATE โดยใช้ WHERE เดิม
+A- วิธีที่ 2: ทำใน <code>START TRANSACTION</code> ตรวจผล แล้วจึง COMMIT หรือ ROLLBACK ถ้าผิด
+A- (เพิ่มเติม) เปิด <code>SET SQL_SAFE_UPDATES = 1</code> ให้ MySQL ปฏิเสธ UPDATE/DELETE ที่ไม่มี WHERE บนคีย์
+ทดลองรันคำสั่งที่ผิดพลาดในหัวข้อ 4.7 บน DBeaver บันทึก Error Code ที่ได้ และอธิบายความหมาย || 1062, 3819, 1452, 1364
+A- <b>1062 Duplicate entry</b> — ค่า PK หรือ UNIQUE ซ้ำ
+A- <b>3819 Check constraint is violated</b> — ค่าไม่ผ่าน CHECK เช่น gpa = 4.50 หรือเกรด 'Z'
+A- <b>1452 Cannot add or update a child row</b> — ค่า FK ไม่มีในตารางแม่
+A- <b>1364 Field doesn't have a default value</b> — ไม่ได้ใส่ค่าให้คอลัมน์ NOT NULL ที่ไม่มีค่าปริยาย
+A- (พบบ่อยเช่นกัน) <b>1451 Cannot delete or update a parent row</b> — ลบแถวแม่ที่ยังมีลูกอ้างอิง

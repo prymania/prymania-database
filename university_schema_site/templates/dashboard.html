@@ -1,0 +1,10 @@
+{% extends "_base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block body %}
+<!-- การ์ดตัวเลข: สร้างจาก db.report_summary() -->
+<section class="cards" id="summary"></section>
+<div class="sqlwrap" id="summarySql"></div>
+<!-- กล่องรายงาน: สร้างจาก db.REPORTS (เพิ่มรายงานที่ db.py ไม่ต้องแก้ไฟล์นี้) -->
+<div class="report-grid" id="reports"></div>
+{% endblock %}
+{% block script %}<script src="{{ url_for('static', filename='dashboard.js') }}"></script>{% endblock %}

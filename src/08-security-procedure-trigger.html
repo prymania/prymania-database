@@ -1,0 +1,538 @@
+<!--meta {"title":"บทที่ 8 · ความปลอดภัยของฐานข้อมูล สโตร์โพรซีเยอร์ และทริกเกอร์","kicker":"CHAPTER 08 · สัปดาห์ที่ 14–15","sub":"บัญชีผู้ใช้ GRANT/REVOKE Role, Stored Procedure, Function, Trigger และการป้องกัน SQL Injection","img":"you-did-it.png"} -->
+
+<div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
+<li>สร้างและจัดการบัญชีผู้ใช้ กำหนดและยกเลิกสิทธิ์ในระดับตาราง คอลัมน์ และวิวได้</li>
+<li>อธิบายหลักการให้สิทธิ์เท่าที่จำเป็น และใช้ Role ได้</li>
+<li>เขียน Stored Procedure ที่มีพารามิเตอร์ ตัวแปร คำสั่งควบคุม และเขียน Function ได้</li>
+<li>เขียน Trigger เพื่อบังคับกฎทางธุรกิจและบันทึกประวัติการเปลี่ยนแปลงได้</li>
+<li>อธิบาย SQL Injection และวิธีป้องกันได้</li>
+</ol></div>
+
+<toc/>
+
+<h2 id="s1"><span class="sec">8.1</span> การจัดการบัญชีผู้ใช้</h2>
+<p>บัญชีใน MySQL มี 2 ส่วน คือ <code>'ชื่อผู้ใช้'@'เครื่องต้นทาง'</code> — กำหนดได้ว่าบัญชีนี้เชื่อมต่อจากเครื่องใดได้บ้าง</p>
+<div class="box note"><div class="box-t">📝 หมายเหตุ</div><p>คำสั่งในหัวข้อ 8.1–8.3 ต้องใช้สิทธิ์ผู้ดูแลระบบ บัญชีนิสิตบนเซิร์ฟเวอร์มหาวิทยาลัยจะรันไม่ได้ — ให้ทดลองบน MySQL ในเครื่องตัวเองด้วยบัญชี root</p></div>
+<sql title="สร้าง / แก้ไข / ลบบัญชี">-- เชื่อมต่อได้จากเครื่องเดียวกันเท่านั้น
+CREATE USER 'reg_staff'@'localhost' IDENTIFIED BY 'StrongPass#2026';
+
+-- เชื่อมต่อได้จากทุกเครื่องในวง 192.168.1.x
+CREATE USER 'teacher'@'192.168.1.%' IDENTIFIED BY 'Teach#2026';
+
+-- เปลี่ยนรหัสผ่าน และบังคับให้เปลี่ยนเมื่อเข้าใช้ครั้งแรก
+ALTER USER 'reg_staff'@'localhost' IDENTIFIED BY 'NewPass#2026' PASSWORD EXPIRE;
+
+-- ดูรายชื่อบัญชีทั้งหมด และลบบัญชี
+SELECT user, host FROM mysql.user;
+DROP USER IF EXISTS 'teacher'@'192.168.1.%';</sql>
+<div class="box idea"><div class="box-t">💡 บัญชีใหม่ยังทำอะไรไม่ได้</div><p>บัญชีที่เพิ่งสร้าง<b>ไม่มีสิทธิ์ใด ๆ เลย</b> ต้อง GRANT เพิ่มเสมอ</p></div>
+
+<h2 id="s2"><span class="sec">8.2</span> การกำหนดและยกเลิกสิทธิ์ (GRANT / REVOKE)</h2>
+<fig n="8-1">การให้และยกเลิกสิทธิ์การเข้าถึงข้อมูล</fig>
+<table class="tbl"><tr><th>สิทธิ์</th><th>อนุญาตให้</th></tr>
+<tr><td>SELECT / INSERT / UPDATE / DELETE</td><td>อ่าน / เพิ่ม / แก้ / ลบข้อมูล</td></tr>
+<tr><td>CREATE / DROP / ALTER</td><td>สร้าง ลบ แก้โครงสร้าง</td></tr>
+<tr><td>INDEX</td><td>สร้างและลบดัชนี</td></tr>
+<tr><td>EXECUTE</td><td>เรียกใช้ Procedure / Function</td></tr>
+<tr><td>ALL PRIVILEGES</td><td>ทุกสิทธิ์ในขอบเขตที่ระบุ</td></tr>
+</table>
+<sql title="GRANT — ระดับฐานข้อมูล ตาราง คอลัมน์">-- อ่านได้ทุกตารางในฐานข้อมูล
+GRANT SELECT ON std_66011200.* TO 'teacher'@'192.168.1.%';
+
+-- ระดับตาราง
+GRANT SELECT, INSERT, UPDATE ON std_66011200.enroll TO 'reg_staff'@'localhost';
+
+-- ระดับคอลัมน์: แก้ได้เฉพาะ grade
+GRANT UPDATE (grade) ON std_66011200.enroll TO 'teacher'@'192.168.1.%';
+
+-- ทุกสิทธิ์ และมอบต่อได้
+GRANT ALL PRIVILEGES ON std_66011200.* TO 'dba'@'localhost' WITH GRANT OPTION;
+
+-- ตรวจสิทธิ์ของบัญชี
+SHOW GRANTS FOR 'teacher'@'192.168.1.%';</sql>
+<div class="box warn"><div class="box-t">⚠️ WITH GRANT OPTION</div><p>ทำให้ผู้รับสิทธิ์มอบสิทธิ์ต่อให้คนอื่นได้ ควบคุมการแพร่กระจายยาก — ใช้กับผู้ดูแลระบบเท่านั้น</p></div>
+<sql title="REVOKE">REVOKE UPDATE, DELETE ON std_66011200.enroll FROM 'reg_staff'@'localhost';
+REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'teacher'@'192.168.1.%';</sql>
+<h3>หลักการให้สิทธิ์เท่าที่จำเป็น (Principle of Least Privilege)</h3>
+<table class="tbl"><tr><th>กลุ่มผู้ใช้</th><th>ตาราง / วิว</th><th>สิทธิ์</th></tr>
+<tr><td>นิสิต</td><td>วิว v_my_enroll ของตนเอง</td><td>SELECT</td></tr>
+<tr><td>อาจารย์</td><td>student, subject, section, enroll</td><td>SELECT ทั้งหมด + UPDATE เฉพาะ grade</td></tr>
+<tr><td>เจ้าหน้าที่ทะเบียน</td><td>student, section, enroll</td><td>SELECT, INSERT, UPDATE, DELETE</td></tr>
+<tr><td>ฝ่ายบุคคล</td><td>lecturer</td><td>SELECT, INSERT, UPDATE</td></tr>
+<tr><td>ผู้ดูแลระบบ</td><td>ทุกตาราง</td><td>ALL PRIVILEGES</td></tr>
+</table>
+
+<ex no="8.1" title="บัญชี advisor" level="2">
+<p>จงสร้างบัญชี <code>advisor</code> ที่เชื่อมต่อได้จากเครื่องเดียวกันเท่านั้น ให้สิทธิ์อ่าน student และ enroll และแก้ไขได้เฉพาะคอลัมน์ grade ของ enroll จากนั้นยกเลิกสิทธิ์แก้ไขทั้งหมด</p>
+<answer><sql title="เฉลย">CREATE USER 'advisor'@'localhost' IDENTIFIED BY 'Adv#2026';
+
+GRANT SELECT ON std_66011200.student TO 'advisor'@'localhost';
+GRANT SELECT, UPDATE (grade) ON std_66011200.enroll TO 'advisor'@'localhost';
+
+REVOKE UPDATE (grade) ON std_66011200.enroll FROM 'advisor'@'localhost';
+SHOW GRANTS FOR 'advisor'@'localhost';</sql></answer>
+</ex>
+
+<h2 id="s3"><span class="sec">8.3</span> การใช้บทบาท (Role) และวิวเพื่อควบคุมการเข้าถึง</h2>
+<p>MySQL 8.0+ รองรับ <span class="term">Role</span> — กลุ่มสิทธิ์ที่ตั้งชื่อไว้ แล้วมอบให้ผู้ใช้หลายคนพร้อมกัน</p>
+<sql title="Role">CREATE ROLE 'role_teacher', 'role_staff';
+
+GRANT SELECT ON std_66011200.* TO 'role_teacher';
+GRANT UPDATE (grade) ON std_66011200.enroll TO 'role_teacher';
+GRANT SELECT, INSERT, UPDATE, DELETE ON std_66011200.enroll TO 'role_staff';
+
+-- มอบบทบาทให้ผู้ใช้ และให้มีผลทันทีเมื่อเข้าสู่ระบบ
+GRANT 'role_teacher' TO 'teacher'@'192.168.1.%';
+SET DEFAULT ROLE ALL TO 'teacher'@'192.168.1.%';</sql>
+<p>วิว + สิทธิ์ = ผู้ใช้เห็นเฉพาะส่วนที่กำหนด โดยไม่ต้องเข้าถึงตารางจริง</p>
+<sql title="ให้สิทธิ์เฉพาะวิว">CREATE VIEW v_student_public AS
+SELECT stdid, name, major FROM student;
+
+GRANT SELECT ON std_66011200.v_student_public TO 'guest'@'localhost';</sql>
+
+<ex no="8.2" title="ออกแบบ Role ห้องสมุด" level="2">
+<p>ระบบห้องสมุดมีตาราง book, member, borrow ผู้ใช้ 3 กลุ่ม: สมาชิก (ดูหนังสือ), บรรณารักษ์ (จัดการการยืม-คืน ดูสมาชิก), ผู้ดูแลระบบ จงเขียนคำสั่งสร้าง Role และกำหนดสิทธิ์</p>
+<answer><sql title="เฉลย">CREATE ROLE 'role_member', 'role_librarian', 'role_admin';
+
+GRANT SELECT ON library.book TO 'role_member';
+
+GRANT SELECT ON library.book   TO 'role_librarian';
+GRANT SELECT ON library.member TO 'role_librarian';
+GRANT SELECT, INSERT, UPDATE ON library.borrow TO 'role_librarian';
+
+GRANT ALL PRIVILEGES ON library.* TO 'role_admin';</sql></answer>
+</ex>
+
+<h2 id="s4"><span class="sec">8.4</span> สโตร์โพรซีเยอร์ (Stored Procedure)</h2>
+<p>ชุดคำสั่ง SQL ที่จัดเก็บในฐานข้อมูล เรียกใช้ด้วยชื่อและส่งพารามิเตอร์ได้</p>
+<fig n="8-2">เปรียบเทียบการทำงานเมื่อไม่มีและมีสโตร์โพรซีเยอร์</fig>
+<table class="tbl"><tr><th>ข้อดี</th><th>คำอธิบาย</th></tr>
+<tr><td>ลดการรับส่งข้อมูล</td><td>ส่งแค่ชื่อและพารามิเตอร์</td></tr>
+<tr><td>ทำงานเร็วขึ้น</td><td>วางแผนการทำงานไว้ล่วงหน้า</td></tr>
+<tr><td>รวมตรรกะไว้ที่เดียว</td><td>หลายโปรแกรมเรียกใช้ตรรกะเดียวกัน</td></tr>
+<tr><td>เพิ่มความปลอดภัย</td><td>ให้สิทธิ์ EXECUTE โดยไม่ต้องให้สิทธิ์ตาราง</td></tr>
+</table>
+<h3>8.4.1 การสร้างสโตร์โพรซีเยอร์</h3>
+<p>ภายในมี <code>;</code> คั่นหลายคำสั่ง จึงต้องเปลี่ยนตัวคั่นชั่วคราวด้วย <code>DELIMITER</code> (ใน DBeaver ให้รันทั้งบล็อกด้วย <b>Alt+X</b>)</p>
+<sql title="สร้างโพรซีเยอร์แสดงนิสิตตามสาขา" exec>DELIMITER $$
+
+CREATE PROCEDURE sp_list_student_by_major (IN p_major VARCHAR(20))
+BEGIN
+    SELECT stdid, name, gpa
+    FROM   student
+    WHERE  major = p_major
+    ORDER  BY gpa DESC;
+END $$
+
+DELIMITER ;</sql>
+<sql title="เรียกใช้" run>CALL sp_list_student_by_major('CS');</sql>
+<h3>8.4.2 ชนิดของพารามิเตอร์</h3>
+<table class="tbl"><tr><th>ชนิด</th><th>ทิศทาง</th><th>การใช้งาน</th></tr>
+<tr><td>IN (ค่าปริยาย)</td><td>ส่งเข้า</td><td>เงื่อนไข เช่น รหัสนิสิต</td></tr>
+<tr><td>OUT</td><td>ส่งกลับออกมา</td><td>ผลที่คำนวณ เช่น หน่วยกิตรวม</td></tr>
+<tr><td>INOUT</td><td>ส่งเข้าและส่งกลับ</td><td>ค่าที่ปรับแล้วคืนค่าใหม่</td></tr>
+</table>
+<sql title="ตัวอย่างที่ 8.2 — หน่วยกิตรวมของนิสิต (OUT)" exec>DELIMITER $$
+
+CREATE PROCEDURE sp_count_credit (
+    IN  p_sid    VARCHAR(10),
+    OUT p_credit INT
+)
+BEGIN
+    SELECT IFNULL(SUM(sub.credit), 0) INTO p_credit
+    FROM   enroll e
+           INNER JOIN section sec ON e.secid   = sec.secid
+           INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE  e.stdid = p_sid;
+END $$
+
+DELIMITER ;</sql>
+<sql title="เรียกใช้และอ่านค่า OUT" run>CALL sp_count_credit('60001', @total);
+SELECT @total AS total_credit;</sql>
+<h3>8.4.3 ตัวแปรและคำสั่งควบคุม (IF, WHILE)</h3>
+<sql title="ปรับเงินเดือนตามจำนวนกลุ่มที่สอน" exec>DELIMITER $$
+
+CREATE PROCEDURE sp_adjust_salary (IN p_lecid VARCHAR(10))
+BEGIN
+    DECLARE v_salary  INT DEFAULT 0;
+    DECLARE v_section INT DEFAULT 0;
+
+    SELECT salary   INTO v_salary  FROM lecturer WHERE lecid = p_lecid;
+    SELECT COUNT(*) INTO v_section FROM section  WHERE lecid = p_lecid;
+
+    IF v_salary IS NULL THEN
+        SELECT 'ยังไม่มีข้อมูลเงินเดือน' AS message;
+    ELSEIF v_section >= 5 THEN
+        UPDATE lecturer SET salary = v_salary + 5000 WHERE lecid = p_lecid;
+        SELECT CONCAT('ปรับขึ้น 5000 บาท จำนวนกลุ่มเรียน ', v_section) AS message;
+    ELSE
+        UPDATE lecturer SET salary = v_salary + 1000 WHERE lecid = p_lecid;
+        SELECT CONCAT('ปรับขึ้น 1000 บาท จำนวนกลุ่มเรียน ', v_section) AS message;
+    END IF;
+END $$
+
+DELIMITER ;</sql>
+<sql title="CALL กับ t01 (สอนหลายกลุ่ม)" run>CALL sp_adjust_salary('t01');</sql>
+<sql title="CALL กับ t11 (ไม่มีเงินเดือน)" run>CALL sp_adjust_salary('t11');</sql>
+<sql title="WHILE — สร้างข้อมูลทดสอบ" exec>DELIMITER $$
+
+CREATE PROCEDURE sp_generate_test_student (IN p_count INT)
+BEGIN
+    DECLARE i INT DEFAULT 1;
+    WHILE i <= p_count DO
+        INSERT INTO student (stdid, name, major, gpa)
+        VALUES (CONCAT('99', LPAD(i, 3, '0')), CONCAT('Test', i), 'CS', 2.00);
+        SET i = i + 1;
+    END WHILE;
+END $$
+
+DELIMITER ;</sql>
+<sql title="เรียกใช้" run>CALL sp_generate_test_student(3);
+SELECT * FROM student WHERE stdid LIKE '99%';</sql>
+<h3>8.4.4 เคอร์เซอร์ (Cursor)</h3>
+<p>อ่านผลลัพธ์ทีละแถว — ช้ากว่าคำสั่ง SQL ชุดเดียวมาก ใช้เมื่อจำเป็นเท่านั้น</p>
+<sql title="รายงานนิสิต gpa ต่ำกว่า 2.00 ด้วยเคอร์เซอร์" exec>DELIMITER $$
+
+CREATE PROCEDURE sp_report_low_gpa ()
+BEGIN
+    DECLARE done   INT DEFAULT 0;
+    DECLARE v_sid  VARCHAR(10);
+    DECLARE v_name VARCHAR(50);
+    DECLARE v_gpa  DECIMAL(3,2);
+
+    DECLARE cur CURSOR FOR
+        SELECT stdid, name, gpa FROM student WHERE gpa < 2.00;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    CREATE TEMPORARY TABLE IF NOT EXISTS tmp_warn (
+        stdid VARCHAR(10), name VARCHAR(50), note VARCHAR(100));
+
+    OPEN cur;
+    read_loop: LOOP
+        FETCH cur INTO v_sid, v_name, v_gpa;
+        IF done = 1 THEN
+            LEAVE read_loop;
+        END IF;
+        INSERT INTO tmp_warn VALUES (v_sid, v_name,
+               CONCAT('เกรดเฉลี่ย ', v_gpa, ' ต่ำกว่าเกณฑ์'));
+    END LOOP;
+    CLOSE cur;
+
+    SELECT * FROM tmp_warn;
+END $$
+
+DELIMITER ;</sql>
+<sql title="เรียกใช้" run>CALL sp_report_low_gpa();</sql>
+<div class="box tip"><div class="box-t">✅ คิดแบบชุดข้อมูล (Set-based) ก่อนเสมอ</div><p>ตัวอย่างข้างบนเขียนได้ในคำสั่งเดียว: <code>SELECT stdid, name, CONCAT('เกรดเฉลี่ย ', gpa, ' ต่ำกว่าเกณฑ์') FROM student WHERE gpa &lt; 2.00;</code> — ใช้เคอร์เซอร์เป็นทางเลือกสุดท้าย</p></div>
+<sql title="ดู / ลบโพรซีเยอร์" run>SHOW PROCEDURE STATUS WHERE Db = DATABASE();</sql>
+
+<ex no="8.3" title="sp_student_transcript" level="2">
+<p>จงเขียนโพรซีเยอร์ <code>sp_student_transcript(p_sid)</code> แสดงภาคเรียน ชื่อวิชา หน่วยกิต เกรด ของนิสิตที่ระบุ แล้วเรียกใช้กับนิสิต 60007</p>
+<answer><sql title="เฉลย" run>DELIMITER $$
+CREATE PROCEDURE sp_student_transcript (IN p_sid VARCHAR(10))
+BEGIN
+    SELECT sec.term, sub.subid, sub.name, sub.credit, e.grade
+    FROM   enroll e
+           INNER JOIN section sec ON e.secid   = sec.secid
+           INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE  e.stdid = p_sid
+    ORDER  BY sec.term;
+END $$
+DELIMITER ;
+
+CALL sp_student_transcript('60007');</sql></answer>
+</ex>
+<ex no="8.4" title="sp_count_section (OUT)" level="2">
+<p>จงเขียนโพรซีเยอร์รับรหัสอาจารย์และภาคเรียน แล้วส่งจำนวนกลุ่มเรียนกลับผ่าน OUT — ทดสอบกับ t01 ภาค 2024-2</p>
+<answer><sql title="เฉลย" run>DELIMITER $$
+CREATE PROCEDURE sp_count_section (IN p_lecid VARCHAR(10), IN p_term VARCHAR(6),
+                                   OUT p_n INT)
+BEGIN
+    SELECT COUNT(*) INTO p_n
+    FROM   section
+    WHERE  lecid = p_lecid AND term = p_term;
+END $$
+DELIMITER ;
+
+CALL sp_count_section('t01', '2024-2', @n);
+SELECT @n AS n_section;</sql></answer>
+</ex>
+
+<h2 id="s5"><span class="sec">8.5</span> ฟังก์ชันที่ผู้ใช้สร้างขึ้น (Stored Function)</h2>
+<p>คล้ายโพรซีเยอร์ แต่<b>คืนค่าเดียวเสมอ</b> และเรียกใช้ใน SELECT ได้เหมือนฟังก์ชันมาตรฐาน</p>
+<sql title="ฟังก์ชันแปลงเกรดเป็นแต้ม" exec>DELIMITER $$
+
+CREATE FUNCTION fn_grade_point (p_grade CHAR(1))
+RETURNS DECIMAL(3,2)
+DETERMINISTIC
+BEGIN
+    RETURN CASE p_grade
+               WHEN 'A' THEN 4.00
+               WHEN 'B' THEN 3.00
+               WHEN 'C' THEN 2.00
+               WHEN 'D' THEN 1.00
+               ELSE 0.00
+           END;
+END $$
+
+DELIMITER ;</sql>
+<sql title="เรียกใช้ใน SELECT" run>SELECT stdid, grade, fn_grade_point(grade) AS point
+FROM   enroll
+WHERE  secid = 1;</sql>
+<div class="box note"><div class="box-t">📝 DETERMINISTIC / READS SQL DATA</div><p>MySQL 8 ที่เปิด binary log ต้องระบุลักษณะของฟังก์ชัน — <code>DETERMINISTIC</code> (ใส่ค่าเดิมได้ผลเดิมเสมอ) หรือ <code>READS SQL DATA</code> (อ่านข้อมูลจากตาราง) ไม่เช่นนั้นจะได้ Error 1418</p></div>
+<table class="tbl"><tr><th>ประเด็น</th><th>Stored Procedure</th><th>Function</th></tr>
+<tr><td>เรียกใช้</td><td>CALL</td><td>ในนิพจน์ เช่น SELECT, WHERE</td></tr>
+<tr><td>ค่าที่คืน</td><td>หลายค่าผ่าน OUT / ชุดผลลัพธ์</td><td>ค่าเดียวเสมอ</td></tr>
+<tr><td>แก้ไขข้อมูล</td><td>ทำได้</td><td>จำกัด ไม่แนะนำ</td></tr>
+<tr><td>ใช้ใน SELECT</td><td>ไม่ได้</td><td>ได้</td></tr>
+</table>
+
+<ex no="8.5" title="fn_student_gpa" level="3">
+<p>จงเขียนฟังก์ชัน <code>fn_student_gpa(p_sid)</code> คืนค่าเกรดเฉลี่ยถ่วงน้ำหนักด้วยหน่วยกิต (ไม่นับวิชาที่ยังไม่มีเกรด) แล้วใช้แสดงนิสิตทุกคนเทียบกับคอลัมน์ gpa</p>
+<answer><sql title="เฉลย" run>DELIMITER $$
+CREATE FUNCTION fn_student_gpa (p_sid VARCHAR(10))
+RETURNS DECIMAL(3,2)
+READS SQL DATA
+BEGIN
+    DECLARE v_gpa DECIMAL(3,2);
+    SELECT SUM(sub.credit * fn_grade_point(e.grade)) / SUM(sub.credit) INTO v_gpa
+    FROM   enroll e
+           INNER JOIN section sec ON e.secid   = sec.secid
+           INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE  e.stdid = p_sid AND e.grade IS NOT NULL;
+    RETURN v_gpa;
+END $$
+DELIMITER ;
+
+SELECT stdid, name, gpa AS gpa_in_table, fn_student_gpa(stdid) AS gpa_calc
+FROM   student
+ORDER  BY stdid;</sql>
+<p>นิสิตที่ไม่เคยลงหรือยังไม่มีเกรด ได้ NULL เพราะ SUM ของชุดว่างเป็น NULL</p></answer>
+</ex>
+
+<h2 id="s6"><span class="sec">8.6</span> ทริกเกอร์ (Trigger)</h2>
+<p>ชุดคำสั่งที่ระบบ<b>เรียกอัตโนมัติ</b>เมื่อเกิด INSERT / UPDATE / DELETE กับตาราง — ผู้ใช้เรียกเองไม่ได้ เหมาะกับกฎที่ต้องมีผล<b>ทุกครั้ง ไม่ว่าคำสั่งมาจากช่องทางใด</b></p>
+<fig n="8-3">จังหวะการทำงานของทริกเกอร์แบบ BEFORE และ AFTER</fig>
+<table class="tbl"><tr><th>เหตุการณ์</th><th>OLD</th><th>NEW</th><th>ใช้บ่อยเพื่อ</th></tr>
+<tr><td>INSERT</td><td>✘</td><td>✔</td><td>ตรวจ/กำหนดค่าก่อนบันทึก</td></tr>
+<tr><td>UPDATE</td><td>✔</td><td>✔</td><td>บันทึกประวัติค่าเดิม</td></tr>
+<tr><td>DELETE</td><td>✔</td><td>✘</td><td>เก็บข้อมูลที่ถูกลบ</td></tr>
+</table>
+<p>BEFORE / AFTER × INSERT / UPDATE / DELETE = 6 รูปแบบ</p>
+<h3>ตัวอย่างที่ 8.3 — ตรวจและแก้ค่าก่อนบันทึก (BEFORE INSERT)</h3>
+<sql title="สร้างทริกเกอร์" exec>DELIMITER $$
+
+CREATE TRIGGER tg_student_before_insert
+BEFORE INSERT ON student
+FOR EACH ROW
+BEGIN
+    IF NEW.name IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ต้องระบุชื่อนิสิต';
+    END IF;
+
+    IF NEW.major IS NULL THEN
+        SET NEW.major = 'Undeclared';
+    END IF;
+END $$
+
+DELIMITER ;</sql>
+<sql title="ทดสอบ — ไม่ระบุชื่อ" error>INSERT INTO student (stdid, major) VALUES ('80010', 'CS');</sql>
+<sql title="ทดสอบ — ไม่ระบุสาขา ทริกเกอร์เติมให้" run show="SELECT * FROM student WHERE stdid = '80011'">INSERT INTO student (stdid, name) VALUES ('80011', 'Inosuke');</sql>
+<h3>ตัวอย่างที่ 8.4 — บันทึกประวัติการแก้เกรด (AFTER UPDATE)</h3>
+<sql title="ตาราง log + ทริกเกอร์" exec>CREATE TABLE grade_log (
+    log_id     INT AUTO_INCREMENT PRIMARY KEY,
+    secid      INT,
+    stdid      VARCHAR(10),
+    old_grade  CHAR(1),
+    new_grade  CHAR(1),
+    changed_by VARCHAR(50),
+    changed_at DATETIME
+);
+
+DELIMITER $$
+
+CREATE TRIGGER tg_enroll_after_update
+AFTER UPDATE ON enroll
+FOR EACH ROW
+BEGIN
+    IF NOT (OLD.grade <=> NEW.grade) THEN
+        INSERT INTO grade_log (secid, stdid, old_grade, new_grade, changed_by, changed_at)
+        VALUES (OLD.secid, OLD.stdid, OLD.grade, NEW.grade, CURRENT_USER(), NOW());
+    END IF;
+END $$
+
+DELIMITER ;</sql>
+<sql title="ทดสอบ — แก้เกรด 2 รายการ" run show="SELECT log_id, secid, stdid, old_grade, new_grade, changed_by FROM grade_log">UPDATE enroll SET grade = 'B' WHERE secid = 34 AND stdid = '70033';
+UPDATE enroll SET grade = 'D' WHERE secid = 1  AND stdid = '60006';</sql>
+<div class="box idea"><div class="box-t">💡 ตัวดำเนินการ &lt;=&gt;</div><p>NULL-safe equal: คืนค่าจริงเมื่อทั้งสองฝั่งเป็น NULL — จำเป็นเพราะเกรดเดิมอาจเป็น NULL (เช่น 70033 ใน secid 34) ถ้าใช้ <code>=</code> จะได้ Unknown และไม่ถูกบันทึก</p></div>
+<h3>ตัวอย่างที่ 8.5 — กฎธุรกิจข้ามตาราง: ลงทะเบียนไม่เกิน 22 หน่วยกิตต่อภาค</h3>
+<p>CHECK บังคับกฎนี้ไม่ได้ เพราะต้องอ่านข้อมูลจากหลายตาราง</p>
+<sql title="สร้างทริกเกอร์" exec>DELIMITER $$
+
+CREATE TRIGGER tg_enroll_check_credit
+BEFORE INSERT ON enroll
+FOR EACH ROW
+BEGIN
+    DECLARE v_term    VARCHAR(6);
+    DECLARE v_current INT DEFAULT 0;
+    DECLARE v_new     INT DEFAULT 0;
+
+    SELECT sec.term, sub.credit INTO v_term, v_new
+    FROM   section sec INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE  sec.secid = NEW.secid;
+
+    SELECT IFNULL(SUM(sub.credit), 0) INTO v_current
+    FROM   enroll e
+           INNER JOIN section sec ON e.secid   = sec.secid
+           INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE  e.stdid = NEW.stdid AND sec.term = v_term;
+
+    IF (v_current + v_new) > 22 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ลงทะเบียนเกิน 22 หน่วยกิตต่อภาคเรียน';
+    END IF;
+END $$
+
+DELIMITER ;</sql>
+<p>ทดสอบ: เปิด 6 กลุ่มเรียนในภาค 2026-2 (วิชา 4+6+4+3+3+3 = 23 หน่วยกิต) แล้วให้นิสิต 60015 ลงทีละกลุ่ม</p>
+<sql title="เตรียมกลุ่มเรียน + ลง 5 กลุ่มแรก (20 หน่วยกิต)" run show="SELECT sec.secid, sub.subid, sub.credit FROM enroll e JOIN section sec ON e.secid = sec.secid JOIN subject sub ON sec.subid = sub.subid WHERE e.stdid = '60015' AND sec.term = '2026-2'">INSERT INTO section (subid, lecid, term) VALUES
+    ('CS007','t02','2026-2'), ('CS009','t02','2026-2'), ('MA002','t05','2026-2'),
+    ('CS001','t01','2026-2'), ('CS008','t03','2026-2'), ('PH001','t16','2026-2');
+INSERT INTO enroll (secid, stdid)
+SELECT secid, '60015' FROM section WHERE term = '2026-2' AND subid <> 'PH001';</sql>
+<sql title="ลงกลุ่มที่ 6 (PH001 3 หน่วยกิต) → รวม 23 เกิน 22" error>INSERT INTO enroll (secid, stdid)
+SELECT secid, '60015' FROM section WHERE term = '2026-2' AND subid = 'PH001';</sql>
+<sql title="ดู / ลบทริกเกอร์" run>SHOW TRIGGERS;</sql>
+<table class="tbl"><tr><th>ประเด็น</th><th>Stored Procedure</th><th>Trigger</th></tr>
+<tr><td>เรียกใช้</td><td>ผู้ใช้ CALL เอง</td><td>อัตโนมัติเมื่อเกิดเหตุการณ์</td></tr>
+<tr><td>พารามิเตอร์</td><td>รับได้</td><td>ไม่ได้ ใช้ OLD / NEW แทน</td></tr>
+<tr><td>COMMIT / ROLLBACK</td><td>ใช้ได้</td><td>ใช้ไม่ได้ (อยู่ในทรานแซกชันของคำสั่งที่กระตุ้น)</td></tr>
+<tr><td>เหมาะกับ</td><td>งานที่สั่งทำเป็นครั้งคราว</td><td>กฎที่ต้องบังคับทุกครั้ง</td></tr>
+</table>
+<div class="box warn"><div class="box-t">⚠️ ข้อควรระวัง</div><p>ทริกเกอร์ทำงานเบื้องหลัง ตามหาสาเหตุปัญหายาก และถ้าทริกเกอร์กระตุ้นทริกเกอร์อื่นต่อกัน อาจวนไม่รู้จบ — ใช้เฉพาะกฎที่ CHECK หรือ FK ทำไม่ได้</p></div>
+
+<ex no="8.6" title="ห้ามลดเงินเดือน" level="2">
+<p>จงเขียนทริกเกอร์ที่ป้องกันไม่ให้ลดเงินเดือนอาจารย์ (ค่าใหม่น้อยกว่าค่าเดิมให้แจ้ง error) แล้วทดสอบ</p>
+<answer><sql title="เฉลย" exec>DELIMITER $$
+CREATE TRIGGER tg_lecturer_no_cut
+BEFORE UPDATE ON lecturer
+FOR EACH ROW
+BEGIN
+    IF NEW.salary < OLD.salary THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ห้ามลดเงินเดือน';
+    END IF;
+END $$
+DELIMITER ;</sql>
+<sql title="ทดสอบ" error>UPDATE lecturer SET salary = 30000 WHERE lecid = 't01';</sql></answer>
+</ex>
+<ex no="8.7" title="เก็บประวัตินิสิตที่ถูกลบ" level="2">
+<p>จงเขียนทริกเกอร์ที่บันทึกข้อมูลนิสิตที่ถูกลบลงตาราง <code>student_deleted_log</code> พร้อมชื่อผู้ลบและเวลา</p>
+<answer><sql title="เฉลย" run show="SELECT stdid, name, major, deleted_by FROM student_deleted_log">CREATE TABLE student_deleted_log (
+    stdid      VARCHAR(10),
+    name       VARCHAR(50),
+    major      VARCHAR(20),
+    deleted_by VARCHAR(50),
+    deleted_at DATETIME
+);
+
+DELIMITER $$
+CREATE TRIGGER tg_student_after_delete
+AFTER DELETE ON student
+FOR EACH ROW
+BEGIN
+    INSERT INTO student_deleted_log
+    VALUES (OLD.stdid, OLD.name, OLD.major, CURRENT_USER(), NOW());
+END $$
+DELIMITER ;
+
+DELETE FROM student WHERE stdid LIKE '99%';</sql></answer>
+</ex>
+<ex no="8.8" title="จำกัด 40 คนต่อกลุ่ม" level="3">
+<p>จงเขียนทริกเกอร์จำกัดจำนวนนิสิตในกลุ่มเรียนหนึ่งไม่ให้เกิน 40 คน</p>
+<answer><sql title="เฉลย" exec>DELIMITER $$
+CREATE TRIGGER tg_enroll_max40
+BEFORE INSERT ON enroll
+FOR EACH ROW
+BEGIN
+    IF (SELECT COUNT(*) FROM enroll WHERE secid = NEW.secid) >= 40 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'กลุ่มเรียนนี้เต็มแล้ว (40 คน)';
+    END IF;
+END $$
+DELIMITER ;</sql>
+<p>ตารางหนึ่งมีทริกเกอร์ BEFORE INSERT ได้หลายตัว (MySQL 5.7+) ทำงานตามลำดับที่สร้าง หรือกำหนดด้วย <code>FOLLOWS</code> / <code>PRECEDES</code></p></answer>
+</ex>
+
+<h2 id="s7"><span class="sec">8.7</span> แนวปฏิบัติด้านความปลอดภัย</h2>
+<h3>8.7.1 การแทรกคำสั่ง SQL (SQL Injection)</h3>
+<p>ช่องโหว่ที่พบบ่อยที่สุด เกิดจาก<b>นำข้อมูลที่ผู้ใช้ป้อนไปต่อสตริงคำสั่ง SQL โดยตรง</b></p>
+<div class="code"><div class="code-head"><span>โปรแกรมที่ไม่ปลอดภัย</span></div><pre>sql = "SELECT * FROM student WHERE stdid = '" + user_input + "'";</pre></div>
+<p>ถ้าผู้ใช้ป้อน <code>' OR '1'='1</code> คำสั่งที่เกิดขึ้นจริงคือ</p>
+<sql title="คำสั่งที่ถูกแทรก → คืนข้อมูลนิสิตทั้งหมด" run max="5">SELECT * FROM student WHERE stdid = '' OR '1'='1';</sql>
+<p>วิธีป้องกันที่ได้ผลที่สุดคือ <span class="term">Prepared Statement</span> — แยกโครงสร้างคำสั่งออกจากข้อมูล ค่าที่ผู้ใช้ป้อนจะเป็น “ค่า” เสมอ ไม่ใช่ส่วนหนึ่งของคำสั่ง</p>
+<sql title="Prepared Statement ใน MySQL — ป้อนค่าปกติ" run>PREPARE stmt FROM 'SELECT stdid, name FROM student WHERE stdid = ?';
+SET @stdid = '60001';
+EXECUTE stmt USING @stdid;</sql>
+<sql title="ป้อนค่าโจมตี → ไม่ได้ข้อมูลใด" run>SET @stdid = ''' OR ''1''=''1';
+EXECUTE stmt USING @stdid;
+DEALLOCATE PREPARE stmt;</sql>
+<div class="code"><div class="code-head"><span>ในภาษาโปรแกรม</span></div><pre># Python (mysql-connector)
+cur.execute("SELECT * FROM student WHERE stdid = %s", (stdid,))
+
+// PHP (PDO)
+$stmt = $pdo->prepare('SELECT * FROM student WHERE stdid = ?');
+$stmt->execute([$stdid]);</pre></div>
+<h3>8.7.2 แนวปฏิบัติอื่น</h3>
+<ol>
+<li><b>ให้สิทธิ์เท่าที่จำเป็น</b> — บัญชีที่โปรแกรมใช้ไม่ควรมี DROP/ALTER และห้ามใช้ root เชื่อมจากโปรแกรม</li>
+<li><b>ไม่เก็บรหัสผ่านเป็นข้อความธรรมดา</b> — เก็บค่าแฮช + salt ด้วย bcrypt หรือ Argon2</li>
+<li><b>เข้ารหัสการเชื่อมต่อ</b> ด้วย TLS</li>
+<li><b>สำรองข้อมูลสม่ำเสมอ</b> และทดสอบกู้คืนจริงเป็นระยะ</li>
+<li><b>เก็บและตรวจ Log</b> ว่าใครแก้ข้อมูลใด เมื่อใด</li>
+<li><b>อัปเดตซอฟต์แวร์</b> เพื่อปิดช่องโหว่</li>
+</ol>
+<div class="code"><div class="code-head"><span>สำรอง / กู้คืน (รันที่ Command Prompt ไม่ใช่ใน DBeaver)</span></div><pre>mysqldump -u root -p std_66011200 > backup_20261001.sql
+mysql     -u root -p std_66011200 < backup_20261001.sql</pre></div>
+
+<ex no="8.9" title="หาช่องโหว่" level="2">
+<p>หน้าเข้าสู่ระบบสร้างคำสั่ง <code>"SELECT * FROM users WHERE username='" + u + "' AND password='" + p + "'"</code> ผู้โจมตีป้อน username เป็น <code>admin' -- </code> จะเกิดอะไรขึ้น และแก้อย่างไร</p>
+<answer><p>คำสั่งจริงกลายเป็น <code>SELECT * FROM users WHERE username='admin' -- ' AND password='...'</code> — ส่วนหลัง <code>--</code> กลายเป็นคอมเมนต์ จึง<b>เข้าระบบเป็น admin ได้โดยไม่ต้องรู้รหัสผ่าน</b></p>
+<p>แก้โดยใช้ Prepared Statement: <code>cur.execute("SELECT * FROM users WHERE username=%s", (u,))</code> แล้วตรวจรหัสผ่านด้วยการเทียบค่าแฮช (ไม่เก็บรหัสผ่านจริง)</p></answer>
+</ex>
+
+<review>
+<li class="part">ผู้ใช้และสิทธิ์</li>
+<li>สร้างบัญชี advisor ที่เชื่อมต่อได้จากเครื่องเดียวกันเท่านั้น ให้สิทธิ์อ่าน student และ enroll และแก้ไขได้เฉพาะคอลัมน์ grade <span class="hint">(GRANT UPDATE (grade))</span></li>
+<li>ยกเลิกสิทธิ์แก้ไขทั้งหมดของบัญชี advisor แล้วตรวจสอบผล <span class="hint">(REVOKE / SHOW GRANTS)</span></li>
+<li><code>'teacher'@'localhost'</code> กับ <code>'teacher'@'%'</code> ต่างกันอย่างไร ควรใช้แบบใดในระบบจริง <span class="hint">(host)</span></li>
+<li>จงอธิบายหลักการให้สิทธิ์เท่าที่จำเป็น และออกแบบสิทธิ์ของนิสิต อาจารย์ เจ้าหน้าที่ทะเบียน และผู้ดูแลระบบ <span class="hint">(Least Privilege)</span></li>
+<li>ออกแบบ Role สำหรับระบบห้องสมุดที่มีสมาชิก บรรณารักษ์ และผู้ดูแลระบบ พร้อมเขียนคำสั่ง <span class="hint">(CREATE ROLE / GRANT role TO user)</span></li>
+<li>สร้างวิวที่แสดงเฉพาะรหัส ชื่อ สาขาของนิสิต แล้วให้สิทธิ์ผู้ใช้ guest อ่านเฉพาะวิวนี้ อธิบายประโยชน์ <span class="hint">(GRANT SELECT ON view)</span></li>
+<li>เหตุใดจึงไม่ควรใช้ WITH GRANT OPTION กับผู้ใช้ทั่วไป <span class="hint">(สิทธิ์แพร่กระจาย)</span></li>
+<li class="part">Stored Procedure และ Function</li>
+<li>เขียนโพรซีเยอร์ sp_student_transcript(p_sid) แสดงเทอม ชื่อวิชา หน่วยกิต เกรด ของนิสิตที่ระบุ <span class="hint">(IN parameter)</span></li>
+<li>เขียนโพรซีเยอร์ sp_count_section(p_lecid, p_term, OUT p_n) แล้วเรียกใช้กับ t01 เทอม 2024-2 <span class="hint">(OUT + @ตัวแปร)</span></li>
+<li>เขียนโพรซีเยอร์ sp_raise_salary(p_major, p_percent) ขึ้นเงินเดือนอาจารย์ในสาขาที่ระบุตามร้อยละที่ระบุ แล้วแสดงผลหลังปรับ <span class="hint">(UPDATE ใน procedure)</span></li>
+<li>เขียนโพรซีเยอร์ sp_enroll(p_sid, p_secid) ที่ตรวจว่าเคยผ่านวิชาบังคับก่อน (เกรดไม่ใช่ F) แล้วจึงบันทึก มิฉะนั้นแจ้ง error <span class="hint">(IF NOT EXISTS … SIGNAL)</span></li>
+<li>เขียนโพรซีเยอร์ที่ใช้ WHILE สร้างกลุ่มเรียนวิชาที่ระบุให้อาจารย์ที่ระบุ ทุกเทอม (1, 2, 3) ของปีที่ระบุ <span class="hint">(WHILE i &lt;= 3)</span></li>
+<li>อธิบายเหตุผลที่ควรคิดแบบ Set-based ก่อนใช้ Cursor และเขียน sp_report_low_gpa ใหม่โดยไม่ใช้ Cursor <span class="hint">(SELECT เดียว)</span></li>
+<li>เขียนฟังก์ชัน fn_age(p_birthday) คืนค่าอายุ แล้วใช้แสดงอายุนิสิตทุกคน <span class="hint">(DETERMINISTIC? CURDATE())</span></li>
+<li>เขียนฟังก์ชัน fn_student_gpa(p_sid) คืนค่าเกรดเฉลี่ยถ่วงน้ำหนัก แล้วเปรียบเทียบกับคอลัมน์ gpa ในตาราง <span class="hint">(READS SQL DATA)</span></li>
+<li>เขียนฟังก์ชัน fn_section_count(p_lecid) คืนจำนวนกลุ่มที่อาจารย์สอน แล้วใช้ใน WHERE เพื่อหาอาจารย์ที่สอนมากกว่า 5 กลุ่ม <span class="hint">(ใช้ฟังก์ชันใน WHERE)</span></li>
+<li>เปรียบเทียบ Stored Procedure, Function และ Trigger ในแง่การเรียกใช้ พารามิเตอร์ ค่าที่คืน และงานที่เหมาะสม <span class="hint">(ตาราง 8.5, 8.7)</span></li>
+<li class="part">Trigger</li>
+<li>เขียนทริกเกอร์ป้องกันไม่ให้ลดเงินเดือนอาจารย์ <span class="hint">(BEFORE UPDATE + SIGNAL)</span></li>
+<li>เขียนทริกเกอร์บันทึกข้อมูลนิสิตที่ถูกลบลงตาราง student_deleted_log พร้อมชื่อผู้ลบและเวลา <span class="hint">(AFTER DELETE + OLD)</span></li>
+<li>เขียนทริกเกอร์จำกัดจำนวนนิสิตในกลุ่มเรียนหนึ่งไม่ให้เกิน 40 คน <span class="hint">(BEFORE INSERT ON enroll)</span></li>
+<li>เขียนทริกเกอร์ที่แปลงเกรดเป็นตัวพิมพ์ใหญ่อัตโนมัติก่อนบันทึก (เช่น 'a' → 'A') <span class="hint">(SET NEW.grade = UPPER(NEW.grade))</span></li>
+<li>เขียนทริกเกอร์บันทึกประวัติการแก้เกรด และอธิบายว่าทำไมต้องใช้ <code>&lt;=&gt;</code> แทน <code>=</code> <span class="hint">(NULL-safe equal)</span></li>
+<li>อธิบายว่าทำไมกฎ “ต้องผ่านวิชาบังคับก่อนจึงลงวิชาถัดไปได้” บังคับด้วย CHECK ไม่ได้ แล้วเขียนทริกเกอร์บังคับกฎนี้ <span class="hint">(ข้อมูลหลายตาราง)</span></li>
+<li class="part">ความปลอดภัย</li>
+<li>อธิบายการแทรกคำสั่ง SQL พร้อมยกตัวอย่างคำสั่งที่มีช่องโหว่ และเขียนคำสั่งที่แก้ให้ปลอดภัย <span class="hint">(Prepared Statement)</span></li>
+<li>ผู้โจมตีป้อน username <code>admin' -- </code> ในหน้าเข้าสู่ระบบที่ต่อสตริง SQL จะเกิดอะไรขึ้น <span class="hint">(-- คือคอมเมนต์)</span></li>
+<li>เหตุใดจึงห้ามเก็บรหัสผ่านเป็นข้อความธรรมดา และควรเก็บอย่างไร <span class="hint">(bcrypt / Argon2 + salt)</span></li>
+<li>เขียนคำสั่งสำรองฐานข้อมูลด้วย mysqldump และกู้คืน แล้วอธิบายว่าทำไมต้องทดสอบการกู้คืนเป็นระยะ <span class="hint">(mysqldump &gt; / mysql &lt;)</span></li>
+<li>ระบุมาตรการด้านความปลอดภัยที่ควรใช้กับระบบลงทะเบียนเรียนของมหาวิทยาลัยอย่างน้อย 5 ข้อ พร้อมเหตุผล <span class="hint">(8.7.2)</span></li>
+</review>

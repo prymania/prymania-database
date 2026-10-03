@@ -1,0 +1,136 @@
+# คำถามท้ายบท + เฉลย — ดูรูปแบบที่ apply_reviews.py
+# เฉลยบางข้อเรียกใช้โพรซีเยอร์/ฟังก์ชันที่สร้างไว้ในเนื้อหาบท จึงไม่โหลดฐานข้อมูลใหม่
+#!noreset
+## Stored Procedure
+เขียนโพรซีเยอร์ sp_student_transcript(p_sid) แสดงเทอม ชื่อวิชา หน่วยกิต เกรด ของนิสิตที่ระบุ || IN parameter
+A: ดูเฉลยแบบฝึกหัดที่ 11.1 — โพรซีเยอร์ถูกสร้างไว้แล้ว เรียกใช้กับนิสิตคนอื่นได้ทันที
+```run
+CALL sp_student_transcript('60001');
+```
+เขียนโพรซีเยอร์ sp_count_section(p_lecid, p_term, OUT p_n) แล้วเรียกใช้กับ t01 เทอม 2024-2 || OUT + @ตัวแปร
+A: ดูเฉลยแบบฝึกหัดที่ 11.2 — ค่า OUT ต้องรับด้วยตัวแปรผู้ใช้ (ขึ้นต้นด้วย @) แล้ว SELECT ออกมาดู
+```run
+CALL sp_count_section('t01', '2024-2', @n);
+SELECT @n AS n_section;
+```
+เขียนโพรซีเยอร์ sp_raise_salary(p_major, p_percent) ขึ้นเงินเดือนอาจารย์ในสาขาที่ระบุตามร้อยละที่ระบุ แล้วแสดงผลหลังปรับ || UPDATE ใน procedure
+```exec
+DELIMITER $$
+CREATE PROCEDURE sp_raise_salary (IN p_major VARCHAR(30), IN p_percent DECIMAL(5,2))
+BEGIN
+    UPDATE lecturer
+    SET    salary = salary * (1 + p_percent / 100)
+    WHERE  major = p_major;
+
+    SELECT lecid, name, major, salary
+    FROM   lecturer
+    WHERE  major = p_major;
+END $$
+DELIMITER ;
+```
+```run temp
+CALL sp_raise_salary('English', 5);
+```
+เขียนโพรซีเยอร์ sp_enroll(p_sid, p_secid) ที่ตรวจว่าเคยผ่านวิชาบังคับก่อน (เกรดไม่ใช่ F) แล้วจึงบันทึก มิฉะนั้นแจ้ง error || IF NOT EXISTS … SIGNAL
+A: ดูตัวอย่างที่ 11.6 — หัวใจคือหา pre ของวิชาในกลุ่มเรียน แล้วตรวจด้วย <code>NOT EXISTS</code> ว่ามีการลงวิชา pre ที่ได้เกรด A–D (เกรด NULL = ยังไม่ผ่าน จึงต้องระบุ IN ('A','B','C','D') แทน <code>&lt;&gt; 'F'</code>) ถ้าไม่มีให้ SIGNAL
+```
+SELECT sub.pre INTO v_pre
+FROM   section sec JOIN subject sub ON sec.subid = sub.subid
+WHERE  sec.secid = p_secid;
+
+IF v_pre IS NOT NULL AND NOT EXISTS (
+      SELECT 1 FROM enroll e JOIN section s ON e.secid = s.secid
+      WHERE  e.stdid = p_sid AND s.subid = v_pre
+        AND  e.grade IN ('A', 'B', 'C', 'D')) THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ยังไม่ผ่านวิชาบังคับก่อน';
+END IF;
+```
+```error
+CALL sp_enroll('60015', 52);
+```
+เขียนโพรซีเยอร์ที่ใช้ WHILE สร้างกลุ่มเรียนวิชาที่ระบุให้อาจารย์ที่ระบุ ทุกเทอม (1, 2, 3) ของปีที่ระบุ || WHILE i <= 3
+```exec
+DELIMITER $$
+CREATE PROCEDURE sp_open_all_terms (IN p_subid VARCHAR(10), IN p_lecid VARCHAR(10), IN p_year INT)
+BEGIN
+    DECLARE i INT DEFAULT 1;
+    WHILE i <= 3 DO
+        INSERT INTO section (subid, lecid, term)
+        VALUES (p_subid, p_lecid, CONCAT(p_year, '-', i));
+        SET i = i + 1;
+    END WHILE;
+END $$
+DELIMITER ;
+```
+```run temp show="SELECT * FROM section WHERE term LIKE '2027-%'"
+CALL sp_open_all_terms('CS001', 't01', 2027);
+```
+เขียนโพรซีเยอร์ย้ายกลุ่มเรียนของนิสิตเป็นทรานแซกชัน ถ้าเกิดข้อผิดพลาดให้ ROLLBACK อัตโนมัติ || DECLARE EXIT HANDLER FOR SQLEXCEPTION
+A: ดูตัวอย่างที่ 11.7 (sp_move_section) — ประกาศ <code>DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ROLLBACK; RESIGNAL; END;</code> ก่อน แล้วทำ <code>START TRANSACTION</code> → DELETE จากกลุ่มเดิม → INSERT กลุ่มใหม่ → COMMIT ถ้าขั้นใดเกิด error HANDLER จะ ROLLBACK ทั้งหมดและส่ง error ต่อให้ผู้เรียก
+```error title="ย้ายไปกลุ่มที่ไม่มีอยู่ → error และ ROLLBACK (นิสิตยังอยู่กลุ่มเดิม)"
+CALL sp_move_section('60009', 20, 999);
+```
+```run
+SELECT * FROM enroll WHERE stdid = '60009' AND secid = 20;
+```
+อธิบายเหตุผลที่ควรคิดแบบ Set-based ก่อนใช้ Cursor และเขียน sp_report_low_gpa ใหม่โดยไม่ใช้ Cursor || SELECT เดียว
+A: SQL ถูกออกแบบให้ประมวลผล<b>ทั้งชุดข้อมูล</b>ในคำสั่งเดียว DBMS จึงเลือกวิธีที่เร็วที่สุดได้ (ใช้ดัชนี ทำงานขนาน) ส่วน Cursor อ่านและประมวลผลทีละแถว มีโค้ดมาก ช้ากว่ามากเมื่อข้อมูลเยอะ และเกิดข้อผิดพลาดได้ง่ายกว่า — ใช้ Cursor เฉพาะงานที่ทำแบบชุดไม่ได้จริง ๆ
+```exec
+DELIMITER $$
+CREATE PROCEDURE sp_report_low_gpa_set ()
+BEGIN
+    SELECT stdid, name, CONCAT('เกรดเฉลี่ย ', gpa, ' ต่ำกว่าเกณฑ์') AS note
+    FROM   student
+    WHERE  gpa < 2.00;
+END $$
+DELIMITER ;
+```
+```run
+CALL sp_report_low_gpa_set();
+```
+## Stored Function
+เขียนฟังก์ชัน fn_age(p_birthday) คืนค่าอายุ แล้วใช้แสดงอายุนิสิตทุกคน || DETERMINISTIC? CURDATE()
+A: ฟังก์ชันนี้ <b>ไม่ใช่ DETERMINISTIC</b> — ค่าวันเกิดเดิมให้ผลต่างกันเมื่อวันที่เปลี่ยน (ขึ้นกับ CURDATE()) จึงประกาศ <code>NOT DETERMINISTIC</code> และ <code>NO SQL</code> (ไม่ได้อ่านตาราง)
+```run max="8"
+DELIMITER $$
+CREATE FUNCTION fn_age (p_birthday DATE)
+RETURNS INT
+NOT DETERMINISTIC NO SQL
+BEGIN
+    RETURN TIMESTAMPDIFF(YEAR, p_birthday, CURDATE());
+END $$
+DELIMITER ;
+
+SELECT stdid, name, birthday, fn_age(birthday) AS age FROM student;
+```
+เขียนฟังก์ชัน fn_student_gpa(p_sid) คืนค่าเกรดเฉลี่ยถ่วงน้ำหนัก แล้วเปรียบเทียบกับคอลัมน์ gpa ในตาราง || READS SQL DATA
+A: ดูเฉลยแบบฝึกหัดที่ 11.4 — ฟังก์ชันอ่านตาราง enroll/section/subject จึงประกาศ <code>READS SQL DATA</code>
+```run max="8"
+SELECT stdid, name, gpa AS stored_gpa, fn_student_gpa(stdid) AS calc_gpa,
+       ROUND(gpa - fn_student_gpa(stdid), 2) AS diff
+FROM   student
+WHERE  stdid IN (SELECT stdid FROM enroll WHERE grade IS NOT NULL)
+ORDER  BY stdid;
+```
+เขียนฟังก์ชัน fn_section_count(p_lecid) คืนจำนวนกลุ่มที่อาจารย์สอน แล้วใช้ใน WHERE เพื่อหาอาจารย์ที่สอนมากกว่า 5 กลุ่ม || ใช้ฟังก์ชันใน WHERE
+```run
+DELIMITER $$
+CREATE FUNCTION fn_section_count (p_lecid VARCHAR(10))
+RETURNS INT
+READS SQL DATA
+BEGIN
+    DECLARE v_n INT;
+    SELECT COUNT(*) INTO v_n FROM section WHERE lecid = p_lecid;
+    RETURN v_n;
+END $$
+DELIMITER ;
+
+SELECT lecid, name, fn_section_count(lecid) AS n_section
+FROM   lecturer
+WHERE  fn_section_count(lecid) > 5;
+```
+A: ใช้งานง่ายและอ่านเข้าใจ แต่ฟังก์ชันถูกเรียก<b>ทุกแถว</b> — ถ้าข้อมูลมาก การเขียนด้วย GROUP BY … HAVING จะเร็วกว่า
+เปรียบเทียบ Stored Procedure, Function และวิว ในแง่การเรียกใช้ พารามิเตอร์ ค่าที่คืน และงานที่เหมาะสม || บทที่ 7 และ 11
+A- <b>Stored Procedure</b> — เรียกด้วย <code>CALL</code> · พารามิเตอร์ IN / OUT / INOUT · คืนผลลัพธ์ได้หลายชุดหรือไม่คืนเลย · เหมาะกับงานหลายขั้นตอนที่แก้ไขข้อมูล มีเงื่อนไข และทรานแซกชัน (ลงทะเบียน ย้ายกลุ่ม)
+A- <b>Stored Function</b> — เรียกในนิพจน์ SQL (SELECT / WHERE) · พารามิเตอร์ IN อย่างเดียว · คืน<b>ค่าเดียว</b>เสมอ · เหมาะกับการคำนวณที่ใช้ซ้ำ (อายุ เกรดเฉลี่ย) ไม่ควรแก้ไขข้อมูล
+A- <b>วิว</b> — ใช้แทนตารางใน FROM · ไม่มีพารามิเตอร์ (กรองด้วย WHERE ตอนเรียก) · คืนเป็นตาราง · เหมาะกับการซ่อน JOIN/สรุปข้อมูลที่ใช้บ่อย และควบคุมสิทธิ์การมองเห็น

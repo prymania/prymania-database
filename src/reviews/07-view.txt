@@ -1,0 +1,384 @@
+# คำถามท้ายบท + เฉลย — ดูรูปแบบที่ apply_reviews.py
+# เฉลยบทนี้ใช้วิวที่สร้างไว้ในเนื้อหาบท (v_enroll_detail, v_student_gpa, …) จึงไม่โหลดฐานข้อมูลใหม่
+#!noreset
+## แนวคิดของวิว
+จงอธิบายความแตกต่างระหว่างวิวกับตารางจริง ในแง่สิ่งที่เก็บ การสร้าง ข้อกำหนดบังคับ และการปรับปรุงข้อมูล || หัวข้อ 7.1
+A- <b>สิ่งที่เก็บ</b> — ตารางเก็บข้อมูลจริง วิวเก็บเพียงคำสั่ง SELECT
+A- <b>การสร้าง</b> — ตารางใช้ CREATE TABLE วิวใช้ CREATE VIEW … AS SELECT
+A- <b>ข้อกำหนดบังคับ</b> — ตารางมี PK / FK / CHECK ของตัวเอง วิวไม่มี (อาศัยของตารางจริง และเพิ่มได้เพียง WITH CHECK OPTION)
+A- <b>การปรับปรุงข้อมูล</b> — ตาราง INSERT/UPDATE/DELETE ได้เสมอ วิวทำได้บางกรณี (แต่ละแถวต้องชี้กลับไปยังแถวเดียวในตารางจริงได้) และการเปลี่ยนแปลงเกิดที่ตารางจริง
+ถ้าแก้ข้อมูลในตาราง student หลังจากสร้างวิว v_cs_student แล้ว ผลลัพธ์ของ `SELECT * FROM v_cs_student` จะเปลี่ยนตามหรือไม่ เพราะเหตุใด || วิวเก็บคำสั่ง ไม่ใช่ข้อมูล
+A: <b>เปลี่ยนตาม</b> — วิวไม่ได้เก็บข้อมูล ทุกครั้งที่ SELECT จากวิว DBMS จะรันคำสั่งของวิวกับตาราง student ณ ขณะนั้น (ดูขั้นที่ 5 ของหัวข้อ 7.1.1)
+```run temp
+UPDATE student SET gpa = 4.00 WHERE stdid = '60003';
+SELECT * FROM v_cs_student WHERE stdid = '60003';
+```
+จงอธิบายว่า MySQL ประมวลผลคำสั่ง `SELECT * FROM v_cs_student WHERE gpa >= 3` อย่างไร และเขียนคำสั่งที่เทียบเท่าโดยไม่ใช้วิว || MERGE
+A: MySQL แทนชื่อวิวด้วยนิยามของวิว แล้วรวมเงื่อนไขของวิว (major = 'CS') กับเงื่อนไขของคำสั่งที่เรียก (gpa &gt;= 3) เข้าด้วยกัน (วิธี MERGE) ได้คำสั่งเทียบเท่าคือ
+```run
+SELECT stdid, name, major, gpa, birthday
+FROM   student
+WHERE  major = 'CS'
+  AND  gpa >= 3;
+```
+จงอธิบายความแตกต่างของ `CREATE TABLE … AS SELECT` กับ `CREATE VIEW … AS SELECT` และยกตัวอย่างกรณีที่ควรใช้แต่ละแบบ || เก็บข้อมูล vs เก็บคำสั่ง
+A: <code>CREATE TABLE … AS SELECT</code> คัดลอก<b>ข้อมูล ณ ขณะนั้น</b>ไปเก็บเป็นตารางใหม่ (snapshot) ข้อมูลไม่เปลี่ยนตามต้นทาง — ใช้สำรองข้อมูลก่อนแก้ไข หรือเก็บผลการเรียนสิ้นภาคไว้เป็นหลักฐาน
+A: <code>CREATE VIEW … AS SELECT</code> เก็บเพียง<b>คำสั่ง</b> ผลลัพธ์เป็นข้อมูลล่าสุดเสมอ ไม่ใช้พื้นที่เก็บข้อมูล — ใช้ทำรายงานที่เรียกซ้ำบ่อย ซ่อนความซับซ้อนของ JOIN หรือจำกัดสิทธิ์การมองเห็น
+## สร้างและจัดการวิว
+สร้างวิว v_math_student แสดงรหัส ชื่อ gpa ของนิสิตสาขา Math แล้วใช้วิวแสดงคนที่ gpa ต่ำกว่า 3.00 || WHERE ในวิว + WHERE ตอนเรียกใช้
+```run
+CREATE VIEW v_math_student AS
+SELECT stdid, name, gpa
+FROM   student
+WHERE  major = 'Math';
+
+SELECT * FROM v_math_student WHERE gpa < 3.00;
+```
+สร้างวิว v_lecturer_income(lecturer_id, lecturer_name, monthly, yearly, tax) โดย tax = 7% ของ yearly แล้วแสดงอาจารย์ที่ต้องเสียภาษีเกิน 40,000 || ตั้งชื่อคอลัมน์หลังชื่อวิว
+```run
+CREATE VIEW v_lecturer_income (lecturer_id, lecturer_name, monthly, yearly, tax) AS
+SELECT lecid, name, salary, salary * 12, salary * 12 * 0.07
+FROM   lecturer;
+
+SELECT * FROM v_lecturer_income WHERE tax > 40000 ORDER BY tax DESC;
+```
+สร้างวิว v_student_age แสดงรหัส ชื่อ สาขา (NULL แสดง Undeclared) อายุ และช่วงอายุ (“ต่ำกว่า 15” / “15 ขึ้นไป”) แล้วนับจำนวนนิสิตในแต่ละช่วงอายุ || TIMESTAMPDIFF + CASE
+A: นิสิตที่ไม่มีวันเกิดจะมี age เป็น NULL จึงจัดเป็นกลุ่ม “ไม่ทราบ”
+```run
+CREATE VIEW v_student_age AS
+SELECT stdid, name,
+       IFNULL(major, 'Undeclared')               AS major,
+       TIMESTAMPDIFF(YEAR, birthday, CURDATE())  AS age,
+       CASE
+           WHEN birthday IS NULL THEN 'ไม่ทราบ'
+           WHEN TIMESTAMPDIFF(YEAR, birthday, CURDATE()) < 15 THEN 'ต่ำกว่า 15'
+           ELSE '15 ขึ้นไป'
+       END                                       AS age_group
+FROM   student;
+
+SELECT age_group, COUNT(*) AS n_student
+FROM   v_student_age
+GROUP  BY age_group;
+```
+แก้วิว v_math_student ให้มีคอลัมน์ birthday เพิ่ม แล้วตรวจโครงสร้างวิวใหม่ || CREATE OR REPLACE VIEW / DESCRIBE
+```run
+CREATE OR REPLACE VIEW v_math_student AS
+SELECT stdid, name, gpa, birthday
+FROM   student
+WHERE  major = 'Math';
+
+DESCRIBE v_math_student;
+```
+เขียนคำสั่งแสดงรายชื่อวิวทั้งหมดในฐานข้อมูล ดูคำสั่งที่ใช้สร้างวิว v_enroll_detail และลบวิว v_math_student || SHOW FULL TABLES / SHOW CREATE VIEW / DROP VIEW
+```run max="8"
+SHOW FULL TABLES WHERE Table_type = 'VIEW';
+```
+```
+SHOW CREATE VIEW v_enroll_detail;   -- ใน DBeaver ดูผลในคอลัมน์ Create View
+```
+```exec
+DROP VIEW v_math_student;
+```
+สร้างวิว v_transcript แสดง stdid ชื่อนิสิต รหัสวิชา ชื่อวิชา หน่วยกิต เทอม ชื่อผู้สอน เกรด แล้วใช้แสดงทรานสคริปต์ของนิสิต 60007 || JOIN 5 ตาราง
+```run
+CREATE VIEW v_transcript AS
+SELECT s.stdid, s.name AS student_name,
+       sub.subid, sub.name AS subject_name, sub.credit,
+       sec.term, l.name AS lecturer_name, e.grade
+FROM   enroll e
+       INNER JOIN student  s   ON e.stdid   = s.stdid
+       INNER JOIN section  sec ON e.secid   = sec.secid
+       INNER JOIN subject  sub ON sec.subid = sub.subid
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid;
+
+SELECT term, subid, subject_name, credit, lecturer_name, grade
+FROM   v_transcript
+WHERE  stdid = '60007'
+ORDER  BY term;
+```
+สร้างวิว v_subject_full แสดงรหัสวิชา ชื่อวิชา หน่วยกิต ชื่อวิชาบังคับก่อน (ไม่มีให้แสดง “-”) แล้วแสดงวิชาทุกวิชาที่ต้องผ่าน Programming ก่อน || Self Join + LEFT JOIN
+```run
+CREATE VIEW v_subject_full AS
+SELECT sub.subid, sub.name, sub.credit,
+       IFNULL(pre.name, '-') AS pre_name
+FROM   subject sub
+       LEFT JOIN subject pre ON sub.pre = pre.subid;
+
+SELECT * FROM v_subject_full WHERE pre_name = 'Programming';
+```
+สร้างวิว v_section_full แสดง secid เทอม ชื่อวิชา ชื่ออาจารย์ จำนวนนิสิต จำนวนที่ได้ A และ F (กลุ่มที่ไม่มีคนลงให้แสดง 0) || LEFT JOIN + SUM(CASE …)
+```run max="8"
+CREATE VIEW v_section_full AS
+SELECT sec.secid, sec.term, sub.name AS subject_name, l.name AS lecturer_name,
+       COUNT(e.stdid)                                  AS n_student,
+       SUM(CASE WHEN e.grade = 'A' THEN 1 ELSE 0 END)  AS n_A,
+       SUM(CASE WHEN e.grade = 'F' THEN 1 ELSE 0 END)  AS n_F
+FROM   section sec
+       INNER JOIN subject  sub ON sec.subid = sub.subid
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid
+       LEFT  JOIN enroll   e   ON sec.secid = e.secid
+GROUP  BY sec.secid, sec.term, sub.name, l.name;
+
+SELECT * FROM v_section_full ORDER BY n_student, secid;
+```
+สร้างวิว v_lecturer_term แสดงรหัสอาจารย์ ชื่อ เทอม และจำนวนกลุ่มที่สอนในเทอมนั้น แล้วแสดงอาจารย์ที่สอนมากกว่า 1 กลุ่มในเทอมเดียวกัน || GROUP BY lecid, name, term
+```run max="10"
+CREATE VIEW v_lecturer_term AS
+SELECT l.lecid, l.name, sec.term, COUNT(*) AS n_section
+FROM   lecturer l
+       INNER JOIN section sec ON l.lecid = sec.lecid
+GROUP  BY l.lecid, l.name, sec.term;
+
+SELECT * FROM v_lecturer_term WHERE n_section > 1 ORDER BY lecid, term;
+```
+สร้างวิว v_people รวมรหัส ชื่อ สาขา ของนิสิตและอาจารย์ พร้อมคอลัมน์บอกประเภท แล้วนับจำนวนคนในแต่ละสาขา (รวมทั้งนิสิตและอาจารย์) || UNION ALL
+```run
+CREATE VIEW v_people AS
+SELECT stdid AS id, name, major, 'student'  AS type FROM student
+UNION ALL
+SELECT lecid,       name, major, 'lecturer'         FROM lecturer;
+
+SELECT major,
+       SUM(type = 'student')  AS n_student,
+       SUM(type = 'lecturer') AS n_lecturer,
+       COUNT(*)               AS n_total
+FROM   v_people
+GROUP  BY major
+ORDER  BY n_total DESC;
+```
+สร้างวิว v_student_public ที่แสดงเฉพาะรหัส ชื่อ สาขา ของนิสิต แล้วอธิบายว่าจะใช้วิวนี้ร่วมกับ GRANT เพื่อปกป้องข้อมูลอย่างไร || หัวข้อ 7.8
+A: วิวนี้สร้างไว้แล้วในหัวข้อ 7.8 (ใช้ CREATE OR REPLACE ได้) จากนั้นให้สิทธิ์ผู้ใช้อ่าน<b>เฉพาะวิว</b> โดยไม่ให้สิทธิ์ตาราง student — ผู้ใช้จะเห็นเพียง 3 คอลัมน์ ไม่เห็น gpa และวันเกิด
+```exec
+CREATE OR REPLACE VIEW v_student_public AS
+SELECT stdid, name, major FROM student;
+```
+```
+GRANT SELECT ON std_66011200.v_student_public TO 'guest'@'localhost';
+-- ไม่มี GRANT ... ON std_66011200.student → guest อ่านตาราง student ตรง ๆ ไม่ได้
+```
+## SELECT ที่ซับซ้อน — สร้างวิวก่อนแล้วจึงตอบ
+แสดงสาขาที่มีอาจารย์มากที่สุด (ถ้าเท่ากันแสดงทุกสาขา) และอธิบายว่าทำไม `MAX(COUNT(*))` ใช้ไม่ได้ || วิวนับอาจารย์ต่อสาขา → MAX
+A: SQL ไม่อนุญาตให้ซ้อนฟังก์ชันรวมในระดับเดียวกัน (Error 1111) ต้องนับก่อน 1 ชั้นแล้วจึงหาค่าสูงสุดจากผลนับ
+```run
+CREATE VIEW v_major_lecturer AS
+SELECT major, COUNT(*) AS n_lecturer
+FROM   lecturer
+GROUP  BY major;
+
+SELECT major, n_lecturer
+FROM   v_major_lecturer
+WHERE  n_lecturer =
+       (SELECT MAX(n_lecturer)
+        FROM   v_major_lecturer);
+```
+แสดงภาคเรียนที่เปิดกลุ่มเรียนมากที่สุด และภาคเรียนที่เปิดน้อยที่สุด ในผลลัพธ์เดียว || วิวนับ section ต่อ term + UNION
+```run
+CREATE VIEW v_term_section AS
+SELECT term, COUNT(*) AS n_section
+FROM   section
+GROUP  BY term;
+
+SELECT 'มากที่สุด' AS type, term, n_section
+FROM   v_term_section
+WHERE  n_section =
+       (SELECT MAX(n_section)
+        FROM   v_term_section)
+UNION
+SELECT 'น้อยที่สุด', term, n_section
+FROM   v_term_section
+WHERE  n_section =
+       (SELECT MIN(n_section)
+        FROM   v_term_section);
+```
+แสดงวิชาที่มีจำนวนผู้ลงทะเบียนรวมทุกภาค มากกว่าค่าเฉลี่ยของทุกวิชา || วิวสรุปรายวิชา → AVG
+A: ใช้ v_subject_stat (แบบฝึกหัด 7.7) ซึ่งนับรวมวิชาที่ไม่มีคนลง (n_enroll = 0) ในค่าเฉลี่ยด้วย
+```run
+SELECT subid, name, n_enroll
+FROM   v_subject_stat
+WHERE  n_enroll >
+       (SELECT AVG(n_enroll)
+        FROM   v_subject_stat)
+ORDER  BY n_enroll DESC;
+```
+แสดงนิสิตที่ลงทะเบียนจำนวนวิชามากที่สุดในแต่ละสาขา || วิวนับวิชาต่อคน + Correlated Subquery
+```run
+CREATE VIEW v_student_nsubject AS
+SELECT s.stdid, s.name, s.major, COUNT(e.secid) AS n_subject
+FROM   student s
+       LEFT JOIN enroll e ON s.stdid = e.stdid
+GROUP  BY s.stdid, s.name, s.major;
+
+SELECT a.major, a.stdid, a.name, a.n_subject
+FROM   v_student_nsubject a
+WHERE  a.major IS NOT NULL
+  AND  a.n_subject =
+       (SELECT MAX(b.n_subject)
+        FROM   v_student_nsubject b
+        WHERE  b.major = a.major)
+ORDER  BY a.major;
+```
+แสดงนิสิตที่มี gpa_calc สูงกว่าค่าเฉลี่ย gpa_calc ของนิสิตในสาขาเดียวกัน พร้อมค่าเฉลี่ยของสาขา || v_student_gpa ใช้ 2 ครั้ง
+A: ใช้ v_major_gpa (แบบฝึกหัด 7.11) ซึ่งเป็นค่าเฉลี่ยของ gpa_calc รายสาขา JOIN กลับกับ v_student_gpa
+```run
+SELECT g.student_major, g.student_id, g.student_name, g.gpa_calc, m.avg_gpa_calc
+FROM   v_student_gpa g
+       INNER JOIN v_major_gpa m ON g.student_major = m.major
+WHERE  g.gpa_calc > m.avg_gpa_calc
+ORDER  BY g.student_major, g.gpa_calc DESC;
+```
+แสดงอาจารย์ที่อัตราการได้ A ของนิสิตในทุกกลุ่มที่ตนสอน (รวมกัน) สูงกว่าอัตราเฉลี่ยของทั้งมหาวิทยาลัย || วิวสรุปรายอาจารย์ (ใช้ lecid)
+A: จัดกลุ่มด้วย lecid (ไม่ใช่ชื่อ เพราะมี Yoda 2 คน) และนับเฉพาะการลงทะเบียนที่มีเกรดแล้ว
+```run
+CREATE VIEW v_lecturer_rate AS
+SELECT l.lecid, l.name,
+       COUNT(e.grade)                               AS n_graded,
+       ROUND(SUM(e.grade = 'A') * 100 / COUNT(e.grade), 1) AS pct_A
+FROM   lecturer l
+       INNER JOIN section sec ON l.lecid  = sec.lecid
+       INNER JOIN enroll  e   ON sec.secid = e.secid
+WHERE  e.grade IS NOT NULL
+GROUP  BY l.lecid, l.name;
+
+SELECT *
+FROM   v_lecturer_rate
+WHERE  pct_A >
+       (SELECT SUM(grade = 'A') * 100 / COUNT(grade)
+        FROM   enroll)
+ORDER  BY pct_A DESC;
+```
+แสดงภาคเรียนที่นิสิตแต่ละคนได้เกรดเฉลี่ยต่ำที่สุด พร้อมเกรดเฉลี่ยของภาคนั้น || v_student_term_gpa + MIN
+```run max="12"
+SELECT t.student_id, t.student_name, t.term, t.term_gpa
+FROM   v_student_term_gpa t
+WHERE  t.term_gpa =
+       (SELECT MIN(t2.term_gpa)
+        FROM   v_student_term_gpa t2
+        WHERE  t2.student_id = t.student_id)
+ORDER  BY t.student_id, t.term;
+```
+แสดงชื่อวิชาที่เปิดสอนทั้งในภาคเรียน 2024-1 และ 2024-2 || วิวนับจำนวนภาคต่อวิชา = 2
+```run
+CREATE VIEW v_subject_2024 AS
+SELECT subid, COUNT(DISTINCT term) AS n_term
+FROM   section
+WHERE  term IN ('2024-1', '2024-2')
+GROUP  BY subid;
+
+SELECT sub.subid, sub.name
+FROM   v_subject_2024 v
+       INNER JOIN subject sub ON v.subid = sub.subid
+WHERE  v.n_term = 2;
+```
+แสดงวิชาที่ทุกกลุ่มเรียนไม่มีนิสิตได้ F เลย และมีผู้ได้เกรดแล้วอย่างน้อย 3 คน || วิวสรุปรายวิชาจาก v_section_summary
+```run
+CREATE VIEW v_subject_result AS
+SELECT subject_name,
+       COUNT(*)                     AS n_section,
+       SUM(n_student - n_waiting)   AS n_graded,
+       SUM(n_F)                     AS n_F
+FROM   v_section_summary
+GROUP  BY subject_name;
+
+SELECT *
+FROM   v_subject_result
+WHERE  n_F = 0 AND n_graded >= 3;
+```
+แสดงการลงทะเบียนที่นิสิตยังไม่เคยผ่านวิชาบังคับก่อน แล้วสรุปว่านิสิตแต่ละคนมีกี่รายการ เรียงจากมากไปน้อย || v_passed + v_subject_pre + GROUP BY
+A: เป็นขั้นที่ 3 ของโจทย์ที่ 7 ในหัวข้อ 7.7 — เก็บรายการที่ผิดกฎเป็นวิวก่อน แล้วสรุป
+```run max="8"
+CREATE VIEW v_violation AS
+SELECT e.student_id, e.student_name, e.term, e.subject_name, p.pre_name
+FROM   v_enroll_detail e
+       INNER JOIN v_subject_pre p ON e.subject_id = p.subid
+WHERE  p.pre_id IS NOT NULL
+  AND  NOT EXISTS
+       (SELECT *
+        FROM   v_passed x
+        WHERE  x.student_id = e.student_id
+          AND  x.subject_id = p.pre_id);
+
+SELECT student_id, student_name, COUNT(*) AS n_violation
+FROM   v_violation
+GROUP  BY student_id, student_name
+ORDER  BY n_violation DESC, student_id;
+```
+แสดงอาจารย์ที่เงินเดือนสูงสุดในแต่ละสาขา และส่วนต่างจากเงินเดือนเฉลี่ยของสาขานั้น || วิวสรุปเงินเดือนรายสาขา แล้ว JOIN กลับ
+```run
+CREATE VIEW v_major_salary AS
+SELECT major, MAX(salary) AS max_salary, ROUND(AVG(salary), 2) AS avg_salary
+FROM   lecturer
+GROUP  BY major;
+
+SELECT l.major, l.lecid, l.name, l.salary, m.avg_salary,
+       l.salary - m.avg_salary AS diff_from_avg
+FROM   lecturer l
+       INNER JOIN v_major_salary m ON l.major = m.major
+WHERE  l.salary = m.max_salary
+ORDER  BY l.major;
+```
+ท้าทาย: แสดงนิสิตที่เกรดเฉลี่ยรายภาคไม่เคยลดลงเลย (ภาคหลังไม่ต่ำกว่าภาคก่อน) และมีเกรดอย่างน้อย 2 ภาค || Self Join v_student_term_gpa + NOT EXISTS
+A: “ไม่เคยลดลง” = ไม่มีคู่ภาคใดเลยที่ภาคหลังได้เกรดเฉลี่ย<b>น้อยกว่า</b>ภาคก่อน (ถ้าโจทย์ต้องการ “ดีขึ้นทุกภาค” ให้เปลี่ยน &lt; เป็น &lt;= — ข้อมูลกรณีศึกษาไม่มีนิสิตแบบนั้น)
+```run
+SELECT t.student_id, t.student_name,
+       COUNT(*)                                       AS n_term,
+       GROUP_CONCAT(t.term_gpa ORDER BY t.term SEPARATOR ' → ') AS gpa_by_term
+FROM   v_student_term_gpa t
+WHERE  NOT EXISTS
+       (SELECT *
+        FROM   v_student_term_gpa a
+               INNER JOIN v_student_term_gpa b
+                       ON a.student_id = b.student_id AND a.term < b.term
+        WHERE  a.student_id = t.student_id
+          AND  b.term_gpa < a.term_gpa)
+GROUP  BY t.student_id, t.student_name
+HAVING COUNT(*) >= 2;
+```
+จงเขียนคำตอบข้อใดข้อหนึ่งข้างต้นอีกแบบด้วย CTE (WITH) แล้วเปรียบเทียบข้อดีข้อเสียกับการสร้างวิว || หัวข้อ 7.10.4
+A: ตัวอย่าง — ข้อ “สาขาที่มีอาจารย์มากที่สุด” ด้วย CTE ได้ผลเท่ากัน แต่ไม่สร้างวัตถุถาวรในฐานข้อมูล
+```run
+WITH major_lecturer AS (
+    SELECT major, COUNT(*) AS n_lecturer
+    FROM   lecturer
+    GROUP  BY major
+)
+SELECT major, n_lecturer
+FROM   major_lecturer
+WHERE  n_lecturer =
+       (SELECT MAX(n_lecturer)
+        FROM   major_lecturer);
+```
+A: <b>CTE</b> — ไม่ต้องมีสิทธิ์ CREATE VIEW ไม่ทิ้งวัตถุค้างในฐานข้อมูล เหมาะกับคำถามครั้งเดียว แต่ใช้ได้เฉพาะคำสั่งนั้น <b>วิว</b> — ใช้ซ้ำได้ทุกคำสั่งและทุกผู้ใช้ กำหนดสิทธิ์แยกได้ แต่ต้องจัดการ (ตั้งชื่อ ลบ) และอาจเสียเมื่อตารางต้นทางเปลี่ยน
+## การปรับปรุงข้อมูลผ่านวิว
+จงระบุว่าวิวต่อไปนี้ UPDATE ผ่านได้หรือไม่ พร้อมเหตุผล: (ก) SELECT จากตารางเดียว (ข) มี GROUP BY (ค) มี DISTINCT (ง) มี UNION (จ) JOIN 3 ตาราง แก้คอลัมน์จากตารางเดียว || หัวข้อ 7.9
+A: (ก) <b>ได้</b> — แต่ละแถวของวิวตรงกับแถวเดียวในตาราง<br>(ข) <b>ไม่ได้</b> — 1 แถวของวิวมาจากหลายแถว<br>(ค) <b>ไม่ได้</b> — ไม่รู้ว่าแถวที่เห็นตรงกับแถวใดในบรรดาแถวที่ซ้ำ<br>(ง) <b>ไม่ได้</b> — ไม่รู้ว่าแถวมาจากตารางใด<br>(จ) <b>ได้</b> — ถ้าทุกคอลัมน์ที่แก้มาจากตารางเดียวกัน (แต่ DELETE ไม่ได้)
+```run
+SELECT TABLE_NAME, IS_UPDATABLE
+FROM   information_schema.VIEWS
+WHERE  TABLE_SCHEMA = DATABASE()
+  AND  TABLE_NAME IN ('v_cs_student', 'v_section_summary', 'v_passed', 'v_people', 'v_section_detail');
+```
+INSERT นิสิตใหม่ผ่านวิว v_student_public แล้วตรวจว่าคอลัมน์ gpa และ birthday ในตารางจริงมีค่าอะไร || NULL
+A: คอลัมน์ที่ไม่อยู่ในวิวได้ค่าปริยายของตาราง ซึ่งในที่นี้คือ <b>NULL</b>
+```run temp show="SELECT * FROM student WHERE stdid = '80010'"
+INSERT INTO v_student_public (stdid, name, major) VALUES ('80010', 'Armin', 'Math');
+```
+สร้างวิวนิสิตสาขา CS พร้อม WITH CHECK OPTION แล้วลองเปลี่ยนสาขานิสิตผ่านวิวเป็น Math อธิบายผลที่ได้ || Error 1369
+A: ถูกปฏิเสธด้วย <b>Error 1369 CHECK OPTION failed</b> เพราะแถวที่แก้แล้วจะไม่ผ่านเงื่อนไข <code>major = 'CS'</code> ของวิว (หลุดออกจากวิว) — ใช้วิว v_cs_student_safe จากหัวข้อ 7.9
+```error
+UPDATE v_cs_student_safe SET major = 'Math' WHERE stdid = '60003';
+```
+สร้างวิวอาจารย์ที่เงินเดือน ≥ 40,000 พร้อม WITH CHECK OPTION แล้วทดลองลดเงินเดือนอาจารย์ผ่านวิวให้ต่ำกว่า 40,000 || CHECK OPTION ใช้กับเงื่อนไขทุกแบบ
+```exec
+CREATE VIEW v_senior_lecturer AS
+SELECT lecid, name, salary, major
+FROM   lecturer
+WHERE  salary >= 40000
+WITH CHECK OPTION;
+```
+```error
+UPDATE v_senior_lecturer SET salary = 30000 WHERE lecid = 't01';
+```
+A: ถูกปฏิเสธด้วย Error 1369 เช่นกัน — CHECK OPTION ตรวจเงื่อนไขใน WHERE ของวิวทุกรูปแบบ ไม่ใช่เฉพาะเงื่อนไขเท่ากับ ส่วนการขึ้นเงินเดือนผ่านวิวยังทำได้ตามปกติ
+อธิบายข้อเสียของการใช้ `SELECT *` ในวิว และผลที่เกิดเมื่อลบตารางหรือคอลัมน์ที่วิวอ้างถึง || หัวข้อ 7.10
+A: MySQL ขยาย <code>*</code> เป็นรายชื่อคอลัมน์<b>ตอนสร้างวิว</b> — คอลัมน์ที่เพิ่มในตารางภายหลังจะไม่ปรากฏในวิว ต้องสร้างวิวใหม่ และอ่านนิยามวิวแล้วไม่รู้ว่ามีคอลัมน์อะไรบ้าง
+A: ถ้าลบตารางหรือลบ/เปลี่ยนชื่อคอลัมน์ที่วิวอ้างถึง วิวยังอยู่แต่<b>ใช้งานไม่ได้</b> SELECT จากวิวจะเกิด Error 1356 (View references invalid table(s) or column(s)) จนกว่าจะแก้นิยามวิวหรือลบวิวทิ้ง

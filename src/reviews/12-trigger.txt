@@ -1,0 +1,172 @@
+# คำถามท้ายบท + เฉลย — ดูรูปแบบที่ apply_reviews.py
+## เขียนทริกเกอร์
+เขียนทริกเกอร์ป้องกันไม่ให้ลดเงินเดือนอาจารย์ || BEFORE UPDATE + SIGNAL
+```exec
+DELIMITER $$
+CREATE TRIGGER tg_lecturer_no_cut
+BEFORE UPDATE ON lecturer
+FOR EACH ROW
+BEGIN
+    IF NEW.salary < OLD.salary THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ห้ามลดเงินเดือน';
+    END IF;
+END $$
+DELIMITER ;
+```
+```error title="ทดสอบ — ลดเงินเดือน"
+UPDATE lecturer SET salary = 30000 WHERE lecid = 't01';
+```
+```run temp title="ทดสอบ — ขึ้นเงินเดือนยังทำได้" show="SELECT lecid, salary FROM lecturer WHERE lecid = 't01'"
+UPDATE lecturer SET salary = salary + 1000 WHERE lecid = 't01';
+```
+เขียนทริกเกอร์ที่แปลงเกรดเป็นตัวพิมพ์ใหญ่อัตโนมัติก่อนบันทึก (เช่น 'a' → 'A') || SET NEW.grade = UPPER(NEW.grade)
+A: ต้องเป็น <b>BEFORE</b> จึงแก้ค่า NEW ได้ก่อนบันทึก และควรมีทั้งตอน INSERT และ UPDATE
+```exec
+DELIMITER $$
+CREATE TRIGGER tg_enroll_grade_upper_ins
+BEFORE INSERT ON enroll
+FOR EACH ROW
+BEGIN
+    SET NEW.grade = UPPER(NEW.grade);
+END $$
+
+CREATE TRIGGER tg_enroll_grade_upper_upd
+BEFORE UPDATE ON enroll
+FOR EACH ROW
+BEGIN
+    SET NEW.grade = UPPER(NEW.grade);
+END $$
+DELIMITER ;
+```
+```run temp show="SELECT * FROM enroll WHERE secid = 1 AND stdid IN ('60001', '60016')"
+INSERT INTO enroll VALUES (1, '60016', 'b');
+UPDATE enroll SET grade = 'c' WHERE secid = 1 AND stdid = '60001';
+```
+เขียนทริกเกอร์บันทึกข้อมูลนิสิตที่ถูกลบลงตาราง student_deleted_log พร้อมชื่อผู้ลบและเวลา || AFTER DELETE + OLD
+```exec
+CREATE TABLE student_deleted_log (
+    stdid      VARCHAR(10),
+    name       VARCHAR(50),
+    major      VARCHAR(20),
+    deleted_by VARCHAR(50),
+    deleted_at DATETIME
+);
+
+DELIMITER $$
+CREATE TRIGGER tg_student_after_delete
+AFTER DELETE ON student
+FOR EACH ROW
+BEGIN
+    INSERT INTO student_deleted_log
+    VALUES (OLD.stdid, OLD.name, OLD.major, CURRENT_USER(), NOW());
+END $$
+DELIMITER ;
+```
+```run temp show="SELECT stdid, name, major, deleted_by FROM student_deleted_log"
+DELETE FROM student WHERE stdid = '60016';
+```
+A: ใช้ <b>OLD</b> เพราะเหตุการณ์ DELETE มีเฉพาะข้อมูลเดิม และใช้ AFTER เพื่อบันทึกเมื่อการลบสำเร็จแล้วเท่านั้น
+เขียนทริกเกอร์บันทึกประวัติการแก้เกรด และอธิบายว่าทำไมต้องใช้ `<=>` แทน `=` || NULL-safe equal
+```exec
+CREATE TABLE grade_log (
+    log_id     INT AUTO_INCREMENT PRIMARY KEY,
+    secid      INT,
+    stdid      VARCHAR(10),
+    old_grade  CHAR(1),
+    new_grade  CHAR(1),
+    changed_by VARCHAR(50),
+    changed_at DATETIME
+);
+
+DELIMITER $$
+CREATE TRIGGER tg_enroll_after_update
+AFTER UPDATE ON enroll
+FOR EACH ROW
+BEGIN
+    IF NOT (OLD.grade <=> NEW.grade) THEN
+        INSERT INTO grade_log (secid, stdid, old_grade, new_grade, changed_by, changed_at)
+        VALUES (OLD.secid, OLD.stdid, OLD.grade, NEW.grade, CURRENT_USER(), NOW());
+    END IF;
+END $$
+DELIMITER ;
+```
+```run temp show="SELECT secid, stdid, old_grade, new_grade FROM grade_log"
+UPDATE enroll SET grade = 'B' WHERE secid = 34 AND stdid = '70033';   -- เดิมเป็น NULL
+UPDATE enroll SET grade = 'D' WHERE secid = 1  AND stdid = '60006';
+```
+A: ถ้าเกรดเดิมเป็น NULL (ยังไม่มีเกรด) <code>OLD.grade &lt;&gt; NEW.grade</code> ได้ผลเป็น UNKNOWN ซึ่ง IF ถือว่าไม่จริง การให้เกรดครั้งแรกจึงไม่ถูกบันทึก ส่วน <code>&lt;=&gt;</code> (NULL-safe equal) เปรียบเทียบ NULL ได้: NULL &lt;=&gt; NULL เป็นจริง และ NULL &lt;=&gt; 'B' เป็นเท็จ
+เขียนทริกเกอร์จำกัดจำนวนนิสิตในกลุ่มเรียนหนึ่งไม่ให้เกิน 40 คน || BEFORE INSERT ON enroll
+```exec
+DELIMITER $$
+CREATE TRIGGER tg_enroll_max40
+BEFORE INSERT ON enroll
+FOR EACH ROW
+BEGIN
+    IF (SELECT COUNT(*) FROM enroll WHERE secid = NEW.secid) >= 40 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'กลุ่มเรียนนี้เต็มแล้ว (40 คน)';
+    END IF;
+END $$
+DELIMITER ;
+```
+A: ใช้ BEFORE เพื่อปฏิเสธก่อนบันทึก — ในระบบที่มีผู้ใช้พร้อมกันมาก ควรทำร่วมกับการล็อก (บทที่ 9) ไม่เช่นนั้นสองคนอาจนับได้ 39 พร้อมกันแล้วลงได้ทั้งคู่
+อธิบายว่าทำไมกฎ “ต้องผ่านวิชาบังคับก่อนจึงลงวิชาถัดไปได้” บังคับด้วย CHECK ไม่ได้ แล้วเขียนทริกเกอร์บังคับกฎนี้ || ข้อมูลหลายตาราง
+A: CHECK ตรวจได้เฉพาะค่าในแถวที่กำลังบันทึก แต่กฎนี้ต้องอ่าน section (วิชาของกลุ่ม) subject (วิชาบังคับก่อน) และแถว<b>อื่น</b>ใน enroll (ประวัติการเรียน) จึงต้องใช้ทริกเกอร์
+```exec
+DELIMITER $$
+CREATE TRIGGER tg_enroll_check_pre
+BEFORE INSERT ON enroll
+FOR EACH ROW
+BEGIN
+    DECLARE v_pre VARCHAR(10);
+
+    SELECT sub.pre INTO v_pre
+    FROM   section sec JOIN subject sub ON sec.subid = sub.subid
+    WHERE  sec.secid = NEW.secid;
+
+    IF v_pre IS NOT NULL AND NOT EXISTS (
+          SELECT 1
+          FROM   enroll e JOIN section s ON e.secid = s.secid
+          WHERE  e.stdid = NEW.stdid
+            AND  s.subid = v_pre
+            AND  e.grade IN ('A', 'B', 'C', 'D')) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ยังไม่ผ่านวิชาบังคับก่อน';
+    END IF;
+END $$
+DELIMITER ;
+```
+```error title="60015 ยังไม่เคยผ่าน CS004 → ลง CS009 (secid 52) ไม่ได้"
+INSERT INTO enroll (secid, stdid) VALUES (52, '60015');
+```
+```run temp title="60004 เคยได้ A วิชา CS004 → ลงได้" show="SELECT * FROM enroll WHERE secid = 52"
+INSERT INTO enroll (secid, stdid) VALUES (52, '60004');
+```
+## แนวคิดและข้อควรระวัง
+จงอธิบายความแตกต่างของ BEFORE และ AFTER และระบุว่า NEW / OLD ใช้ได้ในเหตุการณ์ใดบ้าง || INSERT มีแต่ NEW, DELETE มีแต่ OLD
+A: <b>BEFORE</b> ทำงานก่อนบันทึก ใช้ตรวจสอบ/ปฏิเสธ (SIGNAL) หรือแก้ค่า NEW ได้ · <b>AFTER</b> ทำงานหลังบันทึกสำเร็จ ใช้บันทึก log หรือปรับตารางอื่น แก้ค่า NEW ไม่ได้แล้ว
+A- INSERT — มีเฉพาะ <b>NEW</b>
+A- UPDATE — มีทั้ง <b>OLD</b> (ค่าก่อนแก้) และ <b>NEW</b> (ค่าหลังแก้)
+A- DELETE — มีเฉพาะ <b>OLD</b>
+เหตุใดทริกเกอร์จึงแก้ตารางเดียวกับที่กระตุ้นทริกเกอร์ไม่ได้ และควรแก้ปัญหาอย่างไร || Error 1442 → ใช้ BEFORE + SET NEW
+A: MySQL ห้ามทริกเกอร์ INSERT/UPDATE/DELETE ตารางที่กำลังถูกแก้อยู่ (Error 1442) เพราะอาจทำให้เกิดการเรียกทริกเกอร์วนซ้ำไม่รู้จบและข้อมูลไม่แน่นอน ถ้าต้องการเปลี่ยนค่าในแถวที่กำลังบันทึก ให้ใช้ทริกเกอร์ <b>BEFORE</b> แล้ว <code>SET NEW.คอลัมน์ = …</code> แทนการสั่ง UPDATE ตารางเดิม
+```error title="ตัวอย่างที่ผิด — UPDATE ตารางเดิมในทริกเกอร์"
+DELIMITER $$
+CREATE TRIGGER tg_student_bad
+AFTER INSERT ON student
+FOR EACH ROW
+BEGIN
+    UPDATE student SET gpa = 0 WHERE stdid = NEW.stdid;
+END $$
+DELIMITER ;
+
+INSERT INTO student (stdid, name, major) VALUES ('80030', 'Zenitsu', 'CS');
+```
+```exec
+DROP TRIGGER tg_student_bad;
+```
+เปรียบเทียบ Stored Procedure, Function และ Trigger ในแง่การเรียกใช้ พารามิเตอร์ ค่าที่คืน และงานที่เหมาะสม || บทที่ 11–12
+A- <b>Procedure</b> — ผู้ใช้/โปรแกรมเรียกเองด้วย CALL · มี IN/OUT/INOUT · คืนผลลัพธ์ได้หลายชุด · งานหลายขั้นตอน เช่น ลงทะเบียน ย้ายกลุ่ม
+A- <b>Function</b> — เรียกในคำสั่ง SQL · มีเฉพาะ IN · คืนค่าเดียว · การคำนวณที่ใช้ซ้ำ เช่น อายุ เกรดเฉลี่ย
+A- <b>Trigger</b> — ทำงาน<b>อัตโนมัติ</b>เมื่อเกิด INSERT/UPDATE/DELETE บนตาราง เรียกเองไม่ได้ · ไม่มีพารามิเตอร์ (ใช้ OLD/NEW) · ไม่คืนค่า · บังคับกฎธุรกิจที่ต้องอ่านหลายตาราง บันทึก audit log รักษาข้อมูลสรุป

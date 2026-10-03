@@ -1,0 +1,306 @@
+# คำถามท้ายบท + เฉลย — ดูรูปแบบที่ apply_reviews.py
+## WHERE, LIKE, NULL (Lab 4.1)
+แสดงข้อมูลนิสิตทุกคนที่อยู่สาขา CS หรือ Math || IN
+```run max="10"
+SELECT * FROM student WHERE major IN ('CS', 'Math');
+```
+แสดงข้อมูลนิสิตทุกคนที่ไม่ได้อยู่สาขา CS, English, Math (คิดด้วยว่านิสิตที่ไม่มีสาขาควรแสดงหรือไม่) || NOT IN … OR major IS NULL
+A: <code>NOT IN</code> อย่างเดียวจะไม่ได้นิสิตที่ major เป็น NULL (เปรียบเทียบกับ NULL ได้ UNKNOWN) ถ้าต้องการรวมคนที่ไม่มีสาขาด้วยต้องเพิ่ม <code>OR major IS NULL</code>
+```run max="10"
+SELECT *
+FROM   student
+WHERE  major NOT IN ('CS', 'English', 'Math')
+   OR  major IS NULL;
+```
+แสดงข้อมูลนิสิตที่ชื่อขึ้นต้นด้วย S และลงท้ายด้วย h || LIKE 'S%h'
+```run
+SELECT * FROM student WHERE name LIKE 'S%h';
+```
+แสดงข้อมูลนิสิตที่ gpa อยู่ระหว่าง 2.00 ถึง 3.00 || BETWEEN
+```run max="10"
+SELECT * FROM student WHERE gpa BETWEEN 2.00 AND 3.00;
+```
+แสดงข้อมูลนิสิตที่ไม่มีข้อมูลวันเกิด || IS NULL
+```run
+SELECT * FROM student WHERE birthday IS NULL;
+```
+แสดงข้อมูลนิสิตที่ทั้งชื่อและสาขาไม่เป็นค่าว่าง || IS NOT NULL AND
+```run max="10"
+SELECT * FROM student WHERE name IS NOT NULL AND major IS NOT NULL;
+```
+แสดงข้อมูลนิสิตที่ไม่ได้อยู่ CS หรือ Math เรียงตาม gpa จากมากไปน้อย || ORDER BY gpa DESC
+```run max="10"
+SELECT *
+FROM   student
+WHERE  major NOT IN ('CS', 'Math') OR major IS NULL
+ORDER  BY gpa DESC;
+```
+แสดงข้อมูลนิสิตเรียงตามสาขาและ gpa จากน้อยไปมาก โดยไม่แสดงแถวที่สาขาหรือ gpa เป็นค่าว่าง || ORDER BY major, gpa
+```run max="10"
+SELECT *
+FROM   student
+WHERE  major IS NOT NULL AND gpa IS NOT NULL
+ORDER  BY major, gpa;
+```
+แสดงรหัสวิชาที่เป็น prerequisite ของวิชา Graphics || WHERE name = 'Graphics'
+```run
+SELECT pre FROM subject WHERE name = 'Graphics';
+```
+แสดงรหัสและชื่อวิชาที่ไม่มีวิชา prerequisite || pre IS NULL
+```run
+SELECT subid, name FROM subject WHERE pre IS NULL;
+```
+แสดงวิชาที่มี CS001 เป็นวิชา prerequisite และนับว่ามีกี่วิชา || COUNT(*)
+```run
+SELECT subid, name FROM subject WHERE pre = 'CS001';
+```
+```run
+SELECT COUNT(*) AS n_subject FROM subject WHERE pre = 'CS001';
+```
+แสดงอาจารย์ในสาขา English ที่ได้เงินเดือนต่ำกว่า 40000 บาท || AND
+```run
+SELECT * FROM lecturer WHERE major = 'English' AND salary < 40000;
+```
+แสดงข้อมูลอาจารย์ที่อยู่สาขาอื่นที่ไม่ใช่ CS หรือ Math || NOT IN
+```run max="12"
+SELECT * FROM lecturer WHERE major NOT IN ('CS', 'Math');
+```
+## ฟังก์ชันรวม (Lab 4.1)
+แสดง gpa สูงสุดและต่ำสุดของนิสิตทั้งหมดเป็นคอลัมน์ชื่อ max_gpa และ min_gpa และของสาขา CS เป็น max_cs และ min_cs || MAX, MIN, AS
+```run
+SELECT MAX(gpa) AS max_gpa, MIN(gpa) AS min_gpa FROM student;
+```
+```run
+SELECT MAX(gpa) AS max_cs, MIN(gpa) AS min_cs FROM student WHERE major = 'CS';
+```
+แสดงเงินเดือนรวม สูงสุด ต่ำสุด และค่าเฉลี่ยของอาจารย์ (total_salary, max_salary, min_salary, average_salary) และของสาขา English || SUM, MAX, MIN, AVG
+```run
+SELECT SUM(salary) AS total_salary, MAX(salary) AS max_salary,
+       MIN(salary) AS min_salary,   AVG(salary) AS average_salary
+FROM   lecturer;
+```
+```run
+SELECT SUM(salary) AS total_salary, MAX(salary) AS max_salary,
+       MIN(salary) AS min_salary,   AVG(salary) AS average_salary
+FROM   lecturer
+WHERE  major = 'English';
+```
+แสดงรหัสอาจารย์ที่สอนวิชา CS001 ในเทอม 2023-1 และแสดง secid ทั้งหมดที่เปิดสอนวิชา CS001 || WHERE subid = … AND term = …
+```run
+SELECT lecid FROM section WHERE subid = 'CS001' AND term = '2023-1';
+```
+```run
+SELECT secid FROM section WHERE subid = 'CS001';
+```
+แสดงจำนวนวิชา (ไม่นับซ้ำ) ที่เปิดสอนในเทอม 2024-1 และในปี 2024 ทั้งปี || COUNT(DISTINCT subid), LIKE '2024-%'
+```run
+SELECT COUNT(DISTINCT subid) AS n_2024_1 FROM section WHERE term = '2024-1';
+```
+```run
+SELECT COUNT(DISTINCT subid) AS n_2024 FROM section WHERE term LIKE '2024-%';
+```
+แสดง secid, subid, lecid, term ของกลุ่มเรียนทุกเทอมในปี 2024 และรหัสวิชาที่เปิดในปี 2024 โดยไม่ซ้ำ || DISTINCT
+```run max="10"
+SELECT secid, subid, lecid, term FROM section WHERE term LIKE '2024-%';
+```
+```run
+SELECT DISTINCT subid FROM section WHERE term LIKE '2024-%';
+```
+แสดงจำนวนครั้งที่อาจารย์ t02 เคยสอน และจำนวนครั้งที่เปิดสอนวิชา CS005 || COUNT(*)
+```run
+SELECT COUNT(*) AS n_t02 FROM section WHERE lecid = 't02';
+```
+```run
+SELECT COUNT(*) AS n_cs005 FROM section WHERE subid = 'CS005';
+```
+แสดงจำนวนนิสิตที่ลงทะเบียน section 5 และเกรดไม่เป็น F (ระวังแถวที่เกรดเป็น NULL) || grade <> 'F'
+A: <code>grade &lt;&gt; 'F'</code> ไม่นับแถวที่เกรดเป็น NULL (ยังไม่มีเกรด) — ถ้าต้องการนับคนที่ยังไม่มีเกรดด้วยให้เพิ่ม <code>OR grade IS NULL</code>
+```run
+SELECT COUNT(*) AS n_not_f
+FROM   enroll
+WHERE  secid = 5 AND grade <> 'F';
+```
+แสดงจำนวนครั้งที่นิสิต 60001 ลงทะเบียน และจำนวนครั้งที่นิสิต 60006 ได้เกรด F || COUNT(*)
+```run
+SELECT COUNT(*) AS n_enroll FROM enroll WHERE stdid = '60001';
+```
+```run
+SELECT COUNT(*) AS n_f FROM enroll WHERE stdid = '60006' AND grade = 'F';
+```
+## ฟังก์ชันวันที่ (Lab 4.1)
+แสดงข้อมูลนิสิตที่เกิดปี 2010 และนิสิตที่เกิดเดือน February || YEAR(), MONTH() / MONTHNAME()
+```run
+SELECT * FROM student WHERE YEAR(birthday) = 2010;
+```
+```run
+SELECT * FROM student WHERE MONTHNAME(birthday) = 'February';
+```
+แสดงข้อมูลนิสิตที่มีอายุ 15 ปีขึ้นไป || TIMESTAMPDIFF(YEAR, birthday, CURDATE())
+A: ผลลัพธ์ขึ้นกับวันที่รันคำสั่ง (CURDATE())
+```run max="10"
+SELECT *
+FROM   student
+WHERE  TIMESTAMPDIFF(YEAR, birthday, CURDATE()) >= 15;
+```
+แสดงรหัส ชื่อ และอายุของนิสิตที่เกิดวันจันทร์ || DAYNAME() = 'Monday'
+```run
+SELECT stdid, name, TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age
+FROM   student
+WHERE  DAYNAME(birthday) = 'Monday';
+```
+แสดงรหัส ชื่อ ปีเกิด และอายุของนิสิตทุกคน || YEAR(birthday)
+```run max="10"
+SELECT stdid, name, YEAR(birthday) AS birth_year,
+       TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age
+FROM   student;
+```
+แสดงรหัส ชื่อ สาขา ปีเกิด อายุ ของนิสิตที่อายุน้อยกว่า 15 ปี และไม่ได้อยู่สาขา CS || AND (major <> 'CS' OR major IS NULL)
+```run max="10"
+SELECT stdid, name, major, YEAR(birthday) AS birth_year,
+       TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age
+FROM   student
+WHERE  TIMESTAMPDIFF(YEAR, birthday, CURDATE()) < 15
+  AND  (major <> 'CS' OR major IS NULL);
+```
+## IFNULL, GROUP BY, HAVING (Lab 4.2)
+แสดงรหัสอาจารย์และจำนวนครั้งที่เคยสอน และแสดงเฉพาะอาจารย์ที่สอนมากที่สุด 3 คน || GROUP BY lecid ORDER BY … LIMIT 3
+```run
+SELECT lecid, COUNT(*) AS n_teach
+FROM   section
+GROUP  BY lecid
+ORDER  BY n_teach DESC
+LIMIT  3;
+```
+แสดงรหัสวิชา ชื่อวิชา และรหัสวิชาเงื่อนไข ถ้าไม่มีให้แสดงข้อความ “ไม่มีวิชาเงื่อนไข” || IFNULL(pre, '…')
+```run max="10"
+SELECT subid, name, IFNULL(pre, 'ไม่มีวิชาเงื่อนไข') AS pre
+FROM   subject;
+```
+แสดงชื่อ major, gpa สูงสุด และ gpa ต่ำสุดของแต่ละ major โดยไม่แสดง major ที่เป็น NULL || WHERE major IS NOT NULL GROUP BY
+```run
+SELECT major, MAX(gpa) AS max_gpa, MIN(gpa) AS min_gpa
+FROM   student
+WHERE  major IS NOT NULL
+GROUP  BY major;
+```
+แสดง major, gpa สูงสุด และต่ำสุด เฉพาะ major ที่มี gpa ต่ำสุดมากกว่า 2.00 || HAVING MIN(gpa) > 2.00
+```run
+SELECT major, MAX(gpa) AS max_gpa, MIN(gpa) AS min_gpa
+FROM   student
+GROUP  BY major
+HAVING MIN(gpa) > 2.00;
+```
+แสดง major, จำนวนนิสิต, gpa สูงสุด, gpa ต่ำสุด เฉพาะ major ที่มีนิสิตมากกว่า 1 คน gpa สูงสุดมากกว่า 3.00 และ major ไม่เป็น NULL เรียงตามจำนวนนิสิตจากมากไปน้อย || HAVING COUNT(*) > 1 AND MAX(gpa) > 3
+```run
+SELECT major, COUNT(*) AS n_student, MAX(gpa) AS max_gpa, MIN(gpa) AS min_gpa
+FROM   student
+WHERE  major IS NOT NULL
+GROUP  BY major
+HAVING COUNT(*) > 1 AND MAX(gpa) > 3.00
+ORDER  BY n_student DESC;
+```
+แสดงปีเกิดและจำนวนนิสิตที่เกิดปีนั้น เฉพาะปีที่ไม่เป็น NULL เรียงตามจำนวนจากมากไปน้อย || GROUP BY YEAR(birthday)
+```run
+SELECT YEAR(birthday) AS birth_year, COUNT(*) AS n_student
+FROM   student
+WHERE  birthday IS NOT NULL
+GROUP  BY YEAR(birthday)
+ORDER  BY n_student DESC;
+```
+แสดงรหัสนิสิตและจำนวนครั้งที่เคยลงเรียน และรหัสวิชากับจำนวนครั้งที่เคยเปิดสอน || GROUP BY stdid / subid
+```run max="8"
+SELECT stdid, COUNT(*) AS n_enroll FROM enroll GROUP BY stdid;
+```
+```run max="8"
+SELECT subid, COUNT(*) AS n_open FROM section GROUP BY subid;
+```
+แสดงเกรดและจำนวนครั้งที่ได้เกรดนั้นของนิสิต 60001 || WHERE stdid = … GROUP BY grade
+```run
+SELECT grade, COUNT(*) AS n
+FROM   enroll
+WHERE  stdid = '60001'
+GROUP  BY grade;
+```
+แสดงรหัสนิสิตและจำนวนครั้งที่ได้ F เฉพาะคนที่ได้ F มากกว่า 1 ครั้ง || WHERE grade = 'F' … HAVING
+```run
+SELECT stdid, COUNT(*) AS n_f
+FROM   enroll
+WHERE  grade = 'F'
+GROUP  BY stdid
+HAVING COUNT(*) > 1;
+```
+แสดงรหัสอาจารย์ที่เคยสอนมากกว่า 3 ครั้ง และอาจารย์ที่เคยสอน CS001 มากกว่า 1 ครั้ง || HAVING COUNT(*) > 3
+```run
+SELECT lecid, COUNT(*) AS n_teach
+FROM   section
+GROUP  BY lecid
+HAVING COUNT(*) > 3;
+```
+```run
+SELECT lecid, COUNT(*) AS n_cs001
+FROM   section
+WHERE  subid = 'CS001'
+GROUP  BY lecid
+HAVING COUNT(*) > 1;
+```
+## CASE (Lab 4.3)
+แสดงข้อมูลนิสิตที่ผ่านเกณฑ์: สาขา CS gpa > 3.00, Math gpa > 3.20, Art gpa > 3.50 || CASE ใน WHERE หรือ OR หลายชุด
+```run
+SELECT *
+FROM   student
+WHERE  gpa > CASE major
+                 WHEN 'CS'   THEN 3.00
+                 WHEN 'Math' THEN 3.20
+                 WHEN 'Art'  THEN 3.50
+             END;
+```
+A: สาขาอื่น CASE คืน NULL ทำให้เงื่อนไขไม่เป็นจริง จึงไม่ถูกเลือก (เขียนแบบ <code>(major = 'CS' AND gpa &gt; 3.00) OR …</code> ก็ได้)
+แสดงข้อมูลการลงทะเบียน ชื่อ และอายุของนิสิตที่ผ่านเกณฑ์: CS อายุ > 18, Art > 19, English > 17, สาขาอื่น > 20 || CASE major WHEN … THEN … END
+A: ใช้ subquery ดึงชื่อและอายุจาก student (ยังไม่ใช้ JOIN) — ผลลัพธ์อาจว่าง เพราะนิสิตในกรณีศึกษาส่วนใหญ่อายุไม่ถึงเกณฑ์
+```run max="10"
+SELECT e.*,
+       (SELECT name FROM student s WHERE s.stdid = e.stdid) AS name,
+       (SELECT TIMESTAMPDIFF(YEAR, birthday, CURDATE()) FROM student s WHERE s.stdid = e.stdid) AS age
+FROM   enroll e
+WHERE  (SELECT TIMESTAMPDIFF(YEAR, birthday, CURDATE()) FROM student s WHERE s.stdid = e.stdid) >
+       (SELECT CASE major WHEN 'CS'      THEN 18
+                          WHEN 'Art'     THEN 19
+                          WHEN 'English' THEN 17
+                          ELSE 20 END
+        FROM   student s
+        WHERE  s.stdid = e.stdid);
+```
+แสดงรหัส ชื่อ gpa และคอลัมน์ level (ดีเยี่ยม / ดี / พอใช้ / ต้องปรับปรุง / ยังไม่มีข้อมูล) || CASE WHEN gpa IS NULL …
+```run max="10"
+SELECT stdid, name, gpa,
+       CASE
+           WHEN gpa IS NULL THEN 'ยังไม่มีข้อมูล'
+           WHEN gpa >= 3.50 THEN 'ดีเยี่ยม'
+           WHEN gpa >= 2.50 THEN 'ดี'
+           WHEN gpa >= 2.00 THEN 'พอใช้'
+           ELSE 'ต้องปรับปรุง'
+       END AS level
+FROM   student;
+```
+แสดงจำนวนนิสิตในแต่ละสาขาที่มี gpa ≥ 3.00 และ < 3.00 แยกเป็นสองคอลัมน์ || SUM(CASE WHEN … THEN 1 ELSE 0 END)
+```run
+SELECT major,
+       SUM(CASE WHEN gpa >= 3.00 THEN 1 ELSE 0 END) AS n_high,
+       SUM(CASE WHEN gpa <  3.00 THEN 1 ELSE 0 END) AS n_low
+FROM   student
+GROUP  BY major;
+```
+เหตุใด `SELECT major, COUNT(*) FROM student WHERE COUNT(*) > 2 GROUP BY major;` จึงเกิด error และแก้อย่างไร || HAVING
+A: WHERE กรองทีละแถว<b>ก่อน</b>จัดกลุ่ม ขณะนั้นยังไม่มีค่า COUNT(*) จึงใช้ฟังก์ชันรวมใน WHERE ไม่ได้ (Error 1111) ต้องย้ายเงื่อนไขไปไว้ที่ <b>HAVING</b> ซึ่งกรองหลัง GROUP BY
+```error
+SELECT major, COUNT(*) FROM student WHERE COUNT(*) > 2 GROUP BY major;
+```
+```run
+SELECT major, COUNT(*) AS n FROM student GROUP BY major HAVING COUNT(*) > 2;
+```
+เขียนคำสั่งเดียวที่นับจำนวนนิสิตทั้งหมด จำนวนที่มี gpa และจำนวนสาขาที่ไม่ซ้ำ แล้วอธิบายว่าทำไมตัวเลขทั้งสามไม่เท่ากัน || COUNT(*), COUNT(gpa), COUNT(DISTINCT major)
+```run
+SELECT COUNT(*) AS n_all, COUNT(gpa) AS n_has_gpa, COUNT(DISTINCT major) AS n_major
+FROM   student;
+```
+A: <code>COUNT(*)</code> นับทุกแถว · <code>COUNT(gpa)</code> ไม่นับแถวที่ gpa เป็น NULL · <code>COUNT(DISTINCT major)</code> นับเฉพาะค่าที่ไม่ซ้ำและไม่นับ NULL

@@ -1,0 +1,77 @@
+# คำถามท้ายบท + เฉลย — ดูรูปแบบที่ apply_reviews.py
+## แนวคิดและ ACID
+จงอธิบายความหมายของทรานแซกชัน และยกตัวอย่างงานในระบบลงทะเบียนที่ต้องทำเป็นทรานแซกชัน || ทั้งหมดหรือไม่มีเลย
+A: <b>ทรานแซกชัน</b> คือหน่วยของงานที่ประกอบด้วยคำสั่งหนึ่งหรือหลายคำสั่ง ซึ่งต้อง<b>สำเร็จทั้งหมด หรือไม่เกิดผลเลย</b> และทำให้ฐานข้อมูลเปลี่ยนจากสถานะที่ถูกต้องหนึ่งไปยังอีกสถานะที่ถูกต้อง
+A- ย้ายกลุ่มเรียน (ลบจากกลุ่มเดิม + เพิ่มในกลุ่มใหม่)
+A- เปิดกลุ่มเรียนใหม่พร้อมลงทะเบียนนิสิตชุดแรก
+A- ชำระค่าลงทะเบียน (บันทึกการชำระ + เปลี่ยนสถานะการลงทะเบียน)
+A- ลงทะเบียนที่นั่งสุดท้าย (ตรวจจำนวนคงเหลือ + เพิ่มการลงทะเบียน)
+จงจับคู่สถานการณ์กับคุณสมบัติ ACID: ไฟดับหลังแจ้งว่าลงทะเบียนสำเร็จ · 2 คนแย่งที่นั่งสุดท้าย · เปิด section สำเร็จแต่ลงทะเบียนล้มเหลว · ที่นั่งคงเหลือติดลบ || A C I D
+A: ไฟดับหลังแจ้งว่าสำเร็จ (ข้อมูลต้องยังอยู่) = <b>Durability</b> · 2 คนแย่งที่นั่งสุดท้าย = <b>Isolation</b> · เปิด section สำเร็จแต่ลงทะเบียนล้มเหลว (ต้องยกเลิกทั้งชุด) = <b>Atomicity</b> · ที่นั่งคงเหลือติดลบ (ผิดกฎ) = <b>Consistency</b>
+## คำสั่งควบคุมทรานแซกชัน
+จงเขียนทรานแซกชันเปิดกลุ่มเรียนใหม่ และลงทะเบียนนิสิต 2 คนในกลุ่มนั้น หากขั้นตอนใดล้มเหลวให้ยกเลิกทั้งหมด || START TRANSACTION … COMMIT / ROLLBACK
+A: ใช้ <code>LAST_INSERT_ID()</code> รับ secid ที่เพิ่งสร้าง ถ้าคำสั่งใดเกิด error ให้สั่ง <code>ROLLBACK</code> แทน COMMIT (ในโปรแกรมจริงตรวจ error ทุกขั้น หรือเขียนเป็นโพรซีเยอร์ที่มี EXIT HANDLER — บทที่ 11)
+```run show="SELECT sec.secid, sec.subid, sec.term, e.stdid FROM section sec JOIN enroll e ON sec.secid = e.secid WHERE sec.term = '2026-2'"
+START TRANSACTION;
+INSERT INTO section (subid, lecid, term) VALUES ('CS010', 't01', '2026-2');
+SET @new_sec = LAST_INSERT_ID();
+INSERT INTO enroll (secid, stdid) VALUES (@new_sec, '60001'), (@new_sec, '60004');
+COMMIT;
+```
+A: ถ้าเปลี่ยนรหัสนิสิตคนที่สองเป็นรหัสที่ไม่มีอยู่ INSERT enroll จะเกิด Error 1452 — สั่ง ROLLBACK แล้วกลุ่มเรียนใหม่ก็จะถูกยกเลิกไปด้วย
+จงเขียนทรานแซกชันที่ขึ้นเงินเดือนสาขา CS แล้ว SAVEPOINT จากนั้นขึ้นสาขา DC แต่ยกเลิกเฉพาะของ DC || ROLLBACK TO SAVEPOINT
+```run show="SELECT lecid, name, major, salary FROM lecturer WHERE major IN ('CS', 'DC') ORDER BY major, lecid"
+START TRANSACTION;
+UPDATE lecturer SET salary = salary * 1.10 WHERE major = 'CS';
+SAVEPOINT after_cs;
+UPDATE lecturer SET salary = salary * 1.10 WHERE major = 'DC';
+ROLLBACK TO SAVEPOINT after_cs;   -- ยกเลิกเฉพาะของ DC
+COMMIT;                           -- ยืนยันของ CS
+```
+A: ผลลัพธ์: อาจารย์สาขา CS ได้เงินเดือนเพิ่ม 10% ส่วนสาขา DC เท่าเดิม (อาจารย์ที่ salary เป็น NULL ยังเป็น NULL)
+จงเขียนทรานแซกชันย้ายนิสิต 60009 จากกลุ่มเรียน 20 ไปกลุ่ม 21 (วิชา CS004 ภาค 2024-3 ทั้งคู่) แล้วตรวจผลก่อน COMMIT || 2 คำสั่งต้องสำเร็จพร้อมกัน
+```run
+START TRANSACTION;
+INSERT INTO enroll (secid, stdid, grade)
+SELECT 21, stdid, grade FROM enroll WHERE secid = 20 AND stdid = '60009';
+DELETE FROM enroll WHERE secid = 20 AND stdid = '60009';
+SELECT * FROM enroll WHERE stdid = '60009' AND secid IN (20, 21);   -- ตรวจก่อน
+```
+```exec
+COMMIT;   -- ถ้าผลถูกต้อง (ถ้าผิดให้ ROLLBACK)
+```
+autocommit คืออะไร ถ้าปิด autocommit แล้วลืม COMMIT จะเกิดอะไรขึ้นเมื่อปิดการเชื่อมต่อ || ROLLBACK อัตโนมัติ
+A: <b>autocommit</b> (ค่าปริยาย = 1) ทำให้ทุกคำสั่งเป็นทรานแซกชันของตัวเองและ COMMIT ทันทีที่ทำเสร็จ ถ้าปิด (<code>SET autocommit = 0</code>) คำสั่งจะสะสมอยู่ในทรานแซกชันจนกว่าจะ COMMIT — ถ้าปิดการเชื่อมต่อโดยไม่ COMMIT MySQL จะ <b>ROLLBACK</b> ทุกอย่างที่ยังไม่ยืนยัน และระหว่างนั้นแถวที่แก้ยังถูกล็อกไว้ ผู้ใช้อื่นอาจต้องรอ
+```run
+SELECT @@autocommit;
+```
+เหตุใดไม่ควรใส่คำสั่ง CREATE / ALTER / DROP ไว้กลางทรานแซกชันใน MySQL || Implicit Commit
+A: คำสั่ง DDL ทำให้เกิด <b>Implicit Commit</b> — MySQL จะ COMMIT ทุกอย่างที่ทำมาก่อนหน้าในทรานแซกชันโดยอัตโนมัติ ROLLBACK หลังจากนั้นจึงย้อนกลับไม่ได้ และตัว DDL เองก็ย้อนกลับไม่ได้
+```run
+START TRANSACTION;
+UPDATE lecturer SET salary = 99999 WHERE lecid = 't02';
+CREATE TABLE tmp_x (id INT);       -- Implicit Commit
+ROLLBACK;                          -- สายไปแล้ว
+SELECT lecid, salary FROM lecturer WHERE lecid = 't02';
+```
+## การทำงานพร้อมกัน
+จงยกตัวอย่าง Lost Update, Dirty Read, Non-repeatable Read และ Phantom Read ในระบบลงทะเบียน และระบุระดับการแยกรายการที่ป้องกันได้ || หัวข้อ 9.7–9.8
+A- <b>Lost Update</b> — เจ้าหน้าที่ 2 คนอ่านจำนวนที่นั่งคงเหลือ = 1 พร้อมกัน ต่างคนลบ 1 แล้วบันทึก ค่าสุดท้ายเป็น 0 ทั้งที่ลงไป 2 คน → ป้องกันด้วยการล็อก (<code>SELECT … FOR UPDATE</code>) ทุกระดับ
+A- <b>Dirty Read</b> — อาจารย์ A แก้เกรดยังไม่ COMMIT นิสิตเปิดดูเห็นเกรดใหม่ แล้ว A สั่ง ROLLBACK → ป้องกันได้ตั้งแต่ <b>READ COMMITTED</b>
+A- <b>Non-repeatable Read</b> — รายงานอ่านเกรดของนิสิตคนหนึ่ง 2 ครั้งในทรานแซกชันเดียว แต่ระหว่างนั้นมีคนแก้เกรดและ COMMIT ทำให้ได้ค่าต่างกัน → ป้องกันได้ตั้งแต่ <b>REPEATABLE READ</b>
+A- <b>Phantom Read</b> — นับนิสิตในกลุ่มเรียนได้ 39 คน ระหว่างนั้นมีคนลงเพิ่มและ COMMIT นับใหม่ได้ 40 → มาตรฐานป้องกันที่ <b>SERIALIZABLE</b> (InnoDB ใน REPEATABLE READ ป้องกันการอ่านแบบ consistent read ได้ด้วย snapshot แต่การอ่านแบบล็อกยังต้องระวัง)
+ระดับการแยกรายการใดเหมาะกับระบบลงทะเบียนเรียนที่สุด เพราะเหตุใด || ความถูกต้อง vs ประสิทธิภาพ
+A: ใช้ <b>REPEATABLE READ</b> (ค่าปริยายของ MySQL) เป็นพื้นฐาน เพราะป้องกัน Dirty Read และ Non-repeatable Read ได้โดยยังรองรับผู้ใช้พร้อมกันจำนวนมากในช่วงลงทะเบียน แล้วใช้ <code>SELECT … FOR UPDATE</code> เฉพาะจุดวิกฤต (ตรวจที่นั่งคงเหลือ) แทนการใช้ SERIALIZABLE ทั้งระบบซึ่งปลอดภัยที่สุดแต่ทำให้ต้องรอกันมากและเกิด deadlock บ่อย
+อธิบายการใช้ `SELECT … FOR UPDATE` ป้องกันการแย่งที่นั่งสุดท้าย || ล็อกแถว
+A: ภายในทรานแซกชัน <code>SELECT … FOR UPDATE</code> อ่านพร้อม<b>ล็อกแถว</b>ที่อ่าน ผู้ใช้คนที่สองที่สั่ง FOR UPDATE แถวเดียวกันต้อง<b>รอ</b>จนคนแรก COMMIT หรือ ROLLBACK แล้วจึงอ่านค่าล่าสุด (ที่นั่งเหลือ 0) จึงไม่ลงทะเบียนเกินจำนวน
+```
+START TRANSACTION;
+SELECT seats_left FROM section WHERE secid = 52 FOR UPDATE;   -- ล็อกแถว (คนที่ 2 ต้องรอตรงนี้)
+-- ถ้า seats_left > 0
+INSERT INTO enroll (secid, stdid) VALUES (52, '60015');
+UPDATE section SET seats_left = seats_left - 1 WHERE secid = 52;
+COMMIT;                                                         -- ปลดล็อก
+```
+Deadlock เกิดขึ้นได้อย่างไร และ DBMS จัดการอย่างไร || ทรานแซกชันหนึ่งถูก ROLLBACK
+A: Deadlock เกิดเมื่อทรานแซกชันสองตัวต่างถือล็อกที่อีกฝ่ายต้องการ และรอกันเป็นวง เช่น T1 ล็อก t01 แล้วขอ t02 ขณะที่ T2 ล็อก t02 แล้วขอ t01 — ไม่มีใครไปต่อได้
+A: InnoDB ตรวจพบวงรอนี้อัตโนมัติ แล้วเลือกทรานแซกชันหนึ่ง (ตัวที่แก้ข้อมูลน้อยกว่า) เป็น “เหยื่อ” สั่ง <b>ROLLBACK</b> และคืน <b>Error 1213</b> อีกตัวจึงทำงานต่อได้ — โปรแกรมควรดัก error นี้แล้วลองทำทรานแซกชันใหม่ และลดโอกาสเกิดโดยล็อกแถวตามลำดับเดียวกันเสมอ ทำทรานแซกชันให้สั้น

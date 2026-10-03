@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{% endblock %} — University Demo</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🎓 ระบบทะเบียนนิสิต <span>University Demo · student / lecturer / subject / section / enroll</span></div>
+    <nav>
+      <a href="/" class="{{ 'active' if page == 'home' }}">จัดการข้อมูล</a>
+      <a href="/dashboard" class="{{ 'active' if page == 'dashboard' }}">Dashboard</a>
+      <a href="/schema" class="{{ 'active' if page == 'schema' }}">โครงสร้างฐานข้อมูล</a>
+      <button class="btn sm ghost" id="btnReset" title="ล้างข้อมูลทั้งหมดแล้วรัน schema.sql ใหม่">↺ รีเซ็ตข้อมูล</button>
+    </nav>
+  </header>
+  <main class="container">
+    {% block body %}{% endblock %}
+  </main>
+  <script src="{{ url_for('static', filename='common.js') }}"></script>
+  {% block script %}{% endblock %}
+</body>
+</html>

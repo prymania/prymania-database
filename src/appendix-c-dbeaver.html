@@ -1,0 +1,58 @@
+<!--meta {"title":"ภาคผนวก ค · วิธีเชื่อมต่อฐานข้อมูลด้วย DBeaver","kicker":"APPENDIX C","sub":"สร้าง connection ระหว่าง DBeaver กับ MySQL ของมหาวิทยาลัยสำหรับการฝึกปฏิบัติ","img":"well-done2.png"} -->
+
+<div class="box idea"><div class="box-t">💡 ข้อมูลที่ต้องใช้</div><table class="tbl" style="margin:6px 0 0"><tr><th>รายการ</th><th>ค่า</th></tr>
+<tr><td>Server Host</td><td><code>202.28.34.202</code></td></tr><tr><td>Port</td><td><code>3306</code></td></tr>
+<tr><td>Username</td><td><code>s</code> + รหัสนิสิต เช่น <code>s66011200</code></td></tr>
+<tr><td>Password</td><td><code>s</code> + รหัสนิสิต + <code>pwd</code></td></tr>
+<tr><td>Database</td><td>ชื่อฐานข้อมูลของตนเอง</td></tr></table></div>
+
+<toc/>
+
+<h2 id="c1"><span class="sec">1</span> สร้าง connection ใหม่</h2>
+<p>เปิด DBeaver กดปุ่ม <b>New Database Connection</b> บนแถบเครื่องมือ เลือก <b>MySQL</b> แล้วกด <b>Next</b></p>
+<figure class="shot"><img src="image/figc-1a.jpg" alt="" style="max-width:320px"></figure>
+<figure class="shot"><img src="image/figc-1b.jpg" alt="" style="max-width:520px"></figure>
+
+<h2 id="c2"><span class="sec">2</span> กรอกข้อมูลการเชื่อมต่อ</h2>
+<p>Server Host, Database, Username — และ<b>เอาเครื่องหมายถูกที่ Save password ออก</b> (เครื่องในห้องปฏิบัติการใช้ร่วมกัน)</p>
+<figure class="shot"><img src="image/figc-2.jpg" alt="" style="max-width:520px"></figure>
+
+<h2 id="c3"><span class="sec">3</span> แก้ Driver properties</h2>
+<p>ไปที่แท็บ <b>Driver properties</b> แล้วแก้ค่า <code>allowPublicKeyRetrieval</code> เป็น <code>true</code></p>
+<figure class="shot"><img src="image/figc-3.jpg" alt="" style="max-width:520px"></figure>
+
+<h2 id="c4"><span class="sec">4</span> ตั้งชื่อ connection</h2>
+<p>กลับมาแท็บ <b>Main</b> คลิก <b>Connection details (name, type, …)</b> ตั้ง Connection name เป็นชื่อของตนเอง แล้วกด <b>Finish</b></p>
+<figure class="shot"><img src="image/figc-4a.jpg" alt="" style="max-width:520px"></figure>
+<figure class="shot"><img src="image/figc-4b.jpg" alt="" style="max-width:360px"></figure>
+
+<h2 id="c5"><span class="sec">5</span> เข้าสู่ระบบ</h2>
+<p>คลิกที่ชื่อ connection แล้วใส่รหัสผ่านรูปแบบ <code>s</code> + รหัสนิสิต + <code>pwd</code></p>
+<figure class="shot"><img src="image/figc-5.jpg" alt="" style="max-width:340px"></figure>
+
+<h2 id="c6"><span class="sec">6</span> แก้ไข connection ภายหลัง</h2>
+<p>คลิกขวาที่ connection → <b>Edit Connection</b> (F4)</p>
+<figure class="shot"><img src="image/figc-6.jpg" alt="" style="max-width:420px"></figure>
+
+<h2 id="c7"><span class="sec">7</span> เปิด SQL Editor และเลือกฐานข้อมูล</h2>
+<p>เปิดไฟล์ใหม่ (ปุ่ม <b>SQL</b>) ตรวจว่า connection และ database ด้านบนเป็นของตนเอง — ถ้าขึ้น <code>&lt;N/A&gt;</code> ให้กดเลือกฐานข้อมูลให้ถูกต้อง มิฉะนั้นจะได้ error <code>No database selected</code></p>
+<figure class="shot"><img src="image/figc-7a.jpg" alt="" style="max-width:620px"></figure>
+<figure class="shot"><img src="image/figc-7b.jpg" alt="" style="max-width:300px"></figure>
+
+<h2 id="c8"><span class="sec">8</span> ทดสอบคำสั่งพื้นฐาน</h2>
+<p>รันทีละคำสั่งด้วย <b>Ctrl+Enter</b> หรือรันทั้งสคริปต์ด้วย <b>Alt+X</b></p>
+<sql title="ทดสอบว่าเชื่อมต่อได้">SELECT VERSION(), DATABASE(), CURRENT_USER();
+SHOW TABLES;</sql>
+<p>จากนั้นรันสคริปต์กรณีศึกษาใน <a href="appendix-a-script.html">ภาคผนวก ก</a> แล้วลอง CREATE, INSERT, UPDATE, DELETE, SELECT ตามบทที่ 4–5</p>
+
+<h2 id="c9"><span class="sec">9</span> เลิกใช้งาน</h2>
+<p>เมื่อจบการฝึกปฏิบัติทุกครั้ง ต้อง <b>Disconnect</b> หรือ <b>Delete</b> connection ของตนเองเสมอ</p>
+<figure class="shot"><img src="image/figc-9.jpg" alt="" style="max-width:420px"></figure>
+
+<div class="box warn"><div class="box-t">⚠️ ปัญหาที่พบบ่อย</div><table class="tbl" style="margin:6px 0 0"><tr><th>ข้อความ</th><th>สาเหตุ / วิธีแก้</th></tr>
+<tr><td><code>Public Key Retrieval is not allowed</code></td><td>ยังไม่ได้ตั้ง <code>allowPublicKeyRetrieval = true</code> (ขั้นที่ 3)</td></tr>
+<tr><td><code>Access denied for user</code></td><td>Username หรือ Password ผิด ตรวจรูปแบบ s + รหัส + pwd</td></tr>
+<tr><td><code>No database selected</code></td><td>ยังไม่ได้เลือกฐานข้อมูล (ขั้นที่ 7)</td></tr>
+<tr><td><code>Communications link failure</code></td><td>เครื่องติดต่อเซิร์ฟเวอร์ไม่ได้ — ตรวจเครือข่าย (อาจต้องใช้เครือข่ายของมหาวิทยาลัย) และ Host/Port</td></tr>
+<tr><td><code>Table '…' doesn't exist</code></td><td>ยังไม่ได้รันสคริปต์ภาคผนวก ก หรือพิมพ์ชื่อตารางเป็นตัวพิมพ์ใหญ่ (เซิร์ฟเวอร์ลินุกซ์แยกตัวพิมพ์)</td></tr>
+</table></div>

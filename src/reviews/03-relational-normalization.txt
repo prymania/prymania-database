@@ -1,0 +1,118 @@
+# คำถามท้ายบท + เฉลย — ดูรูปแบบที่ apply_reviews.py
+## คีย์และกฎความคงสภาพ
+จงอธิบายความแตกต่างระหว่าง Super Key, Candidate Key, Primary Key และ Alternate Key พร้อมตัวอย่างจากตาราง student || ตัดคอลัมน์ออกได้อีกไหม
+A- <b>Super Key</b> — กลุ่มคอลัมน์ใดก็ได้ที่ระบุแถวได้ไม่ซ้ำ เช่น (stdid), (stdid, name), (stdid, major, gpa)
+A- <b>Candidate Key</b> — Super Key ที่เล็กที่สุด ตัดคอลัมน์ใดออกแล้วจะไม่เป็นคีย์ เช่น (stdid) ถ้ามีเลขบัตรประชาชน (citizen_id) ก็เป็น Candidate Key อีกตัว
+A- <b>Primary Key</b> — Candidate Key ที่เลือกมาใช้หลัก คือ stdid
+A- <b>Alternate Key</b> — Candidate Key ที่ไม่ได้ถูกเลือก เช่น citizen_id (ควรกำหนด UNIQUE)
+A: หมายเหตุ: name ไม่ใช่ Candidate Key เพราะชื่อซ้ำได้ (ในข้อมูลมี Gon 2 คน)
+ตาราง section มีกฎ `UNIQUE (subid, lecid, term)` จงระบุ Candidate Key ทั้งหมดของตารางนี้ || secid, (subid, lecid, term)
+A: Candidate Key มี 2 ชุด คือ <b>secid</b> (เลือกเป็น PK) และ <b>(subid, lecid, term)</b> (Alternate Key ที่บังคับด้วย UNIQUE)
+เหตุใดค่า PK จึงเป็น NULL ไม่ได้ แต่ FK เป็น NULL ได้ ยกตัวอย่างจากคอลัมน์ `subject.pre` || Entity vs Referential Integrity
+A: <b>Entity Integrity</b> — PK ใช้ระบุตัวตนของแถว ถ้าเป็น NULL (ไม่ทราบค่า) จะระบุแถวไม่ได้ จึงห้าม NULL
+A: <b>Referential Integrity</b> — FK ต้องมีค่าตรงกับ PK ที่มีอยู่ <b>หรือเป็น NULL</b> ซึ่งหมายถึง “ไม่มีความสัมพันธ์” เช่น <code>subject.pre</code> ของ CS001 Programming เป็น NULL เพราะไม่มีวิชาบังคับก่อน
+```run
+SELECT subid, name, pre FROM subject WHERE pre IS NULL;
+```
+จงอธิบายกฎความคงสภาพ 4 ประเภท และระบุว่าแต่ละประเภทบังคับใช้ด้วยคำสั่ง SQL ใด || PK / FK / CHECK / Trigger
+A- <b>Entity Integrity</b> — PK ไม่ซ้ำและไม่เป็น NULL → <code>PRIMARY KEY</code>
+A- <b>Referential Integrity</b> — FK ต้องอ้างถึงแถวที่มีอยู่จริง → <code>FOREIGN KEY … REFERENCES</code>
+A- <b>Domain Integrity</b> — ค่าต้องอยู่ในขอบเขตที่กำหนด → ชนิดข้อมูล, <code>NOT NULL</code>, <code>CHECK</code>, <code>DEFAULT</code>
+A- <b>Business Rule (User-defined)</b> — กฎเฉพาะขององค์กร เช่น ห้ามลงทะเบียนเกิน 40 คน → <code>CHECK</code> หรือ <code>TRIGGER</code> (บทที่ 12)
+คำสั่ง `INSERT INTO enroll VALUES (99, '60001', 'A');` จะเกิดอะไรขึ้น ละเมิดกฎข้อใด || secid 99 ไม่มีอยู่
+A: เกิด Error 1452 เพราะไม่มี section รหัส 99 ในตาราง section — ละเมิด <b>Referential Integrity</b> (FK enroll_fk_sec)
+```error
+INSERT INTO enroll VALUES (99, '60001', 'A');
+```
+เหตุใดการใช้อีเมลหรือเบอร์โทรเป็น Primary Key จึงไม่เหมาะสม || คงที่ เล็ก ไม่มีความหมายทางธุรกิจ
+A: PK ที่ดีควร <b>ไม่เปลี่ยนแปลง</b> สั้น และไม่เป็น NULL — อีเมล/เบอร์โทรเปลี่ยนได้ (ต้องแก้ FK ทุกตารางที่อ้างถึง) บางคนไม่มีหรือมีหลายค่า ยาวทำให้ดัชนีใหญ่ และอาจถูกนำไปใช้ใหม่โดยคนอื่น จึงควรใช้รหัสที่สร้างขึ้นเอง แล้วกำหนดอีเมลเป็น UNIQUE แทน
+## แปลง ER เป็นตาราง
+จงแปลง ER ของ Employee (emp_id, name, phone หลายค่า, gender, birthday, address, position) เป็นตาราง ระบุ PK และ FK || Multivalued → ตารางใหม่
+A: <code>employee(<u>emp_id</u>, name, gender, birthday, address, position)</code>
+A: <code>employee_phone(<u>emp_id</u>, <u>phone</u>)</code> — PK ผสม, emp_id เป็น FK อ้างอิง employee
+จงแปลง ER ของ Employee ที่มี address เป็น Composite (house id, road, province, postcode) และ language เป็น Multivalued เป็นตาราง || 3 ตาราง
+A: Composite ไม่ต้องแยกตาราง ใช้ส่วนย่อยเป็นคอลัมน์ ส่วน Multivalued แยกตาราง:
+A: <code>employee(<u>emp_id</u>, name, house_id, road, province, postcode)</code> · <code>employee_language(<u>emp_id</u>, <u>language</u>)</code>
+A: ถ้าเลือกแยกที่อยู่เป็นตาราง (เช่น พนักงานมีหลายที่อยู่) จะได้ 3 ตาราง: employee, address(<u>emp_id</u>, <u>addr_no</u>, house_id, road, province, postcode), employee_language
+จงแปลง ER ของโรงภาพยนตร์ (Theater–Seat) และอธิบายว่า PK ของตาราง seat ประกอบด้วยคอลัมน์ใด เพราะเหตุใด || PK เจ้าของ + Partial Key
+A: <code>theater(<u>theater_name</u>, width, length, screen_size)</code> · <code>seat(<u>theater_name</u>, <u>seat_no</u>, price)</code>
+A: PK ของ seat = <b>(theater_name, seat_no)</b> เพราะ seat เป็นเอนทิตีอ่อนแอ — seat_no เพียงอย่างเดียวซ้ำได้ในแต่ละโรง ต้องรวม PK ของเจ้าของ (theater_name ซึ่งเป็น FK ด้วย)
+จงแปลงความสัมพันธ์ 1:1 Student has Account (assigned date) เป็นตาราง เปรียบเทียบการรวมเป็น 1 ตาราง กับแยก 2 ตาราง || UNIQUE
+A: <b>แยก 2 ตาราง</b>: <code>student(<u>stdid</u>, name, …)</code> · <code>account(<u>username</u>, password_hash, stdid UNIQUE FK, assigned_date)</code> — UNIQUE บน stdid ทำให้เป็น 1:1 เหมาะเมื่อไม่ใช่นิสิตทุกคนที่มีบัญชี (ไม่ต้องมี NULL จำนวนมาก) และแยกข้อมูลอ่อนไหวได้
+A: <b>รวม 1 ตาราง</b>: <code>student(<u>stdid</u>, name, username UNIQUE, password_hash, assigned_date)</code> — ง่าย ไม่ต้อง JOIN เหมาะเมื่อทุกคนมีบัญชี
+จงแปลงความสัมพันธ์ 1:M Lecturer supervise Student (project title) และเติมข้อมูลตัวอย่าง 4 แถว รวมนิสิตที่ยังไม่มีที่ปรึกษา || FK ฝั่ง M, NULL ได้
+A: ใส่ FK และแอตทริบิวต์ของความสัมพันธ์ไว้ฝั่ง M: <code>student(<u>stdid</u>, name, lecid FK→lecturer, project_title)</code>
+```
+-- stdid   name      lecid   project_title
+-- 60001   Rukawa    t01     Smart Library
+-- 60002   Sakuragi  t01     Chatbot for Freshmen
+-- 60003   Mitsui    t02     Parking Detector
+-- 60004   Sendoh    NULL    NULL          <- ยังไม่มีที่ปรึกษา
+```
+จงแปลงความสัมพันธ์วกกลับ Employee supervise Employee และอธิบายว่าหัวหน้าสูงสุดจะมีค่า supervise_id เป็นอะไร || NULL
+A: <code>employee(<u>emp_id</u>, name, supervise_id FK→employee(emp_id))</code> — FK อ้างอิงตารางตัวเอง หัวหน้าสูงสุดไม่มีหัวหน้า จึงมี supervise_id เป็น <b>NULL</b> (เหมือน subject.pre ในกรณีศึกษา)
+จงแปลงความสัมพันธ์ M:N Lecturer teach Subject (term) เป็นตาราง แล้วเปรียบเทียบการใช้ PK ผสม กับการสร้าง teachid เป็น Surrogate Key || UNIQUE (lid, sid, term)
+A: <b>PK ผสม</b>: <code>teach(<u>lid</u>, <u>sid</u>, <u>term</u>)</code> — ไม่ต้องเพิ่มคอลัมน์ แต่ตารางที่อ้างถึง (เช่น enroll) ต้องมี FK 3 คอลัมน์
+A: <b>Surrogate Key</b>: <code>teach(<u>teachid</u>, lid, sid, term, UNIQUE(lid, sid, term))</code> — FK ในตารางอื่นสั้นเหลือคอลัมน์เดียว (แบบเดียวกับ section.secid ในกรณีศึกษา) แต่<b>ต้องเพิ่ม UNIQUE</b> ไม่เช่นนั้นจะบันทึกการสอนซ้ำได้
+จงแปลง ER ระบบข้อมูลบุคลากร (Department–Employee–Project) เป็นตาราง ระบุ PK และ FK ทุกตาราง || head of / work at / work on
+A- <code>department(<u>dept_id</u>, name, head_emp_id FK→employee UNIQUE)</code> — head of (1:1)
+A- <code>employee(<u>emp_id</u>, name, salary, dept_id FK→department)</code> — work at (1:M)
+A- <code>project(<u>proj_id</u>, name, budget, dept_id FK→department)</code>
+A- <code>work_on(<u>emp_id</u> FK, <u>proj_id</u> FK, hours)</code> — work on (M:N)
+จงแปลง ER ของ AmICrazy Software House (ภาพในแบบฝึกหัด Lab 2) เป็นตารางให้ครบทุกความสัมพันธ์ || hire, meeting, work on, request, supervise
+A- <code>department(<u>dept_id</u>, name)</code>
+A- <code>employee(<u>emp_id</u>, name, salary, dept_id FK, supervisor_id FK→employee)</code> — supervise วกกลับ
+A- <code>customer(<u>cus_id</u>, name)</code> · <code>customer_phone(<u>cus_id</u>, <u>phone</u>)</code>
+A- <code>project(<u>proj_id</u>, name, budget, start_date, duration CHECK ≤ 100, finish_date, cus_id FK)</code> — hire (1:M)
+A- <code>meeting(<u>cus_id</u>, <u>emp_id</u>, <u>meet_date</u>, place)</code> — M:N ที่ประชุมได้หลายครั้ง จึงใส่วันที่ใน PK
+A- <code>work_on(<u>emp_id</u>, <u>proj_id</u>, role)</code>
+A- <code>leave_request(<u>emp_id</u>, <u>leave_date</u>, type, days CHECK ≤ 5)</code> — request (เอนทิตีอ่อนแอ)
+จงแปลง ER ของคณะวิทยาการสารสนเทศ เป็นตารางให้ครบทุกความสัมพันธ์ || keyword และ presentation
+A- <code>major(<u>major_id</u>, name)</code> · <code>lecturer(<u>lec_id</u>, name, major_id FK)</code>
+A- <code>project(<u>proj_id</u>, title, status, start_term, finish_term)</code> · <code>project_keyword(<u>proj_id</u>, <u>keyword</u>)</code>
+A- <code>student(<u>std_id</u>, name, major_id FK, proj_id FK)</code> — โปรเจคมีนิสิต 1–2 คน
+A- <code>supervise(<u>lec_id</u>, <u>proj_id</u>, position)</code> — ที่ปรึกษาหลัก/ร่วม
+A- <code>presentation(<u>proj_id</u>, <u>exam_type</u>, exam_date, result)</code> — เอนทิตีอ่อนแอ
+A- <code>committee(<u>proj_id</u>, <u>exam_type</u>, <u>lec_id</u>)</code> — กรรมการสอบ (FK ผสมไป presentation)
+## FD และนอร์มัลไลเซชัน
+จงยกตัวอย่าง Insertion, Modification และ Deletion Anomaly จากตาราง `R(stdid, stdname, subid, subname, credit, grade)` || PK = (stdid, subid)
+A- <b>Insertion</b> — เพิ่มวิชาใหม่ที่ยังไม่มีคนลงไม่ได้ เพราะ stdid (ส่วนของ PK) จะเป็น NULL
+A- <b>Modification</b> — เปลี่ยนชื่อวิชา Java ต้องแก้ทุกแถวที่มีคนลง ถ้าแก้ไม่ครบจะมีชื่อวิชาไม่ตรงกัน
+A- <b>Deletion</b> — ลบการลงทะเบียนของนิสิตคนสุดท้ายที่เรียนวิชาหนึ่ง ข้อมูลวิชานั้น (ชื่อ หน่วยกิต) หายไปด้วย
+จงอธิบายความแตกต่างของ Full, Partial และ Transitive Functional Dependency พร้อมตัวอย่าง || X → Y
+A- <b>Full FD</b> — Y ขึ้นกับ X ทั้งชุด ตัดส่วนใดออกไม่ได้ เช่น (stdid, subid) → grade
+A- <b>Partial FD</b> — Y ขึ้นกับเพียงบางส่วนของคีย์ผสม เช่น (stdid, subid) → stdname แต่จริง ๆ stdid → stdname ก็พอ
+A- <b>Transitive FD</b> — X → Y และ Y → Z โดย Y ไม่ใช่คีย์ ทำให้ X → Z ทางอ้อม เช่น stdid → major และ major → major_head
+กำหนด `ORDER_DETAIL(order_id, product_id, product_name, unit_price, qty, customer_id, customer_name, order_date)` จงระบุ FD ทั้งหมด || PK = (order_id, product_id)
+A- (order_id, product_id) → qty — Full FD
+A- product_id → product_name, unit_price — Partial FD
+A- order_id → customer_id, order_date — Partial FD
+A- customer_id → customer_name — Transitive (order_id → customer_id → customer_name)
+A: หมายเหตุ: ถ้าราคาขายแต่ละครั้งต่างกันได้ ควรเก็บราคาขาย ณ วันสั่งไว้ที่ (order_id, product_id) ด้วย
+จากข้อที่แล้ว จงทำนอร์มัลไลเซชันจนถึง 3NF แสดงโครงสร้างในแต่ละขั้น (1NF → 2NF → 3NF) || แยกตามตัวกำหนด
+A: <b>1NF</b> — ตารางเดิมทุกช่องมีค่าเดียวอยู่แล้ว PK = (order_id, product_id)
+A: <b>2NF</b> — กำจัด Partial FD: <code>order_line(<u>order_id</u>, <u>product_id</u>, qty)</code> · <code>product(<u>product_id</u>, product_name, unit_price)</code> · <code>orders(<u>order_id</u>, customer_id, customer_name, order_date)</code>
+A: <b>3NF</b> — กำจัด Transitive FD ใน orders: <code>orders(<u>order_id</u>, customer_id FK, order_date)</code> · <code>customer(<u>customer_id</u>, customer_name)</code> — ได้ 4 ตาราง: customer, orders, product, order_line
+ตาราง `student(stdid, name, major, major_name, major_head)` อยู่ในนอร์มัลฟอร์มใด และต้องแก้อย่างไรให้อยู่ใน 3NF || Transitive
+A: อยู่ใน <b>2NF</b> (PK มีคอลัมน์เดียว จึงไม่มี Partial FD) แต่ไม่อยู่ใน 3NF เพราะมี Transitive FD: stdid → major → major_name, major_head
+A: แก้โดยแยก: <code>student(<u>stdid</u>, name, major FK)</code> · <code>major(<u>major</u>, major_name, major_head)</code>
+ตาราง `TEACHING(student, subject, lecturer)` ที่อาจารย์ 1 คนสอนเพียงวิชาเดียว อยู่ใน 3NF แต่ไม่อยู่ใน BCNF เพราะเหตุใด || lecturer → subject
+A: มี FD: (student, subject) → lecturer และ <b>lecturer → subject</b> คีย์คือ (student, subject) หรือ (student, lecturer) — ทุกคอลัมน์เป็นส่วนของคีย์ จึงผ่าน 3NF แต่ BCNF กำหนดว่าตัวกำหนดทุกตัวต้องเป็น Super Key ซึ่ง lecturer ไม่ใช่ จึงไม่ผ่าน BCNF
+A: แยกเป็น <code>lecturer_subject(<u>lecturer</u>, subject)</code> และ <code>student_lecturer(<u>student</u>, <u>lecturer</u>)</code>
+คอลัมน์ `student.gpa` ในกรณีศึกษาเป็นการดีนอร์มัลไลซ์หรือไม่ เพราะเหตุใด และมีความเสี่ยงอะไร || คำนวณได้จาก enroll + subject
+A: <b>เป็น</b> — gpa คำนวณได้จากเกรดใน enroll และหน่วยกิตใน subject การเก็บซ้ำไว้ทำให้อ่านเร็ว แต่เสี่ยงต่อ<b>ความไม่สอดคล้อง</b> เมื่อแก้เกรดแล้วลืมคำนวณ gpa ใหม่ — ในกรณีศึกษาค่าก็ไม่ตรงกันจริง (ดูบทที่ 7 วิว v_student_gpa)
+```run max="6"
+SELECT s.stdid, s.name, s.gpa AS stored_gpa,
+       ROUND(SUM(sub.credit * CASE e.grade WHEN 'A' THEN 4 WHEN 'B' THEN 3 WHEN 'C' THEN 2
+                                            WHEN 'D' THEN 1 ELSE 0 END) / SUM(sub.credit), 2) AS calc_gpa
+FROM   student s
+       JOIN enroll  e   ON s.stdid = e.stdid
+       JOIN section sec ON e.secid = sec.secid
+       JOIN subject sub ON sec.subid = sub.subid
+WHERE  e.grade IS NOT NULL
+GROUP  BY s.stdid, s.name, s.gpa
+ORDER  BY s.stdid;
+```
+ระบบรายงานยอดขายเก็บ `total_amount` ไว้ในตารางคำสั่งซื้อ แทนการคำนวณใหม่ทุกครั้ง มีข้อดีข้อเสียอย่างไร ควรมีมาตรการใดรองรับ || Trigger
+A: <b>ข้อดี</b> — รายงานเร็ว ไม่ต้อง SUM รายการทุกครั้ง และเก็บยอด ณ เวลาขายได้ <b>ข้อเสีย</b> — ข้อมูลซ้ำซ้อน เสี่ยงยอดไม่ตรงกับรายการเมื่อแก้รายการ
+A: <b>มาตรการ</b> — ใช้ทริกเกอร์ปรับ total_amount อัตโนมัติเมื่อ INSERT/UPDATE/DELETE รายการ (บทที่ 12) ทำทุกอย่างในทรานแซกชัน และมีคำสั่งตรวจ/คำนวณยอดใหม่เป็นระยะ

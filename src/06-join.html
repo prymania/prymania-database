@@ -1,0 +1,860 @@
+<!--meta {"title":"บทที่ 6 · การแสดงข้อมูลจากหลายตาราง (JOIN)","kicker":"CHAPTER 06 · สัปดาห์ที่ 9–12","sub":"INNER JOIN, LEFT/RIGHT JOIN, Self Join, CROSS JOIN, UNION/INTERSECT/EXCEPT, Subquery และการใช้ผลลัพธ์ไปจัดการข้อมูล (INSERT…SELECT, UPDATE/DELETE ที่อ้างอิงตารางอื่น, UPDATE + CASE)","img":"drink2.png"} -->
+
+<div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
+<li>อธิบายหลักการเชื่อมตารางและเงื่อนไขการเชื่อมได้</li>
+<li>เขียน INNER JOIN ระหว่าง 2 ตาราง และมากกว่า 2 ตารางได้</li>
+<li>เลือกใช้ LEFT / RIGHT / FULL OUTER JOIN และ Self Join ได้เหมาะสม</li>
+<li>ใช้ UNION, INTERSECT, EXCEPT ได้</li>
+<li>เขียน Subquery ทั้งแบบอิสระและแบบสัมพันธ์กัน (EXISTS) ได้</li>
+<li>ใช้ผลลัพธ์จาก SELECT ร่วมกับ INSERT / UPDATE / DELETE และ UPDATE + CASE ได้</li>
+</ol></div>
+
+<toc/>
+
+<h2 id="s1"><span class="sec">6.1</span> แนวคิดของการเชื่อมตาราง</h2>
+<p>“นิสิตชื่ออะไรบ้างที่ได้เกรด A” — ชื่ออยู่ใน <code>student</code> เกรดอยู่ใน <code>enroll</code> จึงต้องนำ 2 ตารางมาต่อกันด้วยคอลัมน์ที่มีค่าตรงกัน <code>student.stdid = enroll.stdid</code></p>
+<fig n="6-1">หลักการเชื่อมตารางด้วยคอลัมน์ที่มีค่าตรงกัน</fig>
+<div class="box idea"><div class="box-t">💡 กฎทอง</div><p>เชื่อม <b>n ตาราง ต้องมีเงื่อนไขการเชื่อมอย่างน้อย n − 1 เงื่อนไข</b> ถ้าขาด จะเกิด <b>ผลคูณคาร์ทีเซียน</b> — ทุกแถวจับคู่กับทุกแถว เช่น student 22 แถว × enroll 100 แถว = 2,200 แถวที่ไม่มีความหมาย</p></div>
+<sql title="รูปแบบที่ 1 — เงื่อนไขใน WHERE (แบบดั้งเดิม)" run max="5">SELECT s.name, e.grade
+FROM   student s, enroll e
+WHERE  s.stdid = e.stdid;</sql>
+<sql title="รูปแบบที่ 2 — JOIN … ON (มาตรฐาน SQL-92 · แนะนำ)" run max="5">SELECT s.name, e.grade
+FROM   student s
+       INNER JOIN enroll e ON s.stdid = e.stdid;</sql>
+<sql title="ลืมเงื่อนไข → ผลคูณคาร์ทีเซียน" run>SELECT COUNT(*) AS n_rows
+FROM   student, enroll;</sql>
+
+<h2 id="s2"><span class="sec">6.2</span> การเชื่อมตารางแบบภายใน (INNER JOIN)</h2>
+<p>คืนเฉพาะแถวที่<b>จับคู่ได้ทั้งสองฝั่ง</b> แถวที่ไม่มีคู่ถูกตัดทิ้ง</p>
+<fig n="6-2">เปรียบเทียบผลลัพธ์ของการเชื่อมตารางแต่ละประเภท</fig>
+<sql title="ตัวอย่างที่ 6.1 — ชื่อนิสิตและเกรดในแต่ละกลุ่มเรียน" run max="10">SELECT s.stdid, s.name, e.secid, e.grade
+FROM   student s
+       INNER JOIN enroll e ON s.stdid = e.stdid
+ORDER  BY s.stdid, e.secid;</sql>
+<sql title="ตัวอย่างที่ 6.2 — วิชาที่เปิดสอนในภาค 2023-1" run>SELECT sec.secid, sub.subid, sub.name, sec.lecid, sec.term
+FROM   section sec
+       INNER JOIN subject sub ON sec.subid = sub.subid
+WHERE  sec.term = '2023-1'
+ORDER  BY sec.secid;</sql>
+<sql title="ตัวอย่างที่ 6.3 — นิสิตที่ได้เกรด A" run max="10">SELECT s.stdid, s.name, e.secid
+FROM   student s
+       INNER JOIN enroll e ON s.stdid = e.stdid
+WHERE  e.grade = 'A'
+ORDER  BY s.stdid, e.secid;</sql>
+
+<ex no="6.1" title="JOIN 2 ตาราง" level="1">
+<p>จงแสดงรหัสกลุ่มเรียน ภาคเรียน และ<b>ชื่ออาจารย์ผู้สอน</b> ของทุกกลุ่มเรียนในภาค 2025-3</p>
+<answer><sql title="เฉลย" run>SELECT sec.secid, sec.term, l.name AS lecturer
+FROM   section sec
+       INNER JOIN lecturer l ON sec.lecid = l.lecid
+WHERE  sec.term = '2025-3'
+ORDER  BY sec.secid;</sql></answer>
+</ex>
+
+<h2 id="s3"><span class="sec">6.3</span> ชื่อแทนตาราง และการเชื่อมมากกว่า 2 ตาราง</h2>
+<p><span class="term">ชื่อแทนตาราง (Table Alias)</span> ช่วยให้คำสั่งสั้นลง และจำเป็นเมื่อเชื่อมตารางเดียวกันมากกว่า 1 ครั้ง</p>
+<sql title="ตัวอย่างที่ 6.4 — ชื่อนิสิต ชื่อวิชา ภาคเรียน เกรด (4 ตาราง → 3 เงื่อนไข)" run max="10">SELECT s.name   AS student,
+       sub.name AS subject,
+       sec.term,
+       e.grade
+FROM   enroll e
+       INNER JOIN student s   ON e.stdid   = s.stdid
+       INNER JOIN section sec ON e.secid   = sec.secid
+       INNER JOIN subject sub ON sec.subid = sub.subid
+ORDER  BY s.name, sec.term;</sql>
+<div class="box note"><div class="box-t">📝 ข้อสังเกต</div><p>แถวแรก ๆ มี student เป็น NULL — เพราะนิสิต 60005 และ 70022 ไม่มีชื่อในตาราง แต่ยังลงทะเบียนได้ปกติ (การ JOIN ใช้ stdid ไม่ใช้ name)</p></div>
+<sql title="ตัวอย่างที่ 6.5 — อาจารย์ วิชา ภาค 2024-2" run>SELECT l.name AS lecturer, sub.name AS subject, sec.term
+FROM   section sec
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid
+       INNER JOIN subject  sub ON sec.subid = sub.subid
+WHERE  sec.term = '2024-2'
+ORDER  BY l.name, sub.name;</sql>
+<sql title="ตัวอย่างที่ 6.6 — JOIN + GROUP BY: จำนวนการลงทะเบียนแต่ละวิชา" run>SELECT sub.subid, sub.name, COUNT(*) AS n_enroll
+FROM   enroll e
+       INNER JOIN section sec ON e.secid   = sec.secid
+       INNER JOIN subject sub ON sec.subid = sub.subid
+GROUP  BY sub.subid, sub.name
+ORDER  BY n_enroll DESC, sub.subid;</sql>
+<div class="box warn"><div class="box-t">⚠️ ชื่อคอลัมน์ซ้ำ</div><p>คอลัมน์ <code>name</code> มีทั้งใน student, subject, lecturer — ต้องระบุชื่อแทนนำหน้าเสมอ ไม่เช่นนั้น:</p></div>
+<sql title="ไม่ระบุตาราง" error>SELECT name, grade
+FROM   student s INNER JOIN enroll e ON s.stdid = e.stdid
+       INNER JOIN section sec ON e.secid = sec.secid
+       INNER JOIN subject sub ON sec.subid = sub.subid;</sql>
+
+<ex no="6.2" title="ทรานสคริปต์ของนิสิต 1 คน" level="2">
+<p>จงแสดงทรานสคริปต์ของนิสิต <code>60001</code>: ภาคเรียน รหัสวิชา ชื่อวิชา หน่วยกิต เกรด เรียงตามภาคเรียน</p>
+<answer><sql title="เฉลย" run>SELECT sec.term, sub.subid, sub.name, sub.credit, e.grade
+FROM   enroll e
+       INNER JOIN section sec ON e.secid   = sec.secid
+       INNER JOIN subject sub ON sec.subid = sub.subid
+WHERE  e.stdid = '60001'
+ORDER  BY sec.term, sub.subid;</sql></answer>
+</ex>
+<ex no="6.3" title="อาจารย์ที่เคยสอน Database" level="2">
+<p>จงแสดงชื่ออาจารย์ที่เคยสอนรายวิชา CS004 โดยไม่ให้ชื่อซ้ำ</p>
+<answer><sql title="เฉลย" run>SELECT DISTINCT l.lecid, l.name
+FROM   section sec
+       INNER JOIN lecturer l ON sec.lecid = l.lecid
+WHERE  sec.subid = 'CS004'
+ORDER  BY l.lecid;</sql></answer>
+</ex>
+
+<h2 id="s4"><span class="sec">6.4</span> การเชื่อมตารางแบบภายนอก (OUTER JOIN)</h2>
+<p><b>LEFT JOIN</b> คืนทุกแถวของตารางซ้าย แม้ไม่มีคู่ทางขวา (เติม NULL) เหมาะกับคำถาม “ใครบ้างที่ยังไม่มี…” หรือ “แสดงทุกคนพร้อมข้อมูลเพิ่มเติม (ถ้ามี)”</p>
+<sql title="ตัวอย่างที่ 6.7 — นิสิตทุกคนพร้อมจำนวนการลงทะเบียน (รวมคนที่ไม่เคยลง)" run>SELECT s.stdid, s.name, COUNT(e.secid) AS n_enroll
+FROM   student s
+       LEFT JOIN enroll e ON s.stdid = e.stdid
+GROUP  BY s.stdid, s.name
+ORDER  BY n_enroll, s.stdid;</sql>
+<div class="box warn"><div class="box-t">⚠️ COUNT(*) กับ LEFT JOIN</div><p>ใช้ <code>COUNT(e.secid)</code> ไม่ใช่ <code>COUNT(*)</code> — เพราะแถวที่เติม NULL ก็นับเป็น 1 แถว นิสิตที่ไม่เคยลงทะเบียนจะได้ 1 แทน 0</p></div>
+<sql title="ตัวอย่างที่ 6.8 — นิสิตที่ไม่เคยลงทะเบียนเลย (LEFT JOIN + IS NULL)" run>SELECT s.stdid, s.name, s.major
+FROM   student s
+       LEFT JOIN enroll e ON s.stdid = e.stdid
+WHERE  e.stdid IS NULL;</sql>
+<sql title="ตัวอย่างที่ 6.9 — อาจารย์ทุกคนพร้อมจำนวนกลุ่มเรียน" run>SELECT l.lecid, l.name, COUNT(sec.secid) AS n_section
+FROM   lecturer l
+       LEFT JOIN section sec ON l.lecid = sec.lecid
+GROUP  BY l.lecid, l.name
+ORDER  BY n_section DESC, l.lecid;</sql>
+<h3>เงื่อนไขใน ON กับ WHERE ให้ผลต่างกัน!</h3>
+<p>โจทย์: “แสดงนิสิตสาขา Art และ Physics <b>ทุกคน</b> พร้อมกลุ่มเรียนที่ได้เกรด A (ถ้ามี)”</p>
+<sql title="แบบที่ 1 — เงื่อนไข grade ใน ON → ยังแสดงนิสิตทุกคน ✔" run>SELECT s.stdid, s.name, s.major, e.secid, e.grade
+FROM   student s
+       LEFT JOIN enroll e ON s.stdid = e.stdid AND e.grade = 'A'
+WHERE  s.major IN ('Art', 'Physics')
+ORDER  BY s.stdid;</sql>
+<sql title="แบบที่ 2 — เงื่อนไข grade ใน WHERE → กลายเป็น INNER JOIN ✘" run>SELECT s.stdid, s.name, s.major, e.secid, e.grade
+FROM   student s
+       LEFT JOIN enroll e ON s.stdid = e.stdid
+WHERE  s.major IN ('Art', 'Physics')
+  AND  e.grade = 'A'
+ORDER  BY s.stdid;</sql>
+<p>แบบที่ 1 Kira, Light, Near, Mello ที่ไม่เคยได้ A ยังอยู่พร้อม NULL — แบบที่ 2 แถวเหล่านั้นถูก <code>e.grade = 'A'</code> ใน WHERE กรองทิ้ง (NULL = 'A' ไม่เป็นจริง)</p>
+
+<h3>6.4.1 RIGHT JOIN และ FULL OUTER JOIN</h3>
+<p>RIGHT JOIN คืนทุกแถวของตารางขวา (นิยมสลับตารางแล้วใช้ LEFT แทน) · FULL OUTER JOIN คืนทุกแถวทั้งสองฝั่ง — <b>MySQL ไม่รองรับ</b> ต้องจำลองด้วย LEFT UNION RIGHT</p>
+<sql title="จำลอง FULL OUTER JOIN ใน MySQL" run max="8">SELECT l.lecid, l.name, sec.secid
+FROM   lecturer l LEFT  JOIN section sec ON l.lecid = sec.lecid
+UNION
+SELECT l.lecid, l.name, sec.secid
+FROM   lecturer l RIGHT JOIN section sec ON l.lecid = sec.lecid
+ORDER  BY secid;</sql>
+
+<ex no="6.4" title="รายวิชาที่ยังไม่เคยเปิดสอน" level="2">
+<p>จงแสดงรายวิชาทั้งหมดพร้อมจำนวนกลุ่มเรียนที่เคยเปิด โดยรายวิชาที่ไม่เคยเปิดให้แสดงเป็น 0</p>
+<answer><sql title="เฉลย" run>SELECT sub.subid, sub.name, COUNT(sec.secid) AS n_section
+FROM   subject sub
+       LEFT JOIN section sec ON sub.subid = sec.subid
+GROUP  BY sub.subid, sub.name
+ORDER  BY n_section, sub.subid;</sql></answer>
+</ex>
+<ex no="6.5" title="กลุ่มเรียนที่ไม่มีคนลง" level="2">
+<p>จงแสดงกลุ่มเรียน (secid, subid, term) ที่ยังไม่มีนิสิตลงทะเบียนเลย</p>
+<answer><sql title="เฉลย" run>SELECT sec.secid, sec.subid, sec.term
+FROM   section sec
+       LEFT JOIN enroll e ON sec.secid = e.secid
+WHERE  e.secid IS NULL
+ORDER  BY sec.secid;</sql></answer>
+</ex>
+
+<h2 id="s5"><span class="sec">6.5</span> Self Join และ CROSS JOIN</h2>
+<p><span class="term">Self Join</span> ใช้กับความสัมพันธ์วกกลับ — ต้องตั้งชื่อแทนตารางเดียวกันสองชื่อ</p>
+<sql title="ตัวอย่างที่ 6.11 — รายวิชาพร้อมชื่อวิชาบังคับก่อน" run>SELECT sub.subid, sub.name AS subject_name,
+       pre.subid AS pre_id, pre.name AS prerequisite_name
+FROM   subject sub
+       INNER JOIN subject pre ON sub.pre = pre.subid
+ORDER  BY sub.subid;</sql>
+<sql title="ตัวอย่างที่ 6.12 — รวมวิชาที่ไม่มีวิชาบังคับก่อน (LEFT JOIN)" run>SELECT sub.subid, sub.name,
+       IFNULL(pre.name, 'ไม่มีวิชาบังคับก่อน') AS prerequisite_name
+FROM   subject sub
+       LEFT JOIN subject pre ON sub.pre = pre.subid
+ORDER  BY sub.subid;</sql>
+<sql title="ตัวอย่างที่ 6.13 — คู่นิสิตสาขาเดียวกัน (ไม่จับคู่ตัวเอง ไม่ซ้ำคู่)" run max="10">SELECT a.stdid AS student_a, a.name AS name_a,
+       b.stdid AS student_b, b.name AS name_b, a.major
+FROM   student a
+       INNER JOIN student b ON a.major = b.major AND a.stdid < b.stdid
+ORDER  BY a.major, a.stdid, b.stdid;</sql>
+<p><span class="term">CROSS JOIN</span> จับคู่ทุกแถว = ผลคูณคาร์ทีเซียน ปกติเป็นความผิดพลาด แต่มีประโยชน์บางกรณี เช่น สร้างตารางทุกวัน × ทุกช่วงเวลา</p>
+<sql title="CROSS JOIN" run>SELECT COUNT(*) AS n_rows FROM student CROSS JOIN lecturer;</sql>
+
+<ex no="6.6" title="Self Join ชื่อซ้ำ" level="3">
+<p>จงหาคู่นิสิตที่<b>ชื่อเหมือนกัน</b> แต่รหัสต่างกัน แสดงรหัส ชื่อ และสาขาของทั้งคู่ (ไม่ให้คู่ซ้ำ)</p>
+<answer><sql title="เฉลย" run>SELECT a.stdid, a.name, a.major, b.stdid, b.major
+FROM   student a
+       INNER JOIN student b ON a.name = b.name AND a.stdid < b.stdid;</sql>
+<p>Gon มี 2 คน (60010 English และ 60013 CS) — เหตุผลที่ไม่ใช้ name เป็นคีย์หลัก</p></answer>
+</ex>
+<ex no="6.7" title="วิชาบังคับก่อนเป็น Programming" level="2">
+<p>จงแสดงรายวิชาที่มีวิชาบังคับก่อนเป็นวิชา <b>Programming</b> (ใช้ชื่อวิชาเป็นเงื่อนไข ไม่ใช่รหัส)</p>
+<answer><sql title="เฉลย" run>SELECT sub.subid, sub.name
+FROM   subject sub
+       INNER JOIN subject pre ON sub.pre = pre.subid
+WHERE  pre.name = 'Programming';</sql></answer>
+</ex>
+
+<h2 id="s6"><span class="sec">6.6</span> ตัวดำเนินการเชิงเซต</h2>
+<p>นำผลลัพธ์ SELECT ตั้งแต่ 2 ชุดมาต่อกัน<b>ในแนวตั้ง</b> — ทุกชุดต้องมี<b>จำนวนคอลัมน์เท่ากัน</b> และชนิดข้อมูลสอดคล้องกัน</p>
+<fig n="6-3">ผลลัพธ์ของตัวดำเนินการเชิงเซต</fig>
+<table class="tbl"><tr><th>ตัวดำเนินการ</th><th>ความหมาย</th><th>ค่าซ้ำ</th></tr>
+<tr><td>UNION</td><td>รวมทั้งสองชุด</td><td>ตัดออก</td></tr>
+<tr><td>UNION ALL</td><td>รวมทั้งสองชุด</td><td>คงไว้ (เร็วกว่า)</td></tr>
+<tr><td>INTERSECT</td><td>อยู่ในทั้งสองชุด</td><td>ตัดออก (MySQL 8.0.31+)</td></tr>
+<tr><td>EXCEPT</td><td>อยู่ในชุดแรก แต่ไม่อยู่ในชุดที่สอง</td><td>ตัดออก (MySQL 8.0.31+)</td></tr>
+</table>
+<sql title="ตัวอย่างที่ 6.14 — UNION รายชื่อนิสิตและอาจารย์" run max="8">SELECT stdid AS id, name, 'นิสิต'   AS person_type FROM student
+UNION
+SELECT lecid AS id, name, 'อาจารย์' AS person_type FROM lecturer
+ORDER  BY person_type, id;</sql>
+<sql title="ตัวอย่างที่ 6.15 — INTERSECT ลงทั้งกลุ่ม 1 และกลุ่ม 2" run>SELECT stdid FROM enroll WHERE secid = 1
+INTERSECT
+SELECT stdid FROM enroll WHERE secid = 2
+ORDER  BY stdid;</sql>
+<sql title="ตัวอย่างที่ 6.16 — EXCEPT ลงกลุ่ม 1 แต่ไม่ได้ลงกลุ่ม 2" run>SELECT stdid FROM enroll WHERE secid = 1
+EXCEPT
+SELECT stdid FROM enroll WHERE secid = 2
+ORDER  BY stdid;</sql>
+
+<ex no="6.8" title="ลงทั้ง CS001 และ CS004" level="2">
+<p>จงแสดงรหัสนิสิตที่เคยลงทะเบียน<b>ทั้ง</b>รายวิชา CS001 และ CS004 (ภาคใดก็ได้) โดยใช้ตัวดำเนินการเชิงเซต</p>
+<answer><sql title="เฉลย" run>SELECT e.stdid FROM enroll e JOIN section s ON e.secid = s.secid WHERE s.subid = 'CS001'
+INTERSECT
+SELECT e.stdid FROM enroll e JOIN section s ON e.secid = s.secid WHERE s.subid = 'CS004'
+ORDER  BY stdid;</sql></answer>
+</ex>
+
+<h2 id="s7"><span class="sec">6.7</span> คำสั่ง SELECT ซ้อน (Subquery)</h2>
+<p>SELECT ที่ซ้อนอยู่ใน SELECT อีกชั้น ใช้เมื่อคำตอบต้องอาศัยผลของอีกคำถามก่อน วางได้ 3 ตำแหน่ง: WHERE, FROM, SELECT</p>
+<h3>6.7.1 Subquery ที่คืนค่าเดียว</h3>
+<sql title="ตัวอย่างที่ 6.17 — นิสิตที่ gpa สูงกว่าค่าเฉลี่ย" run>SELECT stdid, name, gpa
+FROM   student
+WHERE  gpa >
+       (SELECT AVG(gpa)
+        FROM   student)
+ORDER  BY gpa DESC;</sql>
+<sql title="ตัวอย่างที่ 6.18 — อาจารย์เงินเดือนสูงสุด (ได้ทุกคนที่เท่ากัน)" run>SELECT lecid, name, salary
+FROM   lecturer
+WHERE  salary =
+       (SELECT MAX(salary)
+        FROM   lecturer);</sql>
+<h3>6.7.2 Subquery ที่คืนหลายค่า (IN / NOT IN)</h3>
+<sql title="ตัวอย่างที่ 6.19 — นิสิตที่เคยได้ F" run>SELECT stdid, name, major
+FROM   student
+WHERE  stdid IN
+       (SELECT stdid
+        FROM   enroll
+        WHERE  grade = 'F')
+ORDER  BY stdid;</sql>
+<sql title="ตัวอย่างที่ 6.20 — รายวิชาที่ยังไม่เคยเปิดสอน" run>SELECT subid, name, credit
+FROM   subject
+WHERE  subid NOT IN
+       (SELECT subid
+        FROM   section)
+ORDER  BY subid;</sql>
+<div class="box warn"><div class="box-t">⚠️ กับดัก NOT IN กับค่าว่าง</div><p>ถ้ารายการใน Subquery มี NULL <b>แม้แต่ค่าเดียว</b> NOT IN จะไม่คืนแถวใดเลย — ดูตัวอย่าง: วิชาที่ไม่ได้เป็นวิชาบังคับก่อนของวิชาใด (คอลัมน์ pre มี NULL)</p></div>
+<sql title="NOT IN + NULL → 0 แถว (ผิด!)" run>SELECT subid, name
+FROM   subject
+WHERE  subid NOT IN
+       (SELECT pre
+        FROM   subject);</sql>
+<sql title="แก้: กรอง NULL ออก" run>SELECT subid, name
+FROM   subject
+WHERE  subid NOT IN
+       (SELECT pre
+        FROM   subject
+        WHERE  pre IS NOT NULL)
+ORDER  BY subid;</sql>
+<h3>6.7.3 Correlated Subquery และ EXISTS</h3>
+<p>Subquery ที่อ้างคอลัมน์ของคำสั่งชั้นนอก ประมวลผลใหม่ทุกแถว มักใช้กับ <code>EXISTS</code> (ตรวจแค่ว่ามีแถวหรือไม่)</p>
+<sql title="ตัวอย่างที่ 6.21 — อาจารย์ที่เคยสอนอย่างน้อย 1 กลุ่ม" run>SELECT l.lecid, l.name, l.major
+FROM   lecturer l
+WHERE  EXISTS
+       (SELECT 1
+        FROM   section sec
+        WHERE  sec.lecid = l.lecid)
+ORDER  BY l.lecid;</sql>
+<sql title="ตัวอย่างที่ 6.22 — อาจารย์ที่ไม่เคยสอนเลย (NOT EXISTS)" run>SELECT l.lecid, l.name, l.major
+FROM   lecturer l
+WHERE  NOT EXISTS
+       (SELECT 1
+        FROM   section sec
+        WHERE  sec.lecid = l.lecid)
+ORDER  BY l.lecid;</sql>
+<h3>6.7.4 Subquery ในส่วน FROM (Derived Table)</h3>
+<p>ทำงานเหมือนตารางชั่วคราว <b>ต้องตั้งชื่อแทนเสมอ</b> — ใช้เมื่อต้องคำนวณต่อจากผลการจัดกลุ่ม</p>
+<sql title="ตัวอย่างที่ 6.23 — จำนวนนิสิตเฉลี่ยต่อกลุ่มเรียน" run>SELECT ROUND(AVG(t.n_student), 2) AS avg_student_per_section
+FROM   (SELECT secid, COUNT(*) AS n_student
+        FROM   enroll
+        GROUP  BY secid) AS t;</sql>
+<sql title="ตัวอย่างที่ 6.24 — กลุ่มเรียนที่มีนิสิตมากกว่าค่าเฉลี่ย" run>SELECT secid, COUNT(*) AS n_student
+FROM   enroll
+GROUP  BY secid
+HAVING COUNT(*) >
+       (SELECT AVG(t.c)
+        FROM   (SELECT COUNT(*) AS c
+                FROM   enroll
+                GROUP  BY secid) AS t)
+ORDER  BY n_student DESC, secid;</sql>
+<h3>6.7.5 Subquery ในส่วน SELECT</h3>
+<sql title="จำนวนกลุ่มที่สอนของอาจารย์แต่ละคน (Scalar Subquery)" run max="6">SELECT l.lecid, l.name,
+       (SELECT COUNT(*)
+        FROM   section sec
+        WHERE  sec.lecid = l.lecid) AS n_section
+FROM   lecturer l
+ORDER  BY n_section DESC;</sql>
+
+<ex no="6.9" title="ไม่เคยได้ A — 2 วิธี" level="3">
+<p>จงแสดงนิสิตที่<b>ยังไม่เคย</b>ได้เกรด A เลย (รวมคนที่ไม่เคยลงทะเบียน) โดยเขียน 2 วิธี คือ NOT IN และ NOT EXISTS</p>
+<answer><sql title="วิธีที่ 1 NOT IN" run>SELECT stdid, name
+FROM   student
+WHERE  stdid NOT IN
+       (SELECT stdid
+        FROM   enroll
+        WHERE  grade = 'A')
+ORDER  BY stdid;</sql>
+<sql title="วิธีที่ 2 NOT EXISTS" run>SELECT s.stdid, s.name
+FROM   student s
+WHERE  NOT EXISTS
+       (SELECT 1
+        FROM   enroll e
+        WHERE  e.stdid = s.stdid
+          AND  e.grade = 'A')
+ORDER  BY s.stdid;</sql>
+<p>ได้ผลเท่ากัน เพราะ <code>enroll.stdid</code> ไม่มี NULL (เป็นส่วนของ PK) — แต่ NOT EXISTS ปลอดภัยกว่าโดยทั่วไป</p></answer>
+</ex>
+<ex no="6.10" title="สูงกว่าค่าเฉลี่ยของสาขาตัวเอง" level="3">
+<p>จงแสดงนิสิตที่มี gpa สูงกว่าค่าเฉลี่ย gpa ของนิสิต<b>ในสาขาเดียวกัน</b> (Correlated Subquery)</p>
+<answer><sql title="เฉลย" run>SELECT s.stdid, s.name, s.major, s.gpa
+FROM   student s
+WHERE  s.gpa >
+       (SELECT AVG(s2.gpa)
+        FROM   student s2
+        WHERE  s2.major = s.major)
+ORDER  BY s.major, s.gpa DESC;</sql>
+<p>นิสิตที่ major เป็น NULL จะไม่ถูกเลือก เพราะ <code>s2.major = NULL</code> ไม่เป็นจริง</p></answer>
+</ex>
+<ex no="6.11" title="อาจารย์ที่สอนมากที่สุด" level="3">
+<p>จงแสดงชื่ออาจารย์ที่สอนกลุ่มเรียนมากที่สุด พร้อมจำนวนกลุ่ม (ถ้าเท่ากันต้องแสดงทุกคน)</p>
+<answer><sql title="เฉลย" run>SELECT l.lecid, l.name, COUNT(*) AS n_section
+FROM   lecturer l
+       INNER JOIN section sec ON l.lecid = sec.lecid
+GROUP  BY l.lecid, l.name
+HAVING COUNT(*) =
+       (SELECT MAX(c)
+        FROM   (SELECT COUNT(*) AS c
+                FROM   section
+                GROUP  BY lecid) AS t);</sql></answer>
+</ex>
+
+<table class="tbl"><tr><th>สถานการณ์</th><th>ควรใช้</th><th>เหตุผล</th></tr>
+<tr><td>แสดงคอลัมน์จากหลายตาราง</td><td>JOIN</td><td>Subquery คืนค่าจากตารางเดียว</td></tr>
+<tr><td>ตรวจว่ามีข้อมูลหรือไม่</td><td>EXISTS</td><td>หยุดค้นเมื่อพบแถวแรก</td></tr>
+<tr><td>เปรียบเทียบกับค่าสรุป</td><td>Subquery</td><td>อ่านง่าย ตรงกับความคิด</td></tr>
+<tr><td>หาแถวที่ไม่มีคู่</td><td>LEFT JOIN + IS NULL / NOT EXISTS</td><td>NOT EXISTS ปลอดภัยกับ NULL</td></tr>
+<tr><td>คำนวณต่อจากผลจัดกลุ่ม</td><td>Subquery ใน FROM</td><td>สร้างตารางชั่วคราว</td></tr>
+</table>
+
+<h2 id="s8"><span class="sec">6.8</span> การจัดการข้อมูลด้วยผลลัพธ์จากคำสั่ง SELECT</h2>
+<p>เมื่อเขียน SELECT, JOIN และ Subquery ได้แล้ว ก็นำผลลัพธ์เหล่านั้นไปใช้เป็น “แหล่งข้อมูล” หรือ “เงื่อนไข” ของคำสั่ง INSERT / UPDATE / DELETE ได้ — ทำให้จัดการข้อมูลจำนวนมากได้ในคำสั่งเดียว</p>
+<h3>6.8.1 INSERT … SELECT</h3>
+<p>คัดลอกข้อมูลจากตารางหนึ่งไปอีกตารางโดยไม่ต้องพิมพ์ทีละแถว — จำนวนคอลัมน์และชนิดข้อมูลต้องสอดคล้องกัน</p>
+<sql title="สร้างตารางเก็บนิสิตเกียรตินิยม" exec>CREATE TABLE student_honor (
+    stdid       VARCHAR(10) PRIMARY KEY,
+    name        VARCHAR(50),
+    major       VARCHAR(20),
+    gpa         DECIMAL(3,2),
+    moved_date  DATE
+);</sql>
+<sql title="คัดลอกนิสิตที่ gpa ≥ 3.50" run show="SELECT * FROM student_honor">INSERT INTO student_honor (stdid, name, major, gpa, moved_date)
+SELECT stdid, name, major, gpa, CURDATE()
+FROM   student
+WHERE  gpa >= 3.50;</sql>
+<p><code>CREATE TABLE … AS SELECT</code> สร้างตาราง + คัดลอกข้อมูลในคำสั่งเดียว แต่<b>ไม่คัดลอกคีย์หลักและข้อกำหนดบังคับ</b></p>
+<sql title="สร้างตารางสำรอง" exec>CREATE TABLE enroll_backup AS
+SELECT * FROM enroll;</sql>
+<sql title="ตรวจโครงสร้าง — คอลัมน์ Key ว่างทั้งหมด!" run>DESCRIBE enroll_backup;</sql>
+<p>ต่างจาก enroll ต้นฉบับที่ secid, stdid เป็น PRI — FK และ CHECK ของเกรดก็ไม่ถูกคัดลอก ถ้าจะใช้เป็นตารางถาวรต้องเพิ่มเอง</p>
+<sql title="เพิ่มคีย์หลักภายหลัง" exec>ALTER TABLE enroll_backup ADD PRIMARY KEY (secid, stdid);</sql>
+
+<ex no="6.12" title="สร้างตาราง TOP_STUDENT" level="1">
+<p>จงสร้างตาราง <code>top_student(stdid, name, gpa)</code> แล้วคัดลอกนิสิตที่มี gpa ตั้งแต่ 3.00 ขึ้นไปเข้าไป</p>
+<answer><sql title="เฉลย" run show="SELECT * FROM top_student ORDER BY gpa DESC">CREATE TABLE top_student (
+    stdid VARCHAR(10) PRIMARY KEY,
+    name  VARCHAR(50),
+    gpa   DECIMAL(3,2)
+);
+INSERT INTO top_student
+SELECT stdid, name, gpa FROM student WHERE gpa >= 3.00;</sql></answer>
+</ex>
+
+<h3>6.8.2 UPDATE โดยอ้างอิงตารางอื่น</h3>
+<p>ลด gpa ลง 5% ให้นิสิตที่เคยได้ F ตั้งแต่ 2 ครั้ง — <b>ตรวจกลุ่มเป้าหมายก่อนเสมอ</b></p>
+<sql title="ขั้นที่ 1 — ใครจะถูกกระทบ" run>SELECT stdid, COUNT(*) AS n_fail
+FROM   enroll
+WHERE  grade = 'F'
+GROUP  BY stdid
+HAVING COUNT(*) >= 2;</sql>
+<sql title="ขั้นที่ 2 — UPDATE ด้วย Subquery ใน WHERE" run temp show="SELECT stdid, name, gpa FROM student WHERE stdid IN (SELECT stdid FROM enroll WHERE grade = 'F' GROUP BY stdid HAVING COUNT(*) >= 2) ORDER BY stdid" showlabel="gpa หลังลด 5%">UPDATE student
+SET    gpa = gpa * 0.95
+WHERE  stdid IN
+       (SELECT stdid
+        FROM   enroll
+        WHERE  grade = 'F'
+        GROUP  BY stdid
+        HAVING COUNT(*) >= 2);</sql>
+<p>UPDATE … JOIN (ไวยากรณ์เฉพาะ MySQL) — ขึ้นเงินเดือนอาจารย์กลุ่มละ 500 บาทตามจำนวนกลุ่มที่สอน</p>
+<sql title="UPDATE … JOIN" run temp show="SELECT lecid, name, salary FROM lecturer ORDER BY lecid">UPDATE lecturer l
+       INNER JOIN
+       (SELECT lecid, COUNT(*) AS n
+        FROM   section
+        GROUP  BY lecid) t ON l.lecid = t.lecid
+SET    l.salary = l.salary + (t.n * 500)
+WHERE  l.salary IS NOT NULL;</sql>
+
+<h3>6.8.3 DELETE โดยอ้างอิงตารางอื่น</h3>
+<sql title="ลบการลงทะเบียนของทุกกลุ่มเรียนในภาค 2023-1" run temp>DELETE FROM enroll
+WHERE  secid IN
+       (SELECT secid
+        FROM   section
+        WHERE  term = '2023-1');</sql>
+<div class="box warn"><div class="box-t">⚠️ ข้อจำกัดของ MySQL (Error 1093)</div><p>Subquery อ้างอิงตาราง<b>เดียวกับ</b>ที่กำลังแก้/ลบไม่ได้ — แก้โดยครอบ Subquery อีกชั้นให้เป็น Derived Table</p></div>
+<sql title="ลบนิสิตที่ gpa ต่ำกว่าค่าเฉลี่ย → error" error>DELETE FROM student
+WHERE  gpa <
+       (SELECT AVG(gpa)
+        FROM   student);</sql>
+<sql title="แก้: ครอบด้วย Derived Table" run temp>DELETE FROM student
+WHERE  gpa <
+       (SELECT avg_gpa
+        FROM   (SELECT AVG(gpa) AS avg_gpa
+                FROM   student) AS t);</sql>
+
+<ex no="6.13" title="UPDATE อาจารย์ที่สอนเกิน 5 กลุ่ม" level="2">
+<p>จงเพิ่มเงินเดือน 3,000 บาทให้อาจารย์ที่สอนมากกว่า 5 กลุ่มเรียน</p>
+<answer><sql title="เฉลย" run temp show="SELECT lecid, name, salary FROM lecturer WHERE lecid IN ('t01','t02','t03','t04','t05') ORDER BY lecid">UPDATE lecturer
+SET    salary = salary + 3000
+WHERE  lecid IN
+       (SELECT lecid
+        FROM   section
+        GROUP  BY lecid
+        HAVING COUNT(*) > 5);</sql>
+<p>ตรวจด้วย <code>SELECT lecid, COUNT(*) FROM section GROUP BY lecid</code> ก่อน จะเห็นว่ามี t01 (14 กลุ่ม), t02 (11), t03 (8) และ t05 (6) ที่สอนเกิน 5 กลุ่ม — t04 สอน 4 กลุ่ม แสดงไว้เทียบว่าไม่เปลี่ยน</p></answer>
+</ex>
+<ex no="6.14" title="DELETE ที่ยังไม่มีเกรด" level="2">
+<p>จงลบการลงทะเบียนที่ยังไม่มีเกรด ในกลุ่มเรียนของภาคเรียน 2025-1</p>
+<answer><sql title="เฉลย" run temp>DELETE FROM enroll
+WHERE  grade IS NULL
+  AND  secid IN
+       (SELECT secid
+        FROM   section
+        WHERE  term = '2025-1');</sql>
+<p>กลุ่มเรียนภาค 2025-1 คือ secid 34–38 — มีแถวที่ grade เป็น NULL ใน 34, 35, 36, 37</p></answer>
+</ex>
+
+<h2 id="s9"><span class="sec">6.9</span> การแก้ไขข้อมูลตามเงื่อนไขด้วย CASE</h2>
+<p>CASE ใช้ใน SET ของ UPDATE ได้ แก้หลายเงื่อนไขในคำสั่งเดียว — <b>เงื่อนไขตรวจจากบนลงล่าง และหยุดที่ข้อแรกที่เป็นจริง</b></p>
+<sql title="ก่อนปรับ" run>SELECT lecid, name, salary FROM lecturer WHERE salary IS NOT NULL ORDER BY lecid;</sql>
+<sql title="ขึ้นเงินเดือนตามช่วง: < 30,000 → 15% · 30,000–60,000 → 10% · มากกว่า → 5%" run temp show="SELECT lecid, name, salary FROM lecturer WHERE salary IS NOT NULL ORDER BY lecid" showlabel="หลังปรับ">UPDATE lecturer
+SET    salary = CASE
+                    WHEN salary < 30000                    THEN salary * 1.15
+                    WHEN salary BETWEEN 30000 AND 60000    THEN salary * 1.10
+                    ELSE salary * 1.05
+                END
+WHERE  salary IS NOT NULL;</sql>
+
+<ex no="6.15" title="UPDATE + CASE สถานะนิสิต" level="2">
+<p>จงเพิ่มคอลัมน์ <code>status</code> ในตาราง student แล้วกำหนดค่า “พ้นสภาพ” เมื่อ gpa &lt; 1.60, “รอพินิจ” เมื่อ 1.60–1.99, “ปกติ” กรณีอื่น (gpa เป็น NULL ให้เป็น “ยังไม่มีผล”)</p>
+<answer><sql title="เฉลย" run show="SELECT stdid, name, gpa, status FROM student ORDER BY gpa">ALTER TABLE student ADD COLUMN status VARCHAR(20);
+
+UPDATE student
+SET    status = CASE
+                    WHEN gpa IS NULL THEN 'ยังไม่มีผล'
+                    WHEN gpa < 1.60  THEN 'พ้นสภาพ'
+                    WHEN gpa < 2.00  THEN 'รอพินิจ'
+                    ELSE 'ปกติ'
+                END;</sql>
+<sql title="คืนตารางเดิม" exec>ALTER TABLE student DROP COLUMN status;</sql></answer>
+</ex>
+
+<h2 id="s10"><span class="sec">6.10</span> ข้อผิดพลาดที่พบบ่อยในการเชื่อมตารางและการจัดการข้อมูล</h2>
+<table class="tbl"><tr><th>ข้อผิดพลาด</th><th>อาการ</th><th>วิธีแก้</th></tr>
+<tr><td>ลืมเงื่อนไขการเชื่อม</td><td>จำนวนแถวมากผิดปกติ (ผลคูณ)</td><td>ตรวจว่ามีอย่างน้อย n − 1 เงื่อนไข</td></tr>
+<tr><td>เชื่อมผิดคอลัมน์</td><td>ผลว่าง หรือจับคู่ผิด</td><td>เชื่อม FK กับ PK ที่ถูกอ้างอิง</td></tr>
+<tr><td>INNER JOIN ทั้งที่ต้องการทุกแถว</td><td>ข้อมูลบางแถวหายไป</td><td>เปลี่ยนเป็น LEFT JOIN</td></tr>
+<tr><td>เงื่อนไขฝั่งขวาไว้ใน WHERE ขณะใช้ LEFT JOIN</td><td>กลายเป็น INNER JOIN</td><td>ย้ายไป ON</td></tr>
+<tr><td>COUNT(*) กับ LEFT JOIN</td><td>แถวที่ไม่มีคู่ได้ 1 แทน 0</td><td>COUNT(คอลัมน์ฝั่งขวา)</td></tr>
+<tr><td>ไม่ระบุตารางหน้าคอลัมน์ชื่อซ้ำ</td><td>Column … is ambiguous</td><td>ใช้ชื่อแทนนำหน้าเสมอ</td></tr>
+<tr><td>Subquery อ้างตารางเดียวกับที่กำลัง UPDATE/DELETE</td><td>Error 1093</td><td>ครอบด้วย Derived Table</td></tr>
+<tr><td>UPDATE + CASE ไม่มี ELSE</td><td>แถวที่ไม่เข้าเงื่อนไขกลายเป็น NULL</td><td>ใส่ <code>ELSE คอลัมน์เดิม</code> หรือกรองด้วย WHERE</td></tr>
+<tr><td>NOT IN กับ Subquery ที่มี NULL</td><td>ไม่คืนแถวใดเลย</td><td>กรอง NULL หรือใช้ NOT EXISTS</td></tr>
+</table>
+
+<review>
+<li class="part">INNER JOIN (Lab 5.1)</li>
+<li>แสดงรหัสและชื่อนิสิตที่เคยเรียนวิชา CS001 โดยไม่ซ้ำ <span class="hint">(enroll ⋈ section ⋈ student, DISTINCT)</span><div class="rv-ans"><sql title="เฉลย" run max="10" reset>SELECT DISTINCT s.stdid, s.name
+FROM   enroll e
+       INNER JOIN section sec ON e.secid = sec.secid
+       INNER JOIN student s   ON e.stdid = s.stdid
+WHERE  sec.subid = 'CS001';</sql></div></li>
+<li>แสดงรหัสและชื่อนิสิตที่เคยเรียนวิชา Programming (ใช้ชื่อวิชาเป็นเงื่อนไข) <span class="hint">(JOIN subject)</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT DISTINCT s.stdid, s.name
+FROM   enroll e
+       INNER JOIN section sec ON e.secid  = sec.secid
+       INNER JOIN subject sub ON sec.subid = sub.subid
+       INNER JOIN student s   ON e.stdid  = s.stdid
+WHERE  sub.name = 'Programming';</sql></div></li>
+<li>แสดงรหัสและชื่อนิสิตที่เคยเรียนกับอาจารย์ชื่อ Peter Parker <span class="hint">(4 ตาราง → 3 เงื่อนไข)</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT DISTINCT s.stdid, s.name
+FROM   enroll e
+       INNER JOIN section  sec ON e.secid  = sec.secid
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid
+       INNER JOIN student  s   ON e.stdid  = s.stdid
+WHERE  l.name = 'Peter Parker';</sql></div></li>
+<li>แสดงรหัสและชื่อนิสิตที่ได้เกรด A วิชา Programming <span class="hint">(e.grade = 'A' AND sub.name = …)</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT DISTINCT s.stdid, s.name
+FROM   enroll e
+       INNER JOIN section sec ON e.secid  = sec.secid
+       INNER JOIN subject sub ON sec.subid = sub.subid
+       INNER JOIN student s   ON e.stdid  = s.stdid
+WHERE  e.grade = 'A' AND sub.name = 'Programming';</sql></div></li>
+<li>แสดงรหัส ชื่อนิสิต และเกรด ของนิสิตที่เรียน section 6 <span class="hint">(JOIN student)</span><div class="rv-ans"><sql title="เฉลย" run>SELECT s.stdid, s.name, e.grade
+FROM   enroll e
+       INNER JOIN student s ON e.stdid = s.stdid
+WHERE  e.secid = 6;</sql></div></li>
+<li>แสดงรหัส ชื่อนิสิต และเกรด ของนิสิตที่เรียนวิชา Database ในเทอม 2024-3 (มีหลายกลุ่มเรียน) <span class="hint">(sub.name = 'Database' AND sec.term = …)</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT s.stdid, s.name, e.secid, e.grade
+FROM   enroll e
+       INNER JOIN section sec ON e.secid  = sec.secid
+       INNER JOIN subject sub ON sec.subid = sub.subid
+       INNER JOIN student s   ON e.stdid  = s.stdid
+WHERE  sub.name = 'Database' AND sec.term = '2024-3';</sql></div></li>
+<li>แสดงรหัสและชื่อนิสิตที่เคยเรียนวิชา CS001 หรือ CS002 <span class="hint">(IN ('CS001','CS002'))</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT DISTINCT s.stdid, s.name
+FROM   enroll e
+       INNER JOIN section sec ON e.secid = sec.secid
+       INNER JOIN student s   ON e.stdid = s.stdid
+WHERE  sec.subid IN ('CS001', 'CS002');</sql></div></li>
+<li>แสดงชื่อวิชาและเทอมที่เปิดสอน เรียงตามเทอม <span class="hint">(ORDER BY term)</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT sub.name, sec.term
+FROM   section sec
+       INNER JOIN subject sub ON sec.subid = sub.subid
+ORDER  BY sec.term;</sql></div></li>
+<li>แสดงวิชา เทอม อาจารย์ผู้สอน และเกรด ของนิสิตชื่อ Rukawa <span class="hint">(5 ตาราง)</span><div class="rv-ans"><sql title="เฉลย" run>SELECT sub.name AS subject, sec.term, l.name AS lecturer, e.grade
+FROM   student s
+       INNER JOIN enroll   e   ON s.stdid   = e.stdid
+       INNER JOIN section  sec ON e.secid   = sec.secid
+       INNER JOIN subject  sub ON sec.subid = sub.subid
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid
+WHERE  s.name = 'Rukawa'
+ORDER  BY sec.term;</sql></div></li>
+<li>แสดงชื่อวิชา เทอม ชื่อผู้สอน ของทุกวิชาที่สอนโดยอาจารย์สาขา CS <span class="hint">(l.major = 'CS')</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT sub.name AS subject, sec.term, l.name AS lecturer
+FROM   section sec
+       INNER JOIN subject  sub ON sec.subid = sub.subid
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid
+WHERE  l.major = 'CS'
+ORDER  BY sec.term;</sql></div></li>
+<li>แสดงรหัสนิสิต ชื่อนิสิต ชื่อวิชา ชื่อผู้สอน เทอม ของการเรียนที่ได้เกรด F <span class="hint">(e.grade = 'F')</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT s.stdid, s.name, sub.name AS subject, l.name AS lecturer, sec.term
+FROM   enroll e
+       INNER JOIN student  s   ON e.stdid   = s.stdid
+       INNER JOIN section  sec ON e.secid   = sec.secid
+       INNER JOIN subject  sub ON sec.subid = sub.subid
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid
+WHERE  e.grade = 'F'
+ORDER  BY s.stdid;</sql></div></li>
+<li class="part">Self Join และ OUTER JOIN (Lab 5.1–5.2)</li>
+<li>แสดงรหัสและชื่อวิชาที่เป็น prerequisite ของวิชา CS002 และของวิชา AI <span class="hint">(subject sub JOIN subject pre ON sub.pre = pre.subid)</span><div class="rv-ans"><sql title="เฉลย" run>SELECT sub.subid, sub.name, pre.subid AS pre_id, pre.name AS pre_name
+FROM   subject sub
+       INNER JOIN subject pre ON sub.pre = pre.subid
+WHERE  sub.subid = 'CS002' OR sub.name = 'AI';</sql></div></li>
+<li>แสดงรหัสและชื่อวิชาทุกวิชาที่มีวิชา Programming เป็น prerequisite <span class="hint">(pre.name = 'Programming')</span><div class="rv-ans"><sql title="เฉลย" run>SELECT sub.subid, sub.name
+FROM   subject sub
+       INNER JOIN subject pre ON sub.pre = pre.subid
+WHERE  pre.name = 'Programming';</sql></div></li>
+<li>แสดงชื่ออาจารย์และเทอมที่สอนของอาจารย์ทุกคน รวมทั้งอาจารย์ที่ไม่เคยสอน <span class="hint">(LEFT JOIN)</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT l.name, sec.term
+FROM   lecturer l
+       LEFT JOIN section sec ON l.lecid = sec.lecid
+ORDER  BY l.lecid, sec.term;</sql></div></li>
+<li>แสดงชื่ออาจารย์ ชื่อวิชา เทอม ของอาจารย์ทุกคน ถ้าไม่เคยสอนให้แสดง “ไม่เคยสอน” ในคอลัมน์วิชาและเทอม <span class="hint">(LEFT JOIN + IFNULL)</span><div class="rv-ans"><p>ต้องใช้ LEFT JOIN ทั้งสองครั้ง ถ้า JOIN subject แบบ INNER แถวของอาจารย์ที่ไม่เคยสอนจะหายไป</p><sql title="เฉลย" run max="10">SELECT l.name,
+       IFNULL(sub.name, 'ไม่เคยสอน') AS subject,
+       IFNULL(sec.term, 'ไม่เคยสอน') AS term
+FROM   lecturer l
+       LEFT JOIN section sec ON l.lecid   = sec.lecid
+       LEFT JOIN subject sub ON sec.subid = sub.subid
+ORDER  BY sec.term IS NULL DESC, l.lecid;</sql></div></li>
+<li>แสดงรหัสนิสิตและรหัสวิชาที่ลงทะเบียนของนิสิตทุกคน รวมทั้งคนที่ไม่เคยลงทะเบียน <span class="hint">(LEFT JOIN 2 ครั้ง)</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT s.stdid, sec.subid
+FROM   student s
+       LEFT JOIN enroll  e   ON s.stdid = e.stdid
+       LEFT JOIN section sec ON e.secid = sec.secid
+ORDER  BY sec.subid IS NULL DESC, s.stdid;</sql></div></li>
+<li>แสดงรหัสนิสิต ชื่อวิชา เทอม เกรด ของนิสิตทุกคน รวมทั้งคนที่ไม่เคยลงทะเบียน <span class="hint">(LEFT JOIN enroll → section → subject)</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT s.stdid, sub.name AS subject, sec.term, e.grade
+FROM   student s
+       LEFT JOIN enroll  e   ON s.stdid   = e.stdid
+       LEFT JOIN section sec ON e.secid   = sec.secid
+       LEFT JOIN subject sub ON sec.subid = sub.subid
+ORDER  BY sec.term IS NULL DESC, s.stdid;</sql></div></li>
+<li>แสดงจำนวนรายวิชาที่นิสิตแต่ละคนลงทะเบียน รวมคนที่ไม่เคยลงให้แสดง 0 <span class="hint">(COUNT(e.secid) ไม่ใช่ COUNT(*))</span><div class="rv-ans"><p><code>COUNT(*)</code> นับแถว NULL ที่ LEFT JOIN เติมให้ด้วย คนที่ไม่เคยลงจะได้ 1 แทน 0 จึงต้องนับคอลัมน์จากฝั่งขวา</p><sql title="เฉลย" run max="10">SELECT s.stdid, s.name, COUNT(e.secid) AS n_subject
+FROM   student s
+       LEFT JOIN enroll e ON s.stdid = e.stdid
+GROUP  BY s.stdid, s.name
+ORDER  BY n_subject, s.stdid;</sql></div></li>
+<li class="part">Set Operator (Lab 5.3)</li>
+<li>แสดงรหัสและชื่อนิสิตที่เคยเรียนทั้งวิชา CS001 และ CS002 <span class="hint">(INTERSECT)</span><div class="rv-ans"><sql title="เฉลย" run>SELECT s.stdid, s.name
+FROM   student s JOIN enroll e ON s.stdid = e.stdid JOIN section sec ON e.secid = sec.secid
+WHERE  sec.subid = 'CS001'
+INTERSECT
+SELECT s.stdid, s.name
+FROM   student s JOIN enroll e ON s.stdid = e.stdid JOIN section sec ON e.secid = sec.secid
+WHERE  sec.subid = 'CS002';</sql></div></li>
+<li>แสดงรหัสและชื่อนิสิตที่เคยเรียน CS001 แต่ไม่เคยเรียน CS002 <span class="hint">(EXCEPT)</span><div class="rv-ans"><sql title="เฉลย" run>SELECT s.stdid, s.name
+FROM   student s JOIN enroll e ON s.stdid = e.stdid JOIN section sec ON e.secid = sec.secid
+WHERE  sec.subid = 'CS001'
+EXCEPT
+SELECT s.stdid, s.name
+FROM   student s JOIN enroll e ON s.stdid = e.stdid JOIN section sec ON e.secid = sec.secid
+WHERE  sec.subid = 'CS002';</sql></div></li>
+<li>แสดงชื่อและสาขาของอาจารย์ที่สอนในเทอม 2025-1 แต่ไม่ได้สอนเทอม 2025-2 <span class="hint">(EXCEPT)</span><div class="rv-ans"><sql title="เฉลย" run>SELECT l.name, l.major
+FROM   lecturer l JOIN section sec ON l.lecid = sec.lecid
+WHERE  sec.term = '2025-1'
+EXCEPT
+SELECT l.name, l.major
+FROM   lecturer l JOIN section sec ON l.lecid = sec.lecid
+WHERE  sec.term = '2025-2';</sql></div></li>
+<li>แสดงรหัสและชื่ออาจารย์ที่สอน Programming แต่ไม่เคยสอน Database <span class="hint">(EXCEPT / NOT IN)</span><div class="rv-ans"><sql title="เฉลย" run>SELECT l.lecid, l.name
+FROM   lecturer l JOIN section sec ON l.lecid = sec.lecid JOIN subject sub ON sec.subid = sub.subid
+WHERE  sub.name = 'Programming'
+EXCEPT
+SELECT l.lecid, l.name
+FROM   lecturer l JOIN section sec ON l.lecid = sec.lecid JOIN subject sub ON sec.subid = sub.subid
+WHERE  sub.name = 'Database';</sql></div></li>
+<li>แสดงรหัสและชื่อนิสิตที่เคยเรียน Programming แต่ไม่เคยเรียน Graphics <span class="hint">(EXCEPT)</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT s.stdid, s.name
+FROM   student s JOIN enroll e ON s.stdid = e.stdid
+       JOIN section sec ON e.secid = sec.secid JOIN subject sub ON sec.subid = sub.subid
+WHERE  sub.name = 'Programming'
+EXCEPT
+SELECT s.stdid, s.name
+FROM   student s JOIN enroll e ON s.stdid = e.stdid
+       JOIN section sec ON e.secid = sec.secid JOIN subject sub ON sec.subid = sub.subid
+WHERE  sub.name = 'Graphics';</sql></div></li>
+<li>แสดงชื่อ ปีเกิด อายุ ของนิสิตที่อายุน้อยที่สุดและอายุมากที่สุดในผลลัพธ์เดียว (ทั้งหมด และเฉพาะ major CS) <span class="hint">(UNION + MIN/MAX(birthday))</span><div class="rv-ans"><p>อายุน้อยที่สุด = วันเกิดมากที่สุด (MAX(birthday))</p><sql title="เฉลย" run>SELECT name, YEAR(birthday) AS birth_year, TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age
+FROM   student
+WHERE  birthday =
+       (SELECT MAX(birthday)
+        FROM   student)
+UNION
+SELECT name, YEAR(birthday), TIMESTAMPDIFF(YEAR, birthday, CURDATE())
+FROM   student
+WHERE  birthday =
+       (SELECT MIN(birthday)
+        FROM   student);</sql><sql title="เฉลย" run>SELECT name, YEAR(birthday) AS birth_year, TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age
+FROM   student
+WHERE  major = 'CS'
+  AND  birthday =
+       (SELECT MAX(birthday)
+        FROM   student
+        WHERE  major = 'CS')
+UNION
+SELECT name, YEAR(birthday), TIMESTAMPDIFF(YEAR, birthday, CURDATE())
+FROM   student
+WHERE  major = 'CS'
+  AND  birthday =
+       (SELECT MIN(birthday)
+        FROM   student
+        WHERE  major = 'CS');</sql></div></li>
+<li class="part">Subquery (Lab 5.4)</li>
+<li>แสดงข้อมูลนิสิตสาขา CS ที่ไม่เคยเรียนวิชา Programming เลย <span class="hint">(NOT IN / NOT EXISTS)</span><div class="rv-ans"><sql title="เฉลย" run>SELECT *
+FROM   student s
+WHERE  s.major = 'CS'
+  AND  NOT EXISTS
+       (SELECT *
+        FROM   enroll e
+               JOIN section sec ON e.secid   = sec.secid
+               JOIN subject sub ON sec.subid = sub.subid
+        WHERE  e.stdid = s.stdid
+          AND  sub.name = 'Programming');</sql></div></li>
+<li>แสดงชื่ออาจารย์สาขา CS ที่ไม่เคยสอนวิชา Programming <span class="hint">(NOT EXISTS)</span><div class="rv-ans"><sql title="เฉลย" run>SELECT l.name
+FROM   lecturer l
+WHERE  l.major = 'CS'
+  AND  NOT EXISTS
+       (SELECT *
+        FROM   section sec
+               JOIN subject sub ON sec.subid = sub.subid
+        WHERE  sec.lecid = l.lecid
+          AND  sub.name = 'Programming');</sql></div></li>
+<li>แสดงจำนวนนิสิต (ไม่นับซ้ำ) ที่ลงทะเบียนในเทอม 2025-2 <span class="hint">(COUNT(DISTINCT stdid))</span><div class="rv-ans"><sql title="เฉลย" run>SELECT COUNT(DISTINCT stdid) AS n_student
+FROM   enroll
+WHERE  secid IN
+       (SELECT secid
+        FROM   section
+        WHERE  term = '2025-2');</sql></div></li>
+<li>แสดงรหัสและชื่ออาจารย์ที่ไม่ได้สอนในภาคเรียน 2026-1 <span class="hint">(NOT IN (SELECT lecid … WHERE term = …))</span><div class="rv-ans"><sql title="เฉลย" run max="16">SELECT lecid, name
+FROM   lecturer
+WHERE  lecid NOT IN
+       (SELECT lecid
+        FROM   section
+        WHERE  term = '2026-1');</sql></div></li>
+<li>แสดงชื่อ ปีเกิด อายุ ของนิสิตที่อายุน้อยที่สุด และนิสิตที่อายุมากที่สุดใน major CS <span class="hint">(= (SELECT MAX(birthday) …))</span><div class="rv-ans"><p>ดูเฉลยข้อสุดท้ายของหมวด Set Operator (คำสั่งที่สอง) — ใช้ Subquery หา MAX/MIN(birthday) ของสาขา CS แล้วรวมด้วย UNION หรือใช้ OR ในคำสั่งเดียว</p><sql title="เฉลย" run>SELECT name, YEAR(birthday) AS birth_year, TIMESTAMPDIFF(YEAR, birthday, CURDATE()) AS age
+FROM   student
+WHERE  major = 'CS'
+  AND  (birthday = (SELECT MAX(birthday) FROM student WHERE major = 'CS')
+    OR  birthday = (SELECT MIN(birthday) FROM student WHERE major = 'CS'));</sql></div></li>
+<li>แสดงข้อมูลนิสิตที่ได้ GPA สูงที่สุดในมหาวิทยาลัย และสูงที่สุดใน major CS <span class="hint">(= (SELECT MAX(gpa) …))</span><div class="rv-ans"><sql title="เฉลย" run>SELECT *
+FROM   student
+WHERE  gpa =
+       (SELECT MAX(gpa)
+        FROM   student);</sql><sql title="เฉลย" run>SELECT *
+FROM   student
+WHERE  major = 'CS'
+  AND  gpa =
+       (SELECT MAX(gpa)
+        FROM   student
+        WHERE  major = 'CS');</sql></div></li>
+<li>แสดงข้อมูลนิสิตที่ได้ GPA สูงที่สุดใน major Thai — ผลลัพธ์เป็นอย่างไร เพราะเหตุใด <span class="hint">(ไม่มีนิสิตสาขา Thai)</span><div class="rv-ans"><p>ได้ <b>0 แถว</b> — ไม่มีนิสิตสาขา Thai Subquery จึงคืน NULL และ <code>gpa = NULL</code> ไม่เป็นจริงกับแถวใดเลย (ไม่เกิด error)</p><sql title="เฉลย" run>SELECT *
+FROM   student
+WHERE  major = 'Thai'
+  AND  gpa =
+       (SELECT MAX(gpa)
+        FROM   student
+        WHERE  major = 'Thai');</sql></div></li>
+<li>แสดงข้อมูลนิสิตที่เคยลงทะเบียนเรียน และไม่เคยติด F เลย <span class="hint">(EXISTS AND NOT EXISTS)</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT *
+FROM   student s
+WHERE  EXISTS
+       (SELECT * FROM enroll e WHERE e.stdid = s.stdid)
+  AND  NOT EXISTS
+       (SELECT * FROM enroll e WHERE e.stdid = s.stdid AND e.grade = 'F');</sql></div></li>
+<li>แสดงรหัสและชื่อวิชาที่ไม่เคยเปิดสอนเลย ด้วย 2 วิธี <span class="hint">(NOT IN / LEFT JOIN … IS NULL)</span><div class="rv-ans"><sql run title="วิธีที่ 1 — NOT IN">SELECT subid, name
+FROM   subject
+WHERE  subid NOT IN
+       (SELECT subid
+        FROM   section);</sql><sql run title="วิธีที่ 2 — LEFT JOIN … IS NULL">SELECT sub.subid, sub.name
+FROM   subject sub
+       LEFT JOIN section sec ON sub.subid = sec.subid
+WHERE  sec.secid IS NULL;</sql></div></li>
+<li>แสดงนิสิตที่มี gpa สูงกว่าค่าเฉลี่ยของนิสิตในสาขาเดียวกัน <span class="hint">(Correlated Subquery)</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT s.stdid, s.name, s.major, s.gpa
+FROM   student s
+WHERE  s.gpa >
+       (SELECT AVG(s2.gpa)
+        FROM   student s2
+        WHERE  s2.major = s.major)
+ORDER  BY s.major, s.gpa DESC;</sql></div></li>
+<li class="part">GROUP BY กับ JOIN (Lab 5.5)</li>
+<li>แสดงรหัสนิสิตและจำนวนครั้งที่ลงเรียน เฉพาะนิสิตสาขา CS <span class="hint">(JOIN student WHERE major = 'CS' GROUP BY)</span><div class="rv-ans"><sql title="เฉลย" run>SELECT e.stdid, COUNT(*) AS n_enroll
+FROM   enroll e
+       JOIN student s ON e.stdid = s.stdid
+WHERE  s.major = 'CS'
+GROUP  BY e.stdid;</sql></div></li>
+<li>แสดงเกรดและจำนวนครั้งที่ได้เกรดนั้นของนิสิตชื่อ Sakuragi <span class="hint">(WHERE s.name = … GROUP BY grade)</span><div class="rv-ans"><sql title="เฉลย" run>SELECT e.grade, COUNT(*) AS n
+FROM   enroll e
+       JOIN student s ON e.stdid = s.stdid
+WHERE  s.name = 'Sakuragi'
+GROUP  BY e.grade;</sql></div></li>
+<li>แสดงข้อมูลทุกคอลัมน์ของอาจารย์ที่เคยสอนมากกว่า 3 ครั้ง <span class="hint">(IN (SELECT lecid … HAVING COUNT(*) &gt; 3))</span><div class="rv-ans"><sql title="เฉลย" run>SELECT *
+FROM   lecturer
+WHERE  lecid IN
+       (SELECT lecid
+        FROM   section
+        GROUP  BY lecid
+        HAVING COUNT(*) > 3);</sql></div></li>
+<li>แสดงข้อมูลอาจารย์สาขา CS ที่เคยสอนวิชา Programming มากกว่า 2 ครั้ง <span class="hint">(HAVING COUNT(*) &gt; 2)</span><div class="rv-ans"><sql title="เฉลย" run>SELECT l.lecid, l.name, l.salary, l.major, COUNT(*) AS n_programming
+FROM   lecturer l
+       JOIN section sec ON l.lecid   = sec.lecid
+       JOIN subject sub ON sec.subid = sub.subid
+WHERE  l.major = 'CS' AND sub.name = 'Programming'
+GROUP  BY l.lecid, l.name, l.salary, l.major
+HAVING COUNT(*) > 2;</sql></div></li>
+<li>แสดงรหัสอาจารย์ เทอม และจำนวนวิชาที่สอนในเทอมนั้น เฉพาะที่สอนมากกว่า 1 วิชาในเทอมนั้น เรียงตามรหัสอาจารย์ <span class="hint">(GROUP BY lecid, term HAVING)</span><div class="rv-ans"><sql title="เฉลย" run>SELECT lecid, term, COUNT(DISTINCT subid) AS n_subject
+FROM   section
+GROUP  BY lecid, term
+HAVING COUNT(DISTINCT subid) > 1
+ORDER  BY lecid, term;</sql></div></li>
+<li>แสดงชื่ออาจารย์ที่สอนกลุ่มเรียนมากที่สุด (ถ้าเท่ากันต้องแสดงทุกคน) <span class="hint">(HAVING COUNT(*) = (SELECT MAX(…)))</span><div class="rv-ans"><sql title="เฉลย" run>SELECT l.name, COUNT(*) AS n_section
+FROM   lecturer l
+       JOIN section sec ON l.lecid = sec.lecid
+GROUP  BY l.lecid, l.name
+HAVING COUNT(*) =
+       (SELECT MAX(c)
+        FROM   (SELECT COUNT(*) AS c
+                FROM   section
+                GROUP  BY lecid) AS t);</sql></div></li>
+<li>ท้าทาย: แสดง secid ชื่อวิชา ชื่ออาจารย์ จำนวนนิสิต และร้อยละของนิสิตที่ได้ A ในแต่ละกลุ่มเรียน <span class="hint">(SUM(CASE WHEN grade = 'A' …) * 100 / COUNT(*))</span><div class="rv-ans"><sql title="เฉลย" run max="10">SELECT sec.secid, sub.name AS subject, l.name AS lecturer,
+       COUNT(*) AS n_student,
+       ROUND(SUM(CASE WHEN e.grade = 'A' THEN 1 ELSE 0 END) * 100 / COUNT(*), 1) AS pct_A
+FROM   section sec
+       JOIN subject  sub ON sec.subid = sub.subid
+       JOIN lecturer l   ON sec.lecid = l.lecid
+       JOIN enroll   e   ON sec.secid = e.secid
+GROUP  BY sec.secid, sub.name, l.name
+ORDER  BY sec.secid;</sql></div></li>
+<li>ท้าทาย: แสดงนิสิตที่ลงทะเบียนวิชาที่มีวิชาบังคับก่อน แต่ไม่เคยลงวิชาบังคับก่อนนั้นมาก่อน <span class="hint">(NOT EXISTS + sub.pre)</span><div class="rv-ans"><p>“มาก่อน” เปรียบเทียบด้วยภาคเรียน — ต้องไม่มีการลงวิชา pre ในภาคที่<b>ก่อน</b>ภาคที่ลงวิชานี้ (รูปแบบ term 'YYYY-n' เทียบเป็นข้อความได้)</p><sql title="เฉลย" run max="10">SELECT s.stdid, s.name, sub.name AS subject, sec.term, sub.pre
+FROM   enroll e
+       JOIN student s   ON e.stdid   = s.stdid
+       JOIN section sec ON e.secid   = sec.secid
+       JOIN subject sub ON sec.subid = sub.subid
+WHERE  sub.pre IS NOT NULL
+  AND  NOT EXISTS
+       (SELECT *
+        FROM   enroll e2
+               JOIN section sec2 ON e2.secid = sec2.secid
+        WHERE  e2.stdid    = e.stdid
+          AND  sec2.subid  = sub.pre
+          AND  sec2.term   < sec.term)
+ORDER  BY s.stdid, sec.term;</sql></div></li>
+<li class="part">จัดการข้อมูลขั้นสูง (Lab 5.6)</li>
+<li>ให้นิสิตทุกคนที่เรียนวิชา CS004 ในเทอม 2024-1 ได้เกรด A <span class="hint">(UPDATE … WHERE secid IN (SELECT …))</span><div class="rv-ans"><sql title="เฉลย" run temp show="SELECT e.* FROM enroll e JOIN section sec ON e.secid = sec.secid WHERE sec.subid = 'CS004' AND sec.term = '2024-1'">UPDATE enroll
+SET    grade = 'A'
+WHERE  secid IN
+       (SELECT secid
+        FROM   section
+        WHERE  subid = 'CS004' AND term = '2024-1');</sql></div></li>
+<li>เพิ่มเงินเดือน 10% ให้อาจารย์ทุกคนที่สอนในปี 2025 <span class="hint">(term LIKE '2025-%')</span><div class="rv-ans"><sql title="เฉลย" run temp>UPDATE lecturer
+SET    salary = salary * 1.10
+WHERE  lecid IN
+       (SELECT lecid
+        FROM   section
+        WHERE  term LIKE '2025-%');</sql></div></li>
+<li>เพิ่มเงินเดือน 20% ให้อาจารย์ที่มีเงินเดือนต่ำกว่าค่าเฉลี่ยเงินเดือนของอาจารย์ทั้งหมด (ระวัง Error 1093) <span class="hint">(Derived Table)</span><div class="rv-ans"><p>อ้าง lecturer ใน Subquery ตรง ๆ จะเกิด Error 1093 ต้องครอบด้วย Derived Table ให้ MySQL คำนวณค่าเฉลี่ยเก็บไว้ก่อน</p><sql title="เฉลย" run temp>UPDATE lecturer
+SET    salary = salary * 1.20
+WHERE  salary <
+       (SELECT avg_salary
+        FROM   (SELECT AVG(salary) AS avg_salary
+                FROM   lecturer) AS t);</sql></div></li>
+<li>เพิ่มเงินเดือน 10% ให้อาจารย์ที่สอนมากกว่า 1 วิชาในเทอม 2025-1 <span class="hint">(GROUP BY lecid HAVING COUNT(DISTINCT subid) &gt; 1)</span><div class="rv-ans"><sql title="เฉลย" run temp>UPDATE lecturer
+SET    salary = salary * 1.10
+WHERE  lecid IN
+       (SELECT lecid
+        FROM   section
+        WHERE  term = '2025-1'
+        GROUP  BY lecid
+        HAVING COUNT(DISTINCT subid) > 1);</sql></div></li>
+<li>ปรับเงินเดือนอาจารย์: ≤ 30000 เพิ่ม 20%, 30001–40000 เพิ่ม 10%, 40001–50000 เพิ่ม 5%, &gt; 50000 ไม่เพิ่ม <span class="hint">(UPDATE … SET salary = CASE …)</span><div class="rv-ans"><sql title="เฉลย" run temp show="SELECT lecid, name, salary FROM lecturer ORDER BY lecid">UPDATE lecturer
+SET    salary = CASE
+                    WHEN salary <= 30000 THEN salary * 1.20
+                    WHEN salary <= 40000 THEN salary * 1.10
+                    WHEN salary <= 50000 THEN salary * 1.05
+                    ELSE salary
+                END;</sql></div></li>
+<li>สร้างตาราง fail_log แล้วคัดลอกการลงทะเบียนที่ได้ F ทั้งหมด พร้อมชื่อนิสิตและชื่อวิชาเข้าไป <span class="hint">(INSERT … SELECT … JOIN)</span><div class="rv-ans"><sql title="เฉลย" run show="SELECT * FROM fail_log">CREATE TABLE fail_log (
+    secid         INT,
+    stdid         VARCHAR(10),
+    student_name  VARCHAR(50),
+    subject_name  VARCHAR(30),
+    term          VARCHAR(6),
+    PRIMARY KEY (secid, stdid)
+);
+INSERT INTO fail_log
+SELECT e.secid, e.stdid, s.name, sub.name, sec.term
+FROM   enroll e
+       JOIN student s   ON e.stdid   = s.stdid
+       JOIN section sec ON e.secid   = sec.secid
+       JOIN subject sub ON sec.subid = sub.subid
+WHERE  e.grade = 'F';</sql></div></li>
+<li>สร้างตาราง student_backup ด้วย CREATE TABLE … AS SELECT แล้วอธิบายว่าอะไรบ้างที่ไม่ถูกคัดลอกมา <span class="hint">(DESCRIBE)</span><div class="rv-ans"><p>คัดลอกมาเฉพาะคอลัมน์ ชนิดข้อมูล และข้อมูล แต่<b>ไม่คัดลอก</b> PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, ดัชนี และ AUTO_INCREMENT (คอลัมน์ Key ว่าง)</p><sql title="เฉลย" run>CREATE TABLE student_backup AS SELECT * FROM student;
+DESCRIBE student_backup;</sql></div></li>
+<li>ลบการลงทะเบียนที่ยังไม่มีเกรด ในกลุ่มเรียนของภาคเรียน 2025-3 <span class="hint">(grade IS NULL AND secid IN (…))</span><div class="rv-ans"><sql title="เฉลย" run temp>DELETE FROM enroll
+WHERE  grade IS NULL
+  AND  secid IN
+       (SELECT secid
+        FROM   section
+        WHERE  term = '2025-3');</sql></div></li>
+<li>เพิ่มคอลัมน์ status ใน student แล้วกำหนดค่า “พ้นสภาพ” (gpa &lt; 1.60) “รอพินิจ” (1.60–1.99) “ปกติ” (อื่น ๆ) <span class="hint">(ALTER + UPDATE CASE)</span><div class="rv-ans"><p>นิสิตที่ไม่มี gpa จะได้ “ปกติ” ตาม ELSE</p><sql title="เฉลย" run show="SELECT stdid, name, gpa, status FROM student ORDER BY gpa" max="8">ALTER TABLE student ADD COLUMN status VARCHAR(20);
+UPDATE student
+SET    status = CASE
+                    WHEN gpa < 1.60 THEN 'พ้นสภาพ'
+                    WHEN gpa < 2.00 THEN 'รอพินิจ'
+                    ELSE 'ปกติ'
+                END;</sql></div></li>
+<li>เมื่อแก้ข้อมูลใน lab เสร็จ ทำอย่างไรให้ตารางกลับมาเหมือนเดิมทุกตาราง อธิบายขั้นตอน <span class="hint">(DROP ตามลำดับ แล้วรันสคริปต์ใหม่)</span><div class="rv-ans"><p>(1) ลบตารางที่สร้างเพิ่ม (fail_log, student_backup) (2) ลบตารางกรณีศึกษาตามลำดับลูก → แม่: enroll, section, subject, lecturer, student (3) รันสคริปต์ prymania_DBLabScript.sql ทั้งไฟล์ใหม่ (ภาคผนวก ก) ซึ่งสร้างตารางและเพิ่มข้อมูลกลับมา — สคริปต์มีคำสั่ง DROP TABLE IF EXISTS อยู่ต้นไฟล์แล้ว จึงรันซ้ำได้ทันที</p><sql title="เฉลย" >DROP TABLE IF EXISTS fail_log, student_backup;
+DROP TABLE IF EXISTS enroll, section, subject, lecturer, student;
+-- แล้วเปิด prymania_DBLabScript.sql ใน DBeaver กด Execute Script (Alt+X)</sql></div></li>
+</review>

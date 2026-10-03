@@ -1,0 +1,95 @@
+# คำถามท้ายบท + เฉลย — ดูรูปแบบที่ apply_reviews.py
+## สัญลักษณ์และองค์ประกอบ
+จงวาดสัญลักษณ์แบบเชนของ Entity, Weak Entity, Key Attribute, Multivalued Attribute, Derived Attribute และ Relationship || ตารางที่ 2.1
+A- <b>Entity</b> — สี่เหลี่ยมผืนผ้า
+A- <b>Weak Entity</b> — สี่เหลี่ยมผืนผ้าเส้นคู่ (ความสัมพันธ์ที่ระบุตัวตนเป็นข้าวหลามตัดเส้นคู่)
+A- <b>Key Attribute</b> — วงรีที่ขีดเส้นใต้ชื่อแอตทริบิวต์
+A- <b>Multivalued Attribute</b> — วงรีเส้นคู่
+A- <b>Derived Attribute</b> — วงรีเส้นประ
+A- <b>Relationship</b> — รูปข้าวหลามตัด (สี่เหลี่ยมขนมเปียกปูน)
+จงอธิบายความแตกต่างระหว่างเอนทิตีปกติกับเอนทิตีอ่อนแอ พร้อมยกตัวอย่างที่ไม่ซ้ำกับในเอกสาร 2 ตัวอย่าง || ลบเจ้าของแล้วยังมีความหมายไหม
+A: <b>เอนทิตีปกติ</b> มีคีย์ของตัวเอง ระบุตัวตนได้โดยลำพัง ส่วน<b>เอนทิตีอ่อนแอ</b>ไม่มีคีย์ของตัวเอง ต้องอาศัยคีย์ของเอนทิตีเจ้าของร่วมกับ Partial Key และถ้าลบเจ้าของ เอนทิตีอ่อนแอจะไม่มีความหมาย
+A: ตัวอย่าง: (1) <b>ชั้นของอาคาร</b> (ชั้น 1, ชั้น 2 มีทุกอาคาร) เจ้าของคือ อาคาร (2) <b>งวดการผ่อนชำระ</b> (งวดที่ 1, 2, …) เจ้าของคือ สัญญาเงินกู้ (3) <b>บุตรของพนักงาน</b> สำหรับสวัสดิการ เจ้าของคือ พนักงาน
+จงจำแนกประเภทแอตทริบิวต์: เลขบัตรประชาชน, ที่อยู่, อายุ, ความสามารถพิเศษ, วันเกิด, ชื่อ-สกุล, เบอร์โทร (มีหลายเบอร์) || Key / Composite / Derived / Multivalued
+A: เลขบัตรประชาชน = <b>Key</b> (Simple) · ที่อยู่ = <b>Composite</b> (บ้านเลขที่ ถนน จังหวัด รหัสไปรษณีย์) · อายุ = <b>Derived</b> (คำนวณจากวันเกิด) · ความสามารถพิเศษ = <b>Multivalued</b> · วันเกิด = <b>Simple</b> · ชื่อ-สกุล = <b>Composite</b> (ชื่อ + นามสกุล) · เบอร์โทรหลายเบอร์ = <b>Multivalued</b>
+ตำแหน่งพนักงาน (leader, programmer, SA, HR) ควรเป็นเอนทิตี แอตทริบิวต์ หรือค่าของแอตทริบิวต์ เพราะเหตุใด || ค่าที่เป็นไปได้ ≠ attribute
+A: leader, programmer, SA, HR เป็น<b>ค่าของแอตทริบิวต์</b> position ของเอนทิตี Employee ไม่ใช่แอตทริบิวต์แยกกัน 4 ตัว (ไม่ควรวาดวงรี leader, programmer, …) — แต่ถ้าต้องเก็บข้อมูลของตำแหน่งเพิ่ม เช่น เงินเดือนขั้นต่ำ หน้าที่ ก็ควรยกเป็นเอนทิตี Position แยก
+เหตุใดจึงไม่ควรเก็บ “อายุ” เป็นแอตทริบิวต์ปกติ และควรแสดงในแผนภาพอย่างไร || Derived — วงรีเส้นประ
+A: อายุเปลี่ยนทุกวันตามเวลา ถ้าเก็บไว้ต้องคอยแก้ตลอด และอาจขัดกับวันเกิด (ไม่สอดคล้อง) ควรเก็บ<b>วันเกิด</b>แล้วคำนวณอายุเมื่อต้องการ ในแผนภาพแสดงอายุเป็น <b>Derived Attribute (วงรีเส้นประ)</b>
+เหตุใดเกรดจึงต้องเป็นแอตทริบิวต์ของความสัมพันธ์ enroll ไม่ใช่ของ student หรือ subject || ขึ้นกับทั้งสองฝั่ง
+A: เกรดขึ้นกับ<b>ทั้งนิสิตและกลุ่มเรียน</b>พร้อมกัน — นิสิตคนเดียวมีหลายเกรด (หลายวิชา) และวิชาเดียวมีหลายเกรด (หลายคน) ถ้าเก็บที่ student จะรู้ไม่ได้ว่าเป็นเกรดวิชาใด ถ้าเก็บที่ subject จะรู้ไม่ได้ว่าเป็นของใคร จึงเป็นแอตทริบิวต์ของความสัมพันธ์ M:N
+## ภาวะความสัมพันธ์
+จงระบุภาวะความสัมพันธ์: พนักงาน–ที่จอดรถ (1 คน 1 ช่อง), สาขาวิชา–นิสิต, อาจารย์–วิชา (สอน), นิสิต–วิชา (ลงทะเบียน) || ถามทั้งสองฝั่ง
+A: พนักงาน–ที่จอดรถ = <b>1:1</b> · สาขาวิชา–นิสิต = <b>1:M</b> (สาขาหนึ่งมีนิสิตหลายคน นิสิตสังกัดสาขาเดียว) · อาจารย์–วิชา = <b>M:N</b> · นิสิต–วิชา = <b>M:N</b>
+จงระบุภาวะความสัมพันธ์: ประเทศ–เมืองหลวง, ผู้ป่วย–แพทย์ (การนัดตรวจ), ลูกค้า–ใบสั่งซื้อ, ใบสั่งซื้อ–สินค้า || 1:1 / 1:M / M:N
+A: ประเทศ–เมืองหลวง = <b>1:1</b> · ผู้ป่วย–แพทย์ = <b>M:N</b> (มีแอตทริบิวต์วันเวลานัด) · ลูกค้า–ใบสั่งซื้อ = <b>1:M</b> · ใบสั่งซื้อ–สินค้า = <b>M:N</b> (มีแอตทริบิวต์จำนวนและราคา)
+ความสัมพันธ์ Person has email (คนหนึ่งมีหลายอีเมล) ควรเขียนเป็นเอนทิตีแยก หรือเป็นแอตทริบิวต์พหุค่า เปรียบเทียบข้อดีข้อเสีย || Multivalued vs Entity
+A: <b>แอตทริบิวต์พหุค่า</b> — แผนภาพเรียบง่าย เหมาะเมื่อเก็บเพียงที่อยู่อีเมล · <b>เอนทิตีแยก</b> — เหมาะเมื่ออีเมลมีข้อมูลประกอบ เช่น ประเภท (งาน/ส่วนตัว) วันยืนยัน อีเมลหลัก หรือมีความสัมพันธ์กับเอนทิตีอื่น แต่แผนภาพซับซ้อนกว่า
+A: ทั้งสองแบบเมื่อแปลงเป็นตารางได้ผลคล้ายกัน คือ ตาราง <code>person_email(person_id, email)</code> แยกออกมา
+จงยกตัวอย่างความสัมพันธ์แบบวกกลับ 3 ตัวอย่าง พร้อมระบุภาวะความสัมพันธ์ || supervise, pre, married to
+A: (1) Employee <b>supervise</b> Employee — 1:M (2) Subject <b>is prerequisite of</b> Subject — 1:M (ในกรณีศึกษา 1 วิชามี pre ได้ 1 วิชา) (3) Person <b>married to</b> Person — 1:1 (4) Member <b>refers</b> Member (ผู้แนะนำสมาชิก) — 1:M
+จงยกตัวอย่างความสัมพันธ์ระดับสาม (Ternary) 1 ตัวอย่าง และแสดงวิธีแปลงเป็นความสัมพันธ์ระดับสองหลายชุด || เอนทิตีกลาง
+A: ตัวอย่าง: <b>Lecturer–Subject–Room</b> ผ่านความสัมพันธ์ <b>teach</b> (อาจารย์สอนวิชาใดในห้องใด) แปลงโดยยกความสัมพันธ์เป็นเอนทิตีกลาง <b>Class</b> (หรือ section) แล้วสร้างความสัมพันธ์ระดับสอง 3 ชุด: Lecturer 1:M Class, Subject 1:M Class, Room 1:M Class — ตรงกับที่กรณีศึกษาใช้เอนทิตี SECTION
+## เขียนแผนภาพ ER จากโจทย์
+<b>Employee</b> เก็บรหัสพนักงาน ชื่อ ที่อยู่ เบอร์โทร เพศ วันเกิด และตำแหน่ง พนักงานมีเบอร์โทรได้หลายเบอร์แต่ห้ามซ้ำ ตำแหน่งมี 4 แบบ คือ หัวหน้าแผนก โปรแกรมเมอร์ เลขา และเจ้าหน้าที่ทั่วไป จงเขียน ER || phone = Multivalued
+A: เอนทิตีเดียว <b>EMPLOYEE</b> แอตทริบิวต์: <u>emp_id</u> (Key), name, address (อาจเป็น Composite), <b>phone</b> (Multivalued — วงรีเส้นคู่), gender, birthday, position (Simple — ค่าเป็นหนึ่งใน 4 ตำแหน่ง ไม่ต้องวาดแยก) และอาจเพิ่ม age เป็น Derived
+<b>โรงภาพยนตร์</b> มี 3 โรง (VIP, Honeymoon, BigHall) แต่ละโรงมีที่นั่ง A1, A2, …, B1, … ราคาไม่เท่ากัน เก็บจำนวนที่นั่ง ขนาดโรง (กว้าง×ยาว) และขนาดจอ จงเขียน ER และระบุเอนทิตีอ่อนแอ || Seat = Weak Entity, size = Composite
+A- <b>THEATER</b>: <u>theater_name</u>, n_seat (อาจเป็น Derived จากจำนวน SEAT), size (Composite: width, length), screen_size
+A- <b>SEAT</b> (Weak Entity): seat_no เป็น Partial Key (ขีดเส้นใต้เส้นประ), price
+A- ความสัมพันธ์ <b>has</b> (Identifying, ข้าวหลามตัดเส้นคู่) THEATER 1:M SEAT — SEAT มีส่วนร่วมแบบบังคับ (Total)
+A: SEAT เป็นเอนทิตีอ่อนแอ เพราะที่นั่ง A1 มีในทุกโรง ต้องใช้ชื่อโรง + เลขที่นั่งจึงระบุได้
+<b>AmICrazy Software House</b> เก็บพนักงาน (รหัส ชื่อ เงินเดือน แผนก หัวหน้า) ลูกค้า (รหัส ชื่อ เบอร์โทร) ที่จ้างทำโปรเจคได้หลายครั้ง การประชุมลูกค้า–พนักงาน (วัน สถานที่) โปรเจค (รหัส ชื่อ งบ วันเริ่ม ระยะเวลา ≤ 100 วัน วันเสร็จจริง) พนักงานหลายคนทำโปรเจคเดียวโดยมีหน้าที่ต่างกัน และการลา (ประเภท วันที่ จำนวนวัน ≤ 5) จงเขียน ER || 6 เอนทิตี + supervise วกกลับ
+A- เอนทิตี: <b>EMPLOYEE</b>(<u>emp_id</u>, name, salary) · <b>DEPARTMENT</b>(<u>dept_id</u>, name) · <b>CUSTOMER</b>(<u>cus_id</u>, name, phone {Multivalued}) · <b>PROJECT</b>(<u>proj_id</u>, name, budget, start_date, duration, finish_date) · <b>LEAVE</b>(Weak ของ EMPLOYEE: leave_date, type, days)
+A- EMPLOYEE <b>work in</b> DEPARTMENT — M:1
+A- EMPLOYEE <b>supervise</b> EMPLOYEE — วกกลับ 1:M
+A- CUSTOMER <b>hire</b> PROJECT — 1:M
+A- CUSTOMER <b>meet</b> EMPLOYEE — M:N แอตทริบิวต์ meet_date, place
+A- EMPLOYEE <b>work on</b> PROJECT — M:N แอตทริบิวต์ role
+A- EMPLOYEE <b>request</b> LEAVE — 1:M (Identifying)
+A: ข้อกำหนด duration ≤ 100 และ days ≤ 5 เขียนเป็นหมายเหตุบนแผนภาพ แล้วบังคับด้วย CHECK ตอนสร้างตาราง
+<b>คณะวิทยาการสารสนเทศ</b> มี 5 สาขา (CS, MIS, NMD, IS, MC) นิสิตปี 4 ทำโปรเจคเดี่ยวหรือคู่ มีที่ปรึกษาและอาจมีที่ปรึกษาร่วม (ต่างสาขาได้) สอบ proposal, project#1, project#2 เก็บวันสอบ ประเภท ผล กรรมการ 2 คน สถานะ เทอมเริ่ม/เสร็จ และ keyword หลายคำ จงเขียน ER || supervise มีแอตทริบิวต์ position
+A- เอนทิตี: <b>MAJOR</b>(<u>major_id</u>, name) · <b>STUDENT</b>(<u>std_id</u>, name) · <b>LECTURER</b>(<u>lec_id</u>, name) · <b>PROJECT</b>(<u>proj_id</u>, title, status, start_term, finish_term, keyword {Multivalued}) · <b>PRESENTATION</b>(Weak ของ PROJECT: exam_type, exam_date, result)
+A- STUDENT/LECTURER <b>belong to</b> MAJOR — M:1
+A- STUDENT <b>do</b> PROJECT — M:1 (โปรเจคมีนิสิต 1–2 คน)
+A- LECTURER <b>supervise</b> PROJECT — M:N แอตทริบิวต์ <b>position</b> (ที่ปรึกษาหลัก / ร่วม)
+A- PROJECT <b>has</b> PRESENTATION — 1:M (Identifying)
+A- LECTURER <b>is committee of</b> PRESENTATION — M:N (ครั้งละ 2 คน)
+<b>ระบบห้องสมุด</b> เก็บสมาชิก หนังสือ (มีผู้แต่งหลายคน) หมวดหมู่ และการยืม-คืน (วันยืม วันกำหนดคืน วันคืนจริง ค่าปรับ) จงเขียน ER || borrow = M:N
+A- เอนทิตี: <b>MEMBER</b>(<u>member_id</u>, name, phone, status) · <b>BOOK</b>(<u>book_id</u>, title, author {Multivalued} หรือเอนทิตี AUTHOR แยก, copies) · <b>CATEGORY</b>(<u>cat_id</u>, name)
+A- BOOK <b>belong to</b> CATEGORY — M:1
+A- MEMBER <b>borrow</b> BOOK — M:N แอตทริบิวต์ borrow_date, due_date, return_date, fine
+A- (ถ้ายกผู้แต่งเป็นเอนทิตี) BOOK <b>written by</b> AUTHOR — M:N
+<b>คลินิก</b> เก็บผู้ป่วย แพทย์ (แพทย์มีความเชี่ยวชาญหลายด้าน) การนัดหมาย (วัน เวลา อาการ) และยาที่จ่ายในแต่ละการนัด (ชื่อยา จำนวน) จงเขียน ER || การนัด–ยา = M:N + amount
+A- เอนทิตี: <b>PATIENT</b>(<u>patient_id</u>, name, birthday) · <b>DOCTOR</b>(<u>doctor_id</u>, name, specialty {Multivalued}) · <b>APPOINTMENT</b>(<u>appt_id</u>, appt_date, appt_time, symptom) · <b>MEDICINE</b>(<u>med_id</u>, name)
+A- PATIENT <b>make</b> APPOINTMENT — 1:M · DOCTOR <b>attend</b> APPOINTMENT — 1:M
+A- APPOINTMENT <b>prescribe</b> MEDICINE — M:N แอตทริบิวต์ <b>amount</b>
+<b>ร้านกาแฟ</b> เก็บเมนู (ราคาตามขนาด S/M/L) ลูกค้าสมาชิก (สะสมแต้ม) ใบเสร็จ และรายการในใบเสร็จ จงเขียน ER และอธิบายว่ารายการในใบเสร็จเป็นเอนทิตีอ่อนแอหรือไม่ || Weak Entity ของใบเสร็จ
+A- เอนทิตี: <b>MENU</b>(<u>menu_id</u>, name) · <b>MENU_PRICE</b>(Weak ของ MENU: size เป็น Partial Key, price) · <b>MEMBER</b>(<u>member_id</u>, name, points) · <b>RECEIPT</b>(<u>receipt_no</u>, receipt_time, total {Derived}) · <b>RECEIPT_ITEM</b>(Weak ของ RECEIPT: line_no, qty, unit_price)
+A- MEMBER <b>pay</b> RECEIPT — 1:M (ลูกค้าทั่วไปไม่ต้องมีสมาชิก = Partial)
+A- RECEIPT <b>contains</b> RECEIPT_ITEM — 1:M (Identifying) · RECEIPT_ITEM <b>of</b> MENU_PRICE — M:1
+A: รายการในใบเสร็จ<b>เป็นเอนทิตีอ่อนแอ</b> — “รายการที่ 1” มีในทุกใบเสร็จ ต้องใช้เลขที่ใบเสร็จ + ลำดับรายการจึงระบุได้ และถ้าลบใบเสร็จ รายการก็ไม่มีความหมาย
+## วิเคราะห์และตรวจแผนภาพ
+จากแผนภาพ ER ของกรณีศึกษา (ภาพที่ 2.28) เหตุใดจึงต้องมีเอนทิตี SECTION แทนที่จะให้นิสิตลงทะเบียนกับ SUBJECT โดยตรง || เปิดหลายครั้ง ต่างเทอม ต่างผู้สอน
+A: วิชาเดียวเปิดสอนได้หลายครั้ง หลายภาคเรียน และหลายผู้สอน ถ้าให้นิสิตลงทะเบียนกับ SUBJECT โดยตรงจะไม่รู้ว่าเรียนเทอมไหน กับอาจารย์คนใด และนิสิตจะลงวิชาเดิมซ้ำ (เช่น เรียนซ้ำหลังได้ F) ไม่ได้ เพราะคู่ (นิสิต, วิชา) ซ้ำ SECTION ทำให้ “การเปิดสอนแต่ละครั้ง” มีตัวตน
+```run max="5"
+SELECT subid, COUNT(*) AS n_open, COUNT(DISTINCT lecid) AS n_lecturer, COUNT(DISTINCT term) AS n_term
+FROM   section
+GROUP  BY subid
+ORDER  BY n_open DESC;
+```
+จากภาพที่ 2.30 ระบบสั่งอาหารออนไลน์ จงระบุเอนทิตีทั้งหมด ความสัมพันธ์ทั้งหมด และภาวะความสัมพันธ์ของแต่ละความสัมพันธ์ || order–food = M:N
+A: <b>เอนทิตี 6 ตัว:</b> CUSTOMER, LEVEL, ORDER, FOOD, EMPLOYEE, RIDER
+A- CUSTOMER <b>has</b> LEVEL — M:1 (ลูกค้าหลายคนอยู่ระดับเดียวกัน)
+A- CUSTOMER <b>request</b> ORDER — 1:M แอตทริบิวต์ date, start_time, finish_time, status, review
+A- ORDER <b>consist of</b> FOOD — M:N แอตทริบิวต์ amount
+A- EMPLOYEE <b>response</b> ORDER — 1:M (พนักงานหนึ่งคนรับผิดชอบหลายคำสั่งซื้อ)
+A- RIDER <b>deliver</b> ORDER — 1:M
+A- EMPLOYEE <b>suggest</b> RIDER — 1:M (พนักงานแนะนำไรเดอร์เข้าทำงาน)
+A- EMPLOYEE <b>manage</b> EMPLOYEE — วกกลับ 1:M
+จงตรวจแผนภาพ ER ของเพื่อนในโจทย์ AmICrazy โดยใช้ตารางข้อผิดพลาดหัวข้อ 2.8 เป็นเกณฑ์ แล้วเสนอแนวทางแก้ไข || ชื่อความสัมพันธ์ = คำกริยา
+A: คำตอบขึ้นกับแผนภาพของเพื่อน ประเด็นที่ควรตรวจ:
+A- ชื่อเอนทิตีเป็นคำนามเอกพจน์ ชื่อความสัมพันธ์เป็นคำกริยา
+A- ทุกเอนทิตีมีคีย์ (ยกเว้นเอนทิตีอ่อนแอที่มี Partial Key)
+A- ไม่ใส่ FK เป็นแอตทริบิวต์ในแผนภาพ ER (ความสัมพันธ์แสดงด้วยเส้น)
+A- ภาวะความสัมพันธ์ระบุครบทั้งสองฝั่ง และแอตทริบิวต์ของ M:N (role, meeting date) อยู่ที่ความสัมพันธ์
+A- ไม่วาดค่าของแอตทริบิวต์ (เช่น ประเภทการลา) เป็นแอตทริบิวต์แยก

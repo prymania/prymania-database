@@ -1,0 +1,317 @@
+<!--meta {"title":"บทที่ 7 · การจัดการข้อมูลขั้นสูง วิว และทรานแซกชัน","kicker":"CHAPTER 07 · สัปดาห์ที่ 13","sub":"INSERT…SELECT, UPDATE/DELETE ที่อ้างอิงตารางอื่น, UPDATE + CASE, View, Index, Transaction และ ACID","img":"awesome.png"} -->
+
+<div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
+<li>เขียน INSERT / UPDATE / DELETE ที่ใช้ผลลัพธ์จาก SELECT และ CASE ได้</li>
+<li>สร้างและใช้งานวิว และระบุได้ว่าวิวใดปรับปรุงข้อมูลผ่านได้</li>
+<li>อธิบายหลักการของดัชนี และเลือกสร้างดัชนีได้เหมาะสม</li>
+<li>อธิบาย ACID และควบคุมทรานแซกชันด้วย COMMIT, ROLLBACK, SAVEPOINT ได้</li>
+<li>อธิบายปัญหาการทำงานพร้อมกันและระดับการแยกรายการได้</li>
+</ol></div>
+
+<toc/>
+
+<h2 id="s1"><span class="sec">7.1</span> การจัดการข้อมูลด้วยผลลัพธ์จากคำสั่งสอบถาม</h2>
+<h3>7.1.1 INSERT … SELECT</h3>
+<p>คัดลอกข้อมูลจากตารางหนึ่งไปอีกตารางโดยไม่ต้องพิมพ์ทีละแถว — จำนวนคอลัมน์และชนิดข้อมูลต้องสอดคล้องกัน</p>
+<sql title="สร้างตารางเก็บนิสิตเกียรตินิยม" exec>CREATE TABLE student_honor (
+    stdid       VARCHAR(10) PRIMARY KEY,
+    name        VARCHAR(50),
+    major       VARCHAR(20),
+    gpa         DECIMAL(3,2),
+    moved_date  DATE
+);</sql>
+<sql title="คัดลอกนิสิตที่ gpa ≥ 3.50" run show="SELECT * FROM student_honor">INSERT INTO student_honor (stdid, name, major, gpa, moved_date)
+SELECT stdid, name, major, gpa, CURDATE()
+FROM   student
+WHERE  gpa >= 3.50;</sql>
+<p><code>CREATE TABLE … AS SELECT</code> สร้างตาราง + คัดลอกข้อมูลในคำสั่งเดียว แต่<b>ไม่คัดลอกคีย์หลักและข้อกำหนดบังคับ</b></p>
+<sql title="สร้างตารางสำรอง" exec>CREATE TABLE enroll_backup AS
+SELECT * FROM enroll;</sql>
+<sql title="ตรวจโครงสร้าง — คอลัมน์ Key ว่างทั้งหมด!" run>DESCRIBE enroll_backup;</sql>
+<p>ต่างจาก enroll ต้นฉบับที่ secid, stdid เป็น PRI — FK และ CHECK ของเกรดก็ไม่ถูกคัดลอก ถ้าจะใช้เป็นตารางถาวรต้องเพิ่มเอง</p>
+<sql title="เพิ่มคีย์หลักภายหลัง" exec>ALTER TABLE enroll_backup ADD PRIMARY KEY (secid, stdid);</sql>
+
+<ex no="7.1" title="สร้างตาราง TOP_STUDENT" level="1">
+<p>จงสร้างตาราง <code>top_student(stdid, name, gpa)</code> แล้วคัดลอกนิสิตที่มี gpa ตั้งแต่ 3.00 ขึ้นไปเข้าไป</p>
+<answer><sql title="เฉลย" run show="SELECT * FROM top_student ORDER BY gpa DESC">CREATE TABLE top_student (
+    stdid VARCHAR(10) PRIMARY KEY,
+    name  VARCHAR(50),
+    gpa   DECIMAL(3,2)
+);
+INSERT INTO top_student
+SELECT stdid, name, gpa FROM student WHERE gpa >= 3.00;</sql></answer>
+</ex>
+
+<h3>7.1.2 UPDATE โดยอ้างอิงตารางอื่น</h3>
+<p>ลด gpa ลง 5% ให้นิสิตที่เคยได้ F ตั้งแต่ 2 ครั้ง — <b>ตรวจกลุ่มเป้าหมายก่อนเสมอ</b></p>
+<sql title="ขั้นที่ 1 — ใครจะถูกกระทบ" run>SELECT stdid, COUNT(*) AS n_fail
+FROM   enroll
+WHERE  grade = 'F'
+GROUP  BY stdid
+HAVING COUNT(*) >= 2;</sql>
+<sql title="ขั้นที่ 2 — UPDATE ด้วย Subquery ใน WHERE" run temp show="SELECT stdid, name, gpa FROM student WHERE stdid IN (SELECT stdid FROM enroll WHERE grade = 'F' GROUP BY stdid HAVING COUNT(*) >= 2) ORDER BY stdid" showlabel="gpa หลังลด 5%">UPDATE student
+SET    gpa = gpa * 0.95
+WHERE  stdid IN (SELECT stdid
+                 FROM   enroll
+                 WHERE  grade = 'F'
+                 GROUP  BY stdid
+                 HAVING COUNT(*) >= 2);</sql>
+<p>UPDATE … JOIN (ไวยากรณ์เฉพาะ MySQL) — ขึ้นเงินเดือนอาจารย์กลุ่มละ 500 บาทตามจำนวนกลุ่มที่สอน</p>
+<sql title="UPDATE … JOIN" run temp show="SELECT lecid, name, salary FROM lecturer ORDER BY lecid">UPDATE lecturer l
+       INNER JOIN (SELECT lecid, COUNT(*) AS n
+                   FROM   section
+                   GROUP  BY lecid) t ON l.lecid = t.lecid
+SET    l.salary = l.salary + (t.n * 500)
+WHERE  l.salary IS NOT NULL;</sql>
+
+<h3>7.1.3 DELETE โดยอ้างอิงตารางอื่น</h3>
+<sql title="ลบการลงทะเบียนของทุกกลุ่มเรียนในภาค 2023-1" run temp>DELETE FROM enroll
+WHERE  secid IN (SELECT secid FROM section WHERE term = '2023-1');</sql>
+<div class="box warn"><div class="box-t">⚠️ ข้อจำกัดของ MySQL (Error 1093)</div><p>Subquery อ้างอิงตาราง<b>เดียวกับ</b>ที่กำลังแก้/ลบไม่ได้ — แก้โดยครอบ Subquery อีกชั้นให้เป็น Derived Table</p></div>
+<sql title="ลบนิสิตที่ gpa ต่ำกว่าค่าเฉลี่ย → error" error>DELETE FROM student
+WHERE  gpa < (SELECT AVG(gpa) FROM student);</sql>
+<sql title="แก้: ครอบด้วย Derived Table" run temp>DELETE FROM student
+WHERE  gpa < (SELECT avg_gpa FROM (SELECT AVG(gpa) AS avg_gpa FROM student) AS t);</sql>
+
+<ex no="7.2" title="UPDATE อาจารย์ที่สอนเกิน 5 กลุ่ม" level="2">
+<p>จงเพิ่มเงินเดือน 3,000 บาทให้อาจารย์ที่สอนมากกว่า 5 กลุ่มเรียน</p>
+<answer><sql title="เฉลย" run temp show="SELECT lecid, name, salary FROM lecturer WHERE lecid IN ('t01','t02','t03','t04','t05') ORDER BY lecid">UPDATE lecturer
+SET    salary = salary + 3000
+WHERE  lecid IN (SELECT lecid
+                 FROM   section
+                 GROUP  BY lecid
+                 HAVING COUNT(*) > 5);</sql>
+<p>ตรวจด้วย <code>SELECT lecid, COUNT(*) FROM section GROUP BY lecid</code> ก่อน จะเห็นว่ามี t01 (14 กลุ่ม), t02 (11), t03 (8) และ t05 (6) ที่สอนเกิน 5 กลุ่ม — t04 สอน 4 กลุ่ม แสดงไว้เทียบว่าไม่เปลี่ยน</p></answer>
+</ex>
+<ex no="7.3" title="DELETE ที่ยังไม่มีเกรด" level="2">
+<p>จงลบการลงทะเบียนที่ยังไม่มีเกรด ในกลุ่มเรียนของภาคเรียน 2025-1</p>
+<answer><sql title="เฉลย" run temp>DELETE FROM enroll
+WHERE  grade IS NULL
+  AND  secid IN (SELECT secid FROM section WHERE term = '2025-1');</sql>
+<p>กลุ่มเรียนภาค 2025-1 คือ secid 34–38 — มีแถวที่ grade เป็น NULL ใน 34, 35, 36, 37</p></answer>
+</ex>
+
+<h2 id="s2"><span class="sec">7.2</span> การแก้ไขข้อมูลตามเงื่อนไขด้วย CASE</h2>
+<p>CASE ใช้ใน SET ของ UPDATE ได้ แก้หลายเงื่อนไขในคำสั่งเดียว — <b>เงื่อนไขตรวจจากบนลงล่าง และหยุดที่ข้อแรกที่เป็นจริง</b></p>
+<sql title="ก่อนปรับ" run>SELECT lecid, name, salary FROM lecturer WHERE salary IS NOT NULL ORDER BY lecid;</sql>
+<sql title="ขึ้นเงินเดือนตามช่วง: < 30,000 → 15% · 30,000–60,000 → 10% · มากกว่า → 5%" run temp show="SELECT lecid, name, salary FROM lecturer WHERE salary IS NOT NULL ORDER BY lecid" showlabel="หลังปรับ">UPDATE lecturer
+SET    salary = CASE
+                    WHEN salary < 30000                    THEN salary * 1.15
+                    WHEN salary BETWEEN 30000 AND 60000    THEN salary * 1.10
+                    ELSE salary * 1.05
+                END
+WHERE  salary IS NOT NULL;</sql>
+
+<ex no="7.4" title="UPDATE + CASE สถานะนิสิต" level="2">
+<p>จงเพิ่มคอลัมน์ <code>status</code> ในตาราง student แล้วกำหนดค่า “พ้นสภาพ” เมื่อ gpa &lt; 1.60, “รอพินิจ” เมื่อ 1.60–1.99, “ปกติ” กรณีอื่น (gpa เป็น NULL ให้เป็น “ยังไม่มีผล”)</p>
+<answer><sql title="เฉลย" run show="SELECT stdid, name, gpa, status FROM student ORDER BY gpa">ALTER TABLE student ADD COLUMN status VARCHAR(20);
+
+UPDATE student
+SET    status = CASE
+                    WHEN gpa IS NULL THEN 'ยังไม่มีผล'
+                    WHEN gpa < 1.60  THEN 'พ้นสภาพ'
+                    WHEN gpa < 2.00  THEN 'รอพินิจ'
+                    ELSE 'ปกติ'
+                END;</sql>
+<sql title="คืนตารางเดิม" exec>ALTER TABLE student DROP COLUMN status;</sql></answer>
+</ex>
+
+<h2 id="s3"><span class="sec">7.3</span> วิว (View)</h2>
+<p><span class="term">วิว</span> คือตารางเสมือนจาก SELECT — <b>เก็บเฉพาะคำสั่ง ไม่เก็บข้อมูล</b> เรียกใช้เมื่อไรก็ประมวลผลกับตารางจริงขณะนั้น จึงได้ข้อมูลล่าสุดเสมอ</p>
+<fig n="7-1">แนวคิดการทำงานของวิว</fig>
+<ol>
+<li><b>ซ่อนความซับซ้อน</b> — JOIN 4–5 ตาราง เก็บเป็นวิวแล้ว SELECT ธรรมดา</li>
+<li><b>ควบคุมความปลอดภัย</b> — ให้สิทธิ์เฉพาะวิว ไม่ให้แตะตารางจริง (บทที่ 8)</li>
+<li><b>มุมมองเฉพาะกลุ่ม</b> — คือ External Level ในสถาปัตยกรรม 3 ระดับ (บทที่ 1)</li>
+<li><b>ลดการเขียนซ้ำ</b> — แก้ตรรกะที่วิวจุดเดียว ทุกโปรแกรมได้ผลทันที</li>
+</ol>
+<sql title="ตัวอย่างที่ 7.5 — วิวนิสิตสาขา CS" exec>CREATE VIEW v_cs_student AS
+SELECT stdid, name, gpa, birthday
+FROM   student
+WHERE  major = 'CS';</sql>
+<sql title="เรียกใช้เหมือนตาราง" run>SELECT * FROM v_cs_student WHERE gpa >= 2.50;</sql>
+<sql title="ตัวอย่างที่ 7.6 — วิวรวม 5 ตาราง: รายละเอียดการลงทะเบียน" exec>CREATE VIEW v_enroll_detail AS
+SELECT s.stdid     AS student_id,
+       s.name      AS student_name,
+       sub.subid   AS subject_id,
+       sub.name    AS subject_name,
+       sub.credit,
+       l.name      AS lecturer_name,
+       sec.term,
+       e.grade
+FROM   enroll e
+       INNER JOIN student  s   ON e.stdid   = s.stdid
+       INNER JOIN section  sec ON e.secid   = sec.secid
+       INNER JOIN subject  sub ON sec.subid = sub.subid
+       INNER JOIN lecturer l   ON sec.lecid = l.lecid;</sql>
+<sql title="ใช้วิว" run max="8">SELECT * FROM v_enroll_detail ORDER BY student_id, term;</sql>
+<sql title="ตัวอย่างที่ 7.7 — คำนวณเกรดเฉลี่ยถ่วงน้ำหนักจากวิว" run>SELECT student_id, student_name,
+       SUM(credit) AS total_credit,
+       ROUND(SUM(credit * CASE grade WHEN 'A' THEN 4 WHEN 'B' THEN 3
+                                     WHEN 'C' THEN 2 WHEN 'D' THEN 1
+                                     ELSE 0 END) / SUM(credit), 2) AS gpa_calc
+FROM   v_enroll_detail
+WHERE  grade IS NOT NULL
+GROUP  BY student_id, student_name
+ORDER  BY gpa_calc DESC;</sql>
+<div class="box note"><div class="box-t">📝 ข้อสังเกต</div><p>gpa_calc ไม่ตรงกับคอลัมน์ <code>student.gpa</code> — เพราะ gpa ในตารางเป็นข้อมูลที่กรอกไว้ (ดีนอร์มัลไลซ์) ไม่ได้คำนวณจากการลงทะเบียนจริง นี่คือความเสี่ยงของการเก็บค่าที่คำนวณได้ (บทที่ 2–3)</p></div>
+
+<h3>7.3.1 การปรับปรุงข้อมูลผ่านวิว</h3>
+<table class="tbl"><tr><th>ลักษณะของวิว</th><th>ปรับปรุงผ่านได้?</th><th>เหตุผล</th></tr>
+<tr><td>ตารางเดียว เลือกบางคอลัมน์/บางแถว</td><td>✔ ได้</td><td>ระบุแถวในตารางจริงได้ชัดเจน</td></tr>
+<tr><td>มีฟังก์ชันรวม / GROUP BY / HAVING</td><td>✘ ไม่ได้</td><td>1 แถวในวิวมาจากหลายแถว</td></tr>
+<tr><td>มี DISTINCT</td><td>✘ ไม่ได้</td><td>ไม่รู้ว่าตรงกับแถวใด</td></tr>
+<tr><td>JOIN หลายตาราง</td><td>บางกรณี</td><td>แก้ได้เฉพาะคอลัมน์จากตารางเดียว</td></tr>
+<tr><td>มี UNION</td><td>✘ ไม่ได้</td><td>ไม่รู้ว่ามาจากชุดใด</td></tr>
+</table>
+<sql title="UPDATE ผ่านวิวตารางเดียว → มีผลกับตาราง student จริง" run temp show="SELECT stdid, name, gpa FROM student WHERE stdid = '60003'">UPDATE v_cs_student SET gpa = 3.60 WHERE stdid = '60003';</sql>
+<p><code>WITH CHECK OPTION</code> ป้องกันการแก้ข้อมูลจนแถวหลุดออกจากเงื่อนไขของวิว</p>
+<sql title="วิวพร้อม WITH CHECK OPTION" exec>CREATE VIEW v_cs_student2 AS
+SELECT stdid, name, major, gpa FROM student WHERE major = 'CS'
+WITH CHECK OPTION;</sql>
+<sql title="ย้ายนิสิตไปสาขา Math ผ่านวิว → ถูกปฏิเสธ" error>UPDATE v_cs_student2 SET major = 'Math' WHERE stdid = '60003';</sql>
+<sql title="ลบวิว" exec>DROP VIEW IF EXISTS v_cs_student2;</sql>
+
+<ex no="7.5" title="วิวภาระงานอาจารย์" level="2">
+<p>จงสร้างวิว <code>v_lecturer_load</code> แสดงรหัส ชื่ออาจารย์ จำนวนกลุ่มเรียนที่สอน และจำนวนนิสิตรวม แล้วแสดงอาจารย์ที่มีนิสิตรวมสูงสุด 3 อันดับ — วิวนี้ UPDATE ผ่านได้หรือไม่</p>
+<answer><sql title="เฉลย" run>CREATE VIEW v_lecturer_load AS
+SELECT l.lecid, l.name,
+       COUNT(DISTINCT sec.secid) AS n_section,
+       COUNT(e.stdid)            AS n_student
+FROM   lecturer l
+       LEFT JOIN section sec ON l.lecid  = sec.lecid
+       LEFT JOIN enroll  e   ON sec.secid = e.secid
+GROUP  BY l.lecid, l.name;
+
+SELECT * FROM v_lecturer_load ORDER BY n_student DESC LIMIT 3;</sql>
+<p><b>UPDATE ผ่านไม่ได้</b> เพราะมี GROUP BY และฟังก์ชันรวม — ใช้ <code>COUNT(DISTINCT sec.secid)</code> เพราะหลัง JOIN กับ enroll กลุ่มเรียนหนึ่งจะซ้ำหลายแถว</p></answer>
+</ex>
+<ex no="7.6" title="วิวเพื่อความปลอดภัย" level="1">
+<p>จงสร้างวิวที่แสดงเฉพาะรหัส ชื่อ สาขาของนิสิต (ไม่แสดง gpa และวันเกิด) และอธิบายประโยชน์ด้านความปลอดภัย</p>
+<answer><sql title="เฉลย" run>CREATE VIEW v_student_public AS
+SELECT stdid, name, major FROM student;
+
+SELECT * FROM v_student_public LIMIT 5;</sql>
+<p>ให้สิทธิ์ SELECT เฉพาะวิวนี้แก่ผู้ใช้ทั่วไป โดยไม่ให้สิทธิ์ตาราง student — ผู้ใช้จะไม่เห็น gpa และ birthday เลย (บทที่ 8)</p></answer>
+</ex>
+
+<h2 id="s4"><span class="sec">7.4</span> ดัชนี (Index) และการเพิ่มประสิทธิภาพ</h2>
+<p><span class="term">ดัชนี</span> คือโครงสร้างเสริม (MySQL ใช้ B-Tree) ช่วยค้นหาเร็วขึ้น เหมือนดัชนีท้ายเล่มหนังสือ — ไม่มีดัชนีต้อง <b>Full Table Scan</b> (อ่านทุกแถว)</p>
+<sql title="ก่อนสร้างดัชนี — type = ALL คือสแกนทั้งตาราง" run>EXPLAIN SELECT stdid, name FROM student WHERE major = 'CS';</sql>
+<sql title="สร้างดัชนี" exec>CREATE INDEX idx_student_major ON student(major);</sql>
+<sql title="หลังสร้างดัชนี — type = ref ใช้ดัชนีแล้ว" run>EXPLAIN SELECT stdid, name FROM student WHERE major = 'CS';</sql>
+<sql title="ดัชนีแบบอื่น ๆ" exec>-- ดัชนีหลายคอลัมน์ (ลำดับคอลัมน์มีผล)
+CREATE INDEX idx_section_term_lec ON section(term, lecid);
+
+-- ดัชนีที่บังคับไม่ให้ค่าซ้ำ
+CREATE UNIQUE INDEX uidx_subject_name ON subject(name);</sql>
+<sql title="ดูรายการดัชนีของตาราง" run>SHOW INDEX FROM student;</sql>
+<sql title="ลบดัชนี" exec>DROP INDEX idx_student_major ON student;</sql>
+<div class="vs">
+<div class="good"><h4>ควรสร้างดัชนีเมื่อ</h4><ul><li>ใช้ใน WHERE บ่อย</li><li>ใช้เป็นเงื่อนไข JOIN</li><li>ใช้ใน ORDER BY / GROUP BY</li><li>ต้องบังคับไม่ให้ซ้ำ</li></ul></div>
+<div class="bad"><h4>ไม่ควรสร้างเมื่อ</h4><ul><li>ตารางเล็กมาก</li><li>ค่าซ้ำกันมาก เช่น เพศ</li><li>ตารางถูกเพิ่ม/แก้ถี่มาก</li><li>แทบไม่เคยใช้ในเงื่อนไข</li></ul></div>
+</div>
+<div class="box note"><div class="box-t">📝 ต้นทุนของดัชนี</div><p>อ่านเร็วขึ้น แต่ INSERT/UPDATE/DELETE ช้าลง (ต้องปรับดัชนีด้วย) และใช้เนื้อที่เพิ่ม — PK และ UNIQUE มีดัชนีให้อัตโนมัติอยู่แล้ว (สังเกต <code>PRIMARY</code> ในผล SHOW INDEX)</p></div>
+
+<ex no="7.7" title="ควรสร้างดัชนีที่ไหน" level="2">
+<p>ในฐานข้อมูลกรณีศึกษา ควรสร้างดัชนีให้คอลัมน์ใด และไม่ควรสร้างที่ใด พร้อมเหตุผล</p>
+<answer><ul><li><b>section.term</b> — ค้นตามภาคเรียนบ่อย</li><li><b>enroll.stdid</b> — ใช้ JOIN/ค้นทรานสคริปต์ (FK ใน MySQL มีดัชนีให้อัตโนมัติอยู่แล้ว)</li><li><b>student.name</b> — ถ้ามีการค้นด้วยชื่อ</li><li><b>ไม่ควร</b>: enroll.grade (มีแค่ 5 ค่า ซ้ำกันมาก), subject.credit (ค่าน้อยและไม่ค่อยใช้ค้น)</li></ul></answer>
+</ex>
+
+<h2 id="s5"><span class="sec">7.5</span> ทรานแซกชันและคุณสมบัติ ACID</h2>
+<p><span class="term">ทรานแซกชัน</span> คือกลุ่มคำสั่งที่ต้องทำงานเป็นหน่วยเดียว — <b>สำเร็จทั้งหมด หรือไม่สำเร็จเลย</b> เช่น โอนเงิน ต้องทั้งหักต้นทางและเพิ่มปลายทาง</p>
+<fig n="7-2">สถานะการทำงานของทรานแซกชัน</fig>
+<table class="tbl"><tr><th>คุณสมบัติ</th><th>ความหมาย</th><th>ตัวอย่างในระบบลงทะเบียน</th></tr>
+<tr><td><b>A</b>tomicity</td><td>สำเร็จทั้งหมดหรือยกเลิกทั้งหมด</td><td>เปิด section ใหม่ + ลงทะเบียนนิสิต ต้องสำเร็จพร้อมกัน</td></tr>
+<tr><td><b>C</b>onsistency</td><td>ฐานข้อมูลถูกต้องตามกฎทั้งก่อนและหลัง</td><td>จำนวนที่นั่งคงเหลือต้องไม่ติดลบ</td></tr>
+<tr><td><b>I</b>solation</td><td>ทรานแซกชันพร้อมกันไม่รบกวนกัน</td><td>2 คนแย่งที่นั่งสุดท้าย ต้องได้คนเดียว</td></tr>
+<tr><td><b>D</b>urability</td><td>ยืนยันแล้วข้อมูลต้องคงอยู่แม้ระบบล่ม</td><td>แจ้งว่าลงสำเร็จแล้ว ไฟดับข้อมูลต้องไม่หาย</td></tr>
+</table>
+<h3>7.5.1 คำสั่งควบคุมทรานแซกชัน</h3>
+<p>MySQL ทำงานแบบ <b>autocommit</b> (ทุกคำสั่งยืนยันทันที) — ถ้าจะควบคุมเองต้องเริ่มด้วย <code>START TRANSACTION</code> แล้วจบด้วย <code>COMMIT</code> หรือ <code>ROLLBACK</code></p>
+<sql title="ลองลบข้อมูลทั้งตาราง enroll ใน transaction" run>START TRANSACTION;
+DELETE FROM enroll;
+SELECT COUNT(*) AS rows_in_enroll FROM enroll;</sql>
+<sql title="ROLLBACK — ย้อนกลับทั้งหมด" run>ROLLBACK;
+SELECT COUNT(*) AS rows_in_enroll FROM enroll;</sql>
+<sql title="เปิดกลุ่มเรียนใหม่ + ลงทะเบียน แล้ว COMMIT" run>START TRANSACTION;
+INSERT INTO section (subid, lecid, term) VALUES ('CS010', 't14', '2026-1');
+INSERT INTO enroll (secid, stdid, grade) VALUES (LAST_INSERT_ID(), '60004', NULL);
+SELECT * FROM section WHERE term = '2026-1';
+COMMIT;</sql>
+<p><b>SAVEPOINT</b> ย้อนกลับเพียงบางส่วน</p>
+<sql title="SAVEPOINT" run>START TRANSACTION;
+UPDATE lecturer SET salary = salary + 1000 WHERE major = 'CS';
+SAVEPOINT after_cs;
+UPDATE lecturer SET salary = salary + 5000 WHERE major = 'DC';
+ROLLBACK TO SAVEPOINT after_cs;   -- ยกเลิกเฉพาะของสาขา DC
+COMMIT;                           -- ยืนยันเฉพาะของสาขา CS
+SELECT lecid, name, salary, major FROM lecturer WHERE major IN ('CS', 'DC');</sql>
+<div class="box warn"><div class="box-t">⚠️ Implicit Commit</div><p>คำสั่ง DDL (CREATE / ALTER / DROP TABLE) ทำให้ MySQL <b>COMMIT ทรานแซกชันที่ค้างอยู่อัตโนมัติ</b> และย้อนกลับไม่ได้ — แยก DDL ออกจากทรานแซกชันเสมอ</p></div>
+
+<ex no="7.8" title="ทรานแซกชันลงทะเบียน" level="2">
+<p>จงเขียนทรานแซกชันที่ (1) เปิดกลุ่มเรียนใหม่วิชา MA003 อาจารย์ t15 ภาค 2026-1 (2) ลงทะเบียนนิสิต 60014 และ 60015 ในกลุ่มนั้น และถ้าขั้นตอนใดล้มเหลวให้ยกเลิกทั้งหมด</p>
+<answer><sql title="เฉลย" run>START TRANSACTION;
+INSERT INTO section (subid, lecid, term) VALUES ('MA003', 't15', '2026-1');
+SET @new_sec = LAST_INSERT_ID();
+INSERT INTO enroll (secid, stdid) VALUES (@new_sec, '60014'),
+                                         (@new_sec, '60015');
+COMMIT;
+SELECT * FROM enroll WHERE secid = @new_sec;</sql>
+<p>ถ้าคำสั่งใดเกิด error ให้สั่ง <code>ROLLBACK;</code> แทน COMMIT — ในโปรแกรมจริงจะเขียนใน try/catch หรือใน Stored Procedure ที่มี handler (บทที่ 8)</p></answer>
+</ex>
+
+<h2 id="s6"><span class="sec">7.6</span> การทำงานพร้อมกัน และระดับการแยกรายการ</h2>
+<table class="tbl"><tr><th>ปัญหา</th><th>ลักษณะ</th></tr>
+<tr><td>Dirty Read</td><td>อ่านข้อมูลที่อีกทรานแซกชันแก้แต่ยังไม่ COMMIT ถ้าเขา ROLLBACK ข้อมูลที่อ่านมาไม่มีอยู่จริง</td></tr>
+<tr><td>Non-repeatable Read</td><td>อ่านแถวเดิม 2 ครั้งได้ค่าต่างกัน เพราะมีคนแก้และ COMMIT ระหว่างนั้น</td></tr>
+<tr><td>Phantom Read</td><td>รันคำสั่งเดิมแล้วเจอแถวใหม่ เพราะมีคนเพิ่มข้อมูลที่เข้าเงื่อนไข</td></tr>
+</table>
+<table class="tbl"><tr><th>Isolation Level</th><th>Dirty Read</th><th>Non-repeatable</th><th>Phantom</th></tr>
+<tr><td>READ UNCOMMITTED</td><td>เกิดได้</td><td>เกิดได้</td><td>เกิดได้</td></tr>
+<tr><td>READ COMMITTED</td><td>ป้องกัน</td><td>เกิดได้</td><td>เกิดได้</td></tr>
+<tr><td><b>REPEATABLE READ</b> (ค่าปริยาย MySQL)</td><td>ป้องกัน</td><td>ป้องกัน</td><td>ป้องกันเกือบทั้งหมด</td></tr>
+<tr><td>SERIALIZABLE</td><td>ป้องกัน</td><td>ป้องกัน</td><td>ป้องกัน</td></tr>
+</table>
+<sql title="ดูระดับการแยกรายการปัจจุบัน" run>SELECT @@transaction_isolation;</sql>
+<div class="code"><div class="code-head"><span>เปลี่ยนระดับ (เฉพาะ session นี้)</span></div><pre class="sql">SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;</pre></div>
+<div class="box note"><div class="box-t">📝 ข้อสังเกต</div><p>SERIALIZABLE ถูกต้องที่สุดแต่ช้าที่สุด — ระบบส่วนใหญ่ใช้ REPEATABLE READ (MySQL) หรือ READ COMMITTED (SQL Server, PostgreSQL)</p></div>
+
+<ex no="7.9" title="ปัญหาอะไร" level="2">
+<p>อาจารย์ A กำลังแก้เกรดนิสิตจาก F เป็น D แต่ยังไม่ COMMIT ระหว่างนั้นเจ้าหน้าที่ B ออกรายงานนิสิตที่สอบตก แล้วไม่พบนิสิตคนนั้น ต่อมาอาจารย์ A กด ROLLBACK — เกิดปัญหาใด และระดับใดต่ำสุดที่ป้องกันได้</p>
+<answer><p><b>Dirty Read</b> — B อ่านค่าที่ยังไม่ถูกยืนยัน ป้องกันได้ตั้งแต่ระดับ <b>READ COMMITTED</b> ขึ้นไป</p></answer>
+</ex>
+
+<review>
+<li class="part">จัดการข้อมูลขั้นสูง (Lab 5.6)</li>
+<li>ให้นิสิตทุกคนที่เรียนวิชา CS004 ในเทอม 2024-1 ได้เกรด A <span class="hint">(UPDATE … WHERE secid IN (SELECT …))</span></li>
+<li>เพิ่มเงินเดือน 10% ให้อาจารย์ทุกคนที่สอนในปี 2025 <span class="hint">(term LIKE '2025-%')</span></li>
+<li>เพิ่มเงินเดือน 20% ให้อาจารย์ที่มีเงินเดือนต่ำกว่าค่าเฉลี่ยเงินเดือนของอาจารย์ทั้งหมด (ระวัง Error 1093) <span class="hint">(Derived Table)</span></li>
+<li>เพิ่มเงินเดือน 10% ให้อาจารย์ที่สอนมากกว่า 1 วิชาในเทอม 2025-1 <span class="hint">(GROUP BY lecid HAVING COUNT(DISTINCT subid) &gt; 1)</span></li>
+<li>ปรับเงินเดือนอาจารย์: ≤ 30000 เพิ่ม 20%, 30001–40000 เพิ่ม 10%, 40001–50000 เพิ่ม 5%, &gt; 50000 ไม่เพิ่ม <span class="hint">(UPDATE … SET salary = CASE …)</span></li>
+<li>สร้างตาราง fail_log แล้วคัดลอกการลงทะเบียนที่ได้ F ทั้งหมด พร้อมชื่อนิสิตและชื่อวิชาเข้าไป <span class="hint">(INSERT … SELECT … JOIN)</span></li>
+<li>สร้างตาราง student_backup ด้วย CREATE TABLE … AS SELECT แล้วอธิบายว่าอะไรบ้างที่ไม่ถูกคัดลอกมา <span class="hint">(DESCRIBE)</span></li>
+<li>ลบการลงทะเบียนที่ยังไม่มีเกรด ในกลุ่มเรียนของภาคเรียน 2025-3 <span class="hint">(grade IS NULL AND secid IN (…))</span></li>
+<li>เพิ่มคอลัมน์ status ใน student แล้วกำหนดค่า “พ้นสภาพ” (gpa &lt; 1.60) “รอพินิจ” (1.60–1.99) “ปกติ” (อื่น ๆ) <span class="hint">(ALTER + UPDATE CASE)</span></li>
+<li>เมื่อแก้ข้อมูลใน lab เสร็จ ทำอย่างไรให้ตารางกลับมาเหมือนเดิมทุกตาราง อธิบายขั้นตอน <span class="hint">(DROP ตามลำดับ แล้วรันสคริปต์ใหม่)</span></li>
+<li class="part">View</li>
+<li>สร้างวิว v_transcript แสดง stdid ชื่อนิสิต รหัสวิชา ชื่อวิชา หน่วยกิต เทอม เกรด แล้วใช้แสดงทรานสคริปต์ของนิสิต 60007 <span class="hint">(CREATE VIEW … AS SELECT … JOIN)</span></li>
+<li>สร้างวิว v_section_summary แสดง secid ชื่อวิชา เทอม ชื่ออาจารย์ จำนวนนิสิต จำนวนที่ได้ A แล้วหาวิชาที่มีอัตราได้ A สูงสุด <span class="hint">(GROUP BY ในวิว)</span></li>
+<li>สร้างวิว v_lecturer_load (รหัส ชื่อ จำนวนกลุ่มที่สอน จำนวนนิสิตรวม) แล้วแสดงอาจารย์ที่มีภาระงานสูงสุด 3 อันดับ <span class="hint">(COUNT(DISTINCT sec.secid))</span></li>
+<li>ใช้วิว v_transcript คำนวณเกรดเฉลี่ยถ่วงน้ำหนักของนิสิตแต่ละคน แล้วแสดงคนที่ได้มากกว่า 3.00 <span class="hint">(SUM(credit * point) / SUM(credit))</span></li>
+<li>สร้างวิวนิสิตสาขา CS พร้อม WITH CHECK OPTION แล้วลองเปลี่ยนสาขานิสิตผ่านวิวเป็น Math อธิบายผลที่ได้ <span class="hint">(Error 1369)</span></li>
+<li>จงระบุว่าวิวต่อไปนี้ UPDATE ผ่านได้หรือไม่: (ก) SELECT จากตารางเดียว (ข) มี GROUP BY (ค) มี DISTINCT (ง) มี UNION <span class="hint">(ตารางที่ 7.1)</span></li>
+<li>จงอธิบายความแตกต่างของ <code>CREATE TABLE … AS SELECT</code> กับ <code>CREATE VIEW … AS SELECT</code> <span class="hint">(เก็บข้อมูล vs เก็บคำสั่ง)</span></li>
+<li class="part">Index</li>
+<li>สร้างดัชนีให้คอลัมน์ section.term แล้วเปรียบเทียบผล EXPLAIN ก่อนและหลัง <span class="hint">(type: ALL → ref)</span></li>
+<li>จงระบุว่าควรสร้างดัชนีให้คอลัมน์ใดในกรณีศึกษา และไม่ควรสร้างที่ใด พร้อมเหตุผล <span class="hint">(ใช้ค้นบ่อย / ค่าซ้ำมาก)</span></li>
+<li>ดัชนี <code>idx(term, lecid)</code> จะช่วยคำสั่ง <code>WHERE lecid = 't01'</code> อย่างเดียวได้หรือไม่ เพราะเหตุใด <span class="hint">(Leftmost prefix)</span></li>
+<li>จงอธิบายต้นทุนของดัชนี และยกตัวอย่างสถานการณ์ที่สร้างดัชนีแล้วทำให้ระบบช้าลง <span class="hint">(INSERT/UPDATE ถี่)</span></li>
+<li class="part">Transaction</li>
+<li>จงเขียนทรานแซกชันเปิดกลุ่มเรียนใหม่ และลงทะเบียนนิสิต 2 คนในกลุ่มนั้น หากขั้นตอนใดล้มเหลวให้ยกเลิกทั้งหมด <span class="hint">(START TRANSACTION … COMMIT / ROLLBACK)</span></li>
+<li>จงเขียนทรานแซกชันที่ขึ้นเงินเดือนสาขา CS แล้ว SAVEPOINT จากนั้นขึ้นสาขา DC แต่ยกเลิกเฉพาะของ DC <span class="hint">(ROLLBACK TO SAVEPOINT)</span></li>
+<li>เหตุใดไม่ควรใส่คำสั่ง CREATE / ALTER / DROP ไว้กลางทรานแซกชันใน MySQL <span class="hint">(Implicit Commit)</span></li>
+<li>จงจับคู่สถานการณ์กับคุณสมบัติ ACID: ไฟดับหลังแจ้งว่าลงทะเบียนสำเร็จ · 2 คนแย่งที่นั่งสุดท้าย · เปิด section สำเร็จแต่ลงทะเบียนล้มเหลว · ที่นั่งคงเหลือติดลบ <span class="hint">(A C I D)</span></li>
+<li>จงยกตัวอย่าง Dirty Read, Non-repeatable Read และ Phantom Read ในระบบลงทะเบียน และระบุระดับการแยกรายการที่ป้องกันได้ <span class="hint">(ตารางที่ 7.5)</span></li>
+<li>ระดับการแยกรายการใดเหมาะกับระบบลงทะเบียนเรียนที่สุด เพราะเหตุใด <span class="hint">(ความถูกต้อง vs ประสิทธิภาพ)</span></li>
+</review>

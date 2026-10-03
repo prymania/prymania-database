@@ -1,0 +1,6 @@
+# repo ส่วนตัว (ต้นฉบับ) — เว็บที่ build แล้วเป็น repo แยก (สาธารณะ) อยู่ใน site/
+site/
+__pycache__/
+*.pyc
+# passwords.json และ password_history/ ตั้งใจเก็บไว้ใน repo ส่วนตัวนี้ เพื่อสำรองรหัสไม่ให้หาย
+# ห้ามย้ายไปไว้ใน site/

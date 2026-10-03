@@ -1,0 +1,412 @@
+<!--meta {"title":"บทที่ 11 · สโตร์โพรซีเยอร์และฟังก์ชัน (Stored Procedure & Function)","kicker":"CHAPTER 11 · สัปดาห์ที่ 15","sub":"การสร้างและเรียกใช้สโตร์โพรซีเยอร์ พารามิเตอร์ IN/OUT/INOUT ตัวแปร คำสั่งควบคุม เคอร์เซอร์ การจัดการข้อผิดพลาดและทรานแซกชัน และฟังก์ชันที่ผู้ใช้สร้างขึ้น","img":"worker.png"} -->
+
+<div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
+<li>อธิบายแนวคิดและข้อดีของสโตร์โพรซีเยอร์ได้</li>
+<li>สร้างและเรียกใช้โพรซีเยอร์ที่มีพารามิเตอร์ IN / OUT / INOUT ได้</li>
+<li>ใช้ตัวแปร IF / CASE / WHILE และเคอร์เซอร์ในโพรซีเยอร์ได้</li>
+<li>จัดการข้อผิดพลาดด้วย HANDLER และ SIGNAL ร่วมกับทรานแซกชันได้</li>
+<li>สร้างฟังก์ชันและเรียกใช้ใน SELECT ได้ และเลือกใช้โพรซีเยอร์หรือฟังก์ชันได้เหมาะสม</li>
+</ol></div>
+
+<toc/>
+<h2 id="s1"><span class="sec">11.1</span> สโตร์โพรซีเยอร์ (Stored Procedure)</h2>
+<p>ชุดคำสั่ง SQL ที่จัดเก็บในฐานข้อมูล เรียกใช้ด้วยชื่อและส่งพารามิเตอร์ได้</p>
+<fig n="8-2" no="11.1">เปรียบเทียบการทำงานเมื่อไม่มีและมีสโตร์โพรซีเยอร์</fig>
+<table class="tbl"><tr><th>ข้อดี</th><th>คำอธิบาย</th></tr>
+<tr><td>ลดการรับส่งข้อมูล</td><td>ส่งแค่ชื่อและพารามิเตอร์</td></tr>
+<tr><td>ทำงานเร็วขึ้น</td><td>วางแผนการทำงานไว้ล่วงหน้า</td></tr>
+<tr><td>รวมตรรกะไว้ที่เดียว</td><td>หลายโปรแกรมเรียกใช้ตรรกะเดียวกัน</td></tr>
+<tr><td>เพิ่มความปลอดภัย</td><td>ให้สิทธิ์ EXECUTE โดยไม่ต้องให้สิทธิ์ตาราง</td></tr>
+</table>
+<h2 id="s2"><span class="sec">11.2</span> การสร้างและเรียกใช้สโตร์โพรซีเยอร์</h2>
+<p>ภายในมี <code>;</code> คั่นหลายคำสั่ง จึงต้องเปลี่ยนตัวคั่นชั่วคราวด้วย <code>DELIMITER</code> (ใน DBeaver ให้รันทั้งบล็อกด้วย <b>Alt+X</b>)</p>
+<sql title="สร้างโพรซีเยอร์แสดงนิสิตตามสาขา" exec>DELIMITER $$
+
+CREATE PROCEDURE sp_list_student_by_major (IN p_major VARCHAR(20))
+BEGIN
+    SELECT stdid, name, gpa
+    FROM   student
+    WHERE  major = p_major
+    ORDER  BY gpa DESC;
+END $$
+
+DELIMITER ;</sql>
+<sql title="เรียกใช้" run>CALL sp_list_student_by_major('CS');</sql>
+<h2 id="s3"><span class="sec">11.3</span> ชนิดของพารามิเตอร์ IN / OUT / INOUT</h2>
+<table class="tbl"><tr><th>ชนิด</th><th>ทิศทาง</th><th>การใช้งาน</th></tr>
+<tr><td>IN (ค่าปริยาย)</td><td>ส่งเข้า</td><td>เงื่อนไข เช่น รหัสนิสิต</td></tr>
+<tr><td>OUT</td><td>ส่งกลับออกมา</td><td>ผลที่คำนวณ เช่น หน่วยกิตรวม</td></tr>
+<tr><td>INOUT</td><td>ส่งเข้าและส่งกลับ</td><td>ค่าที่ปรับแล้วคืนค่าใหม่</td></tr>
+</table>
+<sql title="ตัวอย่างที่ 11.1 — หน่วยกิตรวมของนิสิต (OUT)" exec>DELIMITER $$
+
+CREATE PROCEDURE sp_count_credit (
+    IN  p_sid    VARCHAR(10),
+    OUT p_credit INT
+)
+BEGIN
+    SELECT IFNULL(SUM(sub.credit), 0) INTO p_credit
+    FROM   enroll e
+           INNER JOIN section sec ON e.secid   = sec.secid
+           INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE  e.stdid = p_sid;
+END $$
+
+DELIMITER ;</sql>
+<sql title="เรียกใช้และอ่านค่า OUT" run>CALL sp_count_credit('60001', @total);
+SELECT @total AS total_credit;</sql>
+<p><b>INOUT</b> — ส่งค่าเข้าไป ให้โพรซีเยอร์ปรับ แล้วรับค่าใหม่กลับออกมาทางตัวแปรเดิม</p>
+<sql title="ตัวอย่างที่ 11.2 — INOUT: คำนวณเงินเดือนหลังขึ้น" exec>DELIMITER $$
+
+CREATE PROCEDURE sp_apply_raise (IN p_percent INT, INOUT p_salary INT)
+BEGIN
+    SET p_salary = p_salary + ROUND(p_salary * p_percent / 100);
+END $$
+
+DELIMITER ;</sql>
+<sql title="เรียกใช้ — ตัวแปร @s ถูกเปลี่ยนค่า" run>SET @s = 40000;
+CALL sp_apply_raise(10, @s);
+CALL sp_apply_raise(10, @s);
+SELECT @s AS salary_after_two_raises;</sql>
+<div class="box note"><div class="box-t">📝 ตัวแปร @ กับ DECLARE</div><p><code>@ชื่อ</code> คือ <b>User Variable</b> อยู่ได้ตลอด session ใช้รับค่า OUT/INOUT จากภายนอก ส่วน <code>DECLARE</code> คือ <b>Local Variable</b> อยู่ได้เฉพาะภายใน BEGIN … END ของโพรซีเยอร์</p></div>
+<h2 id="s4"><span class="sec">11.4</span> ตัวแปรและคำสั่งควบคุม (IF, CASE, WHILE)</h2>
+<sql title="ปรับเงินเดือนตามจำนวนกลุ่มที่สอน" exec>DELIMITER $$
+
+CREATE PROCEDURE sp_adjust_salary (IN p_lecid VARCHAR(10))
+BEGIN
+    DECLARE v_salary  INT DEFAULT 0;
+    DECLARE v_section INT DEFAULT 0;
+
+    SELECT salary   INTO v_salary  FROM lecturer WHERE lecid = p_lecid;
+    SELECT COUNT(*) INTO v_section FROM section  WHERE lecid = p_lecid;
+
+    IF v_salary IS NULL THEN
+        SELECT 'ยังไม่มีข้อมูลเงินเดือน' AS message;
+    ELSEIF v_section >= 5 THEN
+        UPDATE lecturer SET salary = v_salary + 5000 WHERE lecid = p_lecid;
+        SELECT CONCAT('ปรับขึ้น 5000 บาท จำนวนกลุ่มเรียน ', v_section) AS message;
+    ELSE
+        UPDATE lecturer SET salary = v_salary + 1000 WHERE lecid = p_lecid;
+        SELECT CONCAT('ปรับขึ้น 1000 บาท จำนวนกลุ่มเรียน ', v_section) AS message;
+    END IF;
+END $$
+
+DELIMITER ;</sql>
+<sql title="CALL กับ t01 (สอนหลายกลุ่ม)" run>CALL sp_adjust_salary('t01');</sql>
+<sql title="CALL กับ t11 (ไม่มีเงินเดือน)" run>CALL sp_adjust_salary('t11');</sql>
+<sql title="WHILE — สร้างข้อมูลทดสอบ" exec>DELIMITER $$
+
+CREATE PROCEDURE sp_generate_test_student (IN p_count INT)
+BEGIN
+    DECLARE i INT DEFAULT 1;
+    WHILE i <= p_count DO
+        INSERT INTO student (stdid, name, major, gpa)
+        VALUES (CONCAT('99', LPAD(i, 3, '0')), CONCAT('Test', i), 'CS', 2.00);
+        SET i = i + 1;
+    END WHILE;
+END $$
+
+DELIMITER ;</sql>
+<sql title="เรียกใช้" run>CALL sp_generate_test_student(3);
+SELECT * FROM student WHERE stdid LIKE '99%';</sql>
+<h2 id="s5"><span class="sec">11.5</span> เคอร์เซอร์ (Cursor)</h2>
+<p>อ่านผลลัพธ์ทีละแถว — ช้ากว่าคำสั่ง SQL ชุดเดียวมาก ใช้เมื่อจำเป็นเท่านั้น</p>
+<sql title="รายงานนิสิต gpa ต่ำกว่า 2.00 ด้วยเคอร์เซอร์" exec>DELIMITER $$
+
+CREATE PROCEDURE sp_report_low_gpa ()
+BEGIN
+    DECLARE done   INT DEFAULT 0;
+    DECLARE v_sid  VARCHAR(10);
+    DECLARE v_name VARCHAR(50);
+    DECLARE v_gpa  DECIMAL(3,2);
+
+    DECLARE cur CURSOR FOR
+        SELECT stdid, name, gpa FROM student WHERE gpa < 2.00;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    CREATE TEMPORARY TABLE IF NOT EXISTS tmp_warn (
+        stdid VARCHAR(10), name VARCHAR(50), note VARCHAR(100));
+
+    OPEN cur;
+    read_loop: LOOP
+        FETCH cur INTO v_sid, v_name, v_gpa;
+        IF done = 1 THEN
+            LEAVE read_loop;
+        END IF;
+        INSERT INTO tmp_warn VALUES (v_sid, v_name,
+               CONCAT('เกรดเฉลี่ย ', v_gpa, ' ต่ำกว่าเกณฑ์'));
+    END LOOP;
+    CLOSE cur;
+
+    SELECT * FROM tmp_warn;
+END $$
+
+DELIMITER ;</sql>
+<div class="box note"><div class="box-t">📝 CREATE TEMPORARY TABLE คืออะไร</div><p><code>tmp_warn</code> เป็น<b>ตารางชั่วคราว (Temporary Table)</b> — ใช้งานได้เหมือนตารางปกติ แต่มองเห็นได้เฉพาะ session (connection) ที่สร้างมันเท่านั้น และ MySQL จะลบทิ้งให้เองเมื่อปิด connection จึงเหมาะกับการพักผลลัพธ์ระหว่างทำงานในโพรซีเยอร์</p></div>
+<sql title="เรียกใช้" run>CALL sp_report_low_gpa();</sql>
+<div class="box tip"><div class="box-t">✅ คิดแบบชุดข้อมูล (Set-based) ก่อนเสมอ</div><p>ตัวอย่างข้างบนเขียนได้ในคำสั่งเดียว: <code>SELECT stdid, name, CONCAT('เกรดเฉลี่ย ', gpa, ' ต่ำกว่าเกณฑ์') FROM student WHERE gpa &lt; 2.00;</code> — ใช้เคอร์เซอร์เป็นทางเลือกสุดท้าย</p></div>
+<sql title="ดู / ลบโพรซีเยอร์" run>SHOW PROCEDURE STATUS WHERE Db = DATABASE();</sql>
+<div class="code"><div class="code-head"><span>คำสั่งจัดการอื่น ๆ</span></div><pre class="sql">SHOW CREATE PROCEDURE sp_count_credit;   -- ดูโค้ด
+DROP PROCEDURE IF EXISTS sp_count_credit;  -- ลบ (แก้โค้ดต้อง DROP แล้ว CREATE ใหม่)</pre></div>
+
+<ex no="11.1" title="sp_student_transcript" level="2">
+<p>จงเขียนโพรซีเยอร์ <code>sp_student_transcript(p_sid)</code> แสดงภาคเรียน ชื่อวิชา หน่วยกิต เกรด ของนิสิตที่ระบุ แล้วเรียกใช้กับนิสิต 60007</p>
+<answer><sql title="เฉลย" run>DELIMITER $$
+CREATE PROCEDURE sp_student_transcript (IN p_sid VARCHAR(10))
+BEGIN
+    SELECT sec.term, sub.subid, sub.name, sub.credit, e.grade
+    FROM   enroll e
+           INNER JOIN section sec ON e.secid   = sec.secid
+           INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE  e.stdid = p_sid
+    ORDER  BY sec.term;
+END $$
+DELIMITER ;
+
+CALL sp_student_transcript('60007');</sql></answer>
+</ex>
+<ex no="11.2" title="sp_count_section (OUT)" level="2">
+<p>จงเขียนโพรซีเยอร์รับรหัสอาจารย์และภาคเรียน แล้วส่งจำนวนกลุ่มเรียนกลับผ่าน OUT — ทดสอบกับ t01 ภาค 2024-2</p>
+<answer><sql title="เฉลย" run>DELIMITER $$
+CREATE PROCEDURE sp_count_section (IN p_lecid VARCHAR(10), IN p_term VARCHAR(6),
+                                   OUT p_n INT)
+BEGIN
+    SELECT COUNT(*) INTO p_n
+    FROM   section
+    WHERE  lecid = p_lecid AND term = p_term;
+END $$
+DELIMITER ;
+
+CALL sp_count_section('t01', '2024-2', @n);
+SELECT @n AS n_section;</sql></answer>
+</ex>
+
+<h2 id="s6"><span class="sec">11.6</span> การจัดการข้อผิดพลาดและทรานแซกชันในโพรซีเยอร์</h2>
+<p>โพรซีเยอร์ที่ทำหลายขั้นตอนต้อง (1) <b>ตรวจเงื่อนไข</b>ก่อนบันทึก แล้วแจ้งข้อผิดพลาดที่เข้าใจง่ายด้วย <code>SIGNAL</code> และ (2) <b>ย้อนกลับทั้งหมด</b>เมื่อขั้นใดล้มเหลว ด้วย <code>HANDLER</code> + ทรานแซกชัน (บทที่ 9)</p>
+<table class="tbl"><tr><th>คำสั่ง</th><th>หน้าที่</th></tr>
+<tr><td><code>SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '…'</code></td><td>สร้าง error ของเราเอง (45000 = error ที่ผู้ใช้กำหนด)</td></tr>
+<tr><td><code>DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN … END</code></td><td>เมื่อเกิด error ใด ๆ ให้ทำคำสั่งใน BEGIN…END แล้วออกจากโพรซีเยอร์</td></tr>
+<tr><td><code>DECLARE CONTINUE HANDLER FOR NOT FOUND …</code></td><td>เมื่อไม่พบข้อมูล (เช่น เคอร์เซอร์อ่านหมด) ให้ทำงานต่อ</td></tr>
+<tr><td><code>RESIGNAL</code></td><td>ส่ง error เดิมต่อออกไปให้ผู้เรียก (หลัง ROLLBACK แล้ว)</td></tr>
+</table>
+<h3>ตัวอย่างที่ 11.6 — sp_enroll: ลงทะเบียนพร้อมตรวจเงื่อนไข</h3>
+<p>กฎ: (1) นิสิตและกลุ่มเรียนต้องมีอยู่จริง (2) ห้ามลงซ้ำ (3) ถ้าวิชามีวิชาบังคับก่อน ต้องเคยผ่านวิชานั้น (เกรด A–D)</p>
+<sql title="สร้าง sp_enroll" exec>DELIMITER $$
+
+CREATE PROCEDURE sp_enroll (IN p_sid VARCHAR(10), IN p_secid INT)
+BEGIN
+    DECLARE v_pre VARCHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM student WHERE stdid = p_sid) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ไม่พบรหัสนิสิต';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM section WHERE secid = p_secid) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ไม่พบกลุ่มเรียน';
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM enroll WHERE secid = p_secid AND stdid = p_sid) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ลงทะเบียนกลุ่มนี้ไปแล้ว';
+    END IF;
+
+    SELECT sub.pre INTO v_pre
+    FROM   section sec JOIN subject sub ON sec.subid = sub.subid
+    WHERE  sec.secid = p_secid;
+
+    IF v_pre IS NOT NULL AND NOT EXISTS (
+          SELECT 1 FROM enroll e JOIN section s ON e.secid = s.secid
+          WHERE  e.stdid = p_sid AND s.subid = v_pre
+            AND  e.grade IN ('A', 'B', 'C', 'D')) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ยังไม่ผ่านวิชาบังคับก่อน';
+    END IF;
+
+    INSERT INTO enroll (secid, stdid) VALUES (p_secid, p_sid);
+    SELECT CONCAT('ลงทะเบียน ', p_sid, ' ในกลุ่ม ', p_secid, ' สำเร็จ') AS message;
+END $$
+
+DELIMITER ;</sql>
+<sql title="กรณีสำเร็จ — 60004 เคยได้ A วิชา CS004 จึงลง CS009 (secid 52) ได้" run>CALL sp_enroll('60004', 52);</sql>
+<sql title="ลงซ้ำ" error>CALL sp_enroll('60004', 52);</sql>
+<sql title="ยังไม่ผ่านวิชาบังคับก่อน — 60015 ไม่เคยเรียน CS004" error>CALL sp_enroll('60015', 52);</sql>
+<sql title="ไม่พบรหัสนิสิต" error>CALL sp_enroll('99999', 52);</sql>
+<h3>ตัวอย่างที่ 11.7 — sp_move_section: ทรานแซกชัน + EXIT HANDLER</h3>
+<p>ย้ายนิสิตจากกลุ่มหนึ่งไปอีกกลุ่ม (ลบ + เพิ่ม) — ถ้าขั้นใดล้มเหลว HANDLER จะ ROLLBACK ทั้งหมด ข้อมูลไม่ค้างครึ่งทาง</p>
+<sql title="สร้าง sp_move_section" exec>DELIMITER $$
+
+CREATE PROCEDURE sp_move_section (IN p_sid VARCHAR(10), IN p_from INT, IN p_to INT)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;     -- ยกเลิกทุกอย่างที่ทำไปในทรานแซกชันนี้
+        RESIGNAL;     -- ส่ง error เดิมกลับไปให้ผู้เรียกเห็น
+    END;
+
+    START TRANSACTION;
+        DELETE FROM enroll WHERE secid = p_from AND stdid = p_sid;
+        INSERT INTO enroll (secid, stdid) VALUES (p_to, p_sid);
+    COMMIT;
+    SELECT CONCAT('ย้าย ', p_sid, ' จากกลุ่ม ', p_from, ' ไปกลุ่ม ', p_to, ' สำเร็จ') AS message;
+END $$
+
+DELIMITER ;</sql>
+<sql title="ย้ายไปกลุ่มที่ไม่มีอยู่จริง (999) → error และ ROLLBACK" error>CALL sp_move_section('60008', 51, 999);</sql>
+<sql title="ตรวจ — 60008 ยังอยู่ในกลุ่ม 51 (การลบถูกย้อนกลับ)" run>SELECT * FROM enroll WHERE stdid = '60008' AND secid IN (51, 999);</sql>
+<sql title="ย้ายไปกลุ่มที่มีอยู่จริง (44) → สำเร็จ" run>CALL sp_move_section('60008', 51, 44);
+SELECT * FROM enroll WHERE stdid = '60008' AND secid IN (51, 44);</sql>
+
+<ex no="11.3" title="sp_drop_enroll" level="2">
+<p>จงเขียนโพรซีเยอร์ <code>sp_drop_enroll(p_sid, p_secid)</code> ถอนรายวิชา โดยอนุญาตเฉพาะรายการที่<b>ยังไม่มีเกรด</b> ถ้ามีเกรดแล้วหรือไม่พบรายการ ให้แจ้ง error</p>
+<answer><sql title="เฉลย" exec>DELIMITER $$
+CREATE PROCEDURE sp_drop_enroll (IN p_sid VARCHAR(10), IN p_secid INT)
+BEGIN
+    DECLARE v_grade CHAR(1);
+    DECLARE v_found INT DEFAULT 0;
+
+    SELECT COUNT(*), MAX(grade) INTO v_found, v_grade
+    FROM   enroll WHERE secid = p_secid AND stdid = p_sid;
+
+    IF v_found = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ไม่พบรายการลงทะเบียน';
+    ELSEIF v_grade IS NOT NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'มีเกรดแล้ว ถอนไม่ได้';
+    END IF;
+
+    DELETE FROM enroll WHERE secid = p_secid AND stdid = p_sid;
+    SELECT 'ถอนรายวิชาสำเร็จ' AS message;
+END $$
+DELIMITER ;</sql>
+<sql title="ทดสอบ — มีเกรดแล้ว" error>CALL sp_drop_enroll('60001', 1);</sql>
+<sql title="ทดสอบ — ยังไม่มีเกรด (70034 ใน secid 51)" run>CALL sp_drop_enroll('70034', 51);</sql></answer>
+</ex>
+
+<h2 id="s7"><span class="sec">11.7</span> ฟังก์ชันที่ผู้ใช้สร้างขึ้น (Stored Function)</h2>
+<p>คล้ายโพรซีเยอร์ แต่<b>คืนค่าเดียวเสมอ</b> และเรียกใช้ใน SELECT ได้เหมือนฟังก์ชันมาตรฐาน</p>
+<sql title="ฟังก์ชันแปลงเกรดเป็นแต้ม" exec>DELIMITER $$
+
+CREATE FUNCTION fn_grade_point (p_grade CHAR(1))
+RETURNS DECIMAL(3,2)
+DETERMINISTIC
+BEGIN
+    RETURN CASE p_grade
+               WHEN 'A' THEN 4.00
+               WHEN 'B' THEN 3.00
+               WHEN 'C' THEN 2.00
+               WHEN 'D' THEN 1.00
+               ELSE 0.00
+           END;
+END $$
+
+DELIMITER ;</sql>
+<sql title="เรียกใช้ใน SELECT" run>SELECT stdid, grade, fn_grade_point(grade) AS point
+FROM   enroll
+WHERE  secid = 1;</sql>
+<div class="box note"><div class="box-t">📝 DETERMINISTIC / READS SQL DATA</div><p>MySQL 8 ที่เปิด binary log ต้องระบุลักษณะของฟังก์ชัน — <code>DETERMINISTIC</code> (ใส่ค่าเดิมได้ผลเดิมเสมอ) หรือ <code>READS SQL DATA</code> (อ่านข้อมูลจากตาราง) ไม่เช่นนั้นจะได้ Error 1418</p></div>
+<table class="tbl"><tr><th>ประเด็น</th><th>Stored Procedure</th><th>Function</th></tr>
+<tr><td>เรียกใช้</td><td>CALL</td><td>ในนิพจน์ เช่น SELECT, WHERE</td></tr>
+<tr><td>ค่าที่คืน</td><td>หลายค่าผ่าน OUT / ชุดผลลัพธ์</td><td>ค่าเดียวเสมอ</td></tr>
+<tr><td>แก้ไขข้อมูล</td><td>ทำได้</td><td>จำกัด ไม่แนะนำ</td></tr>
+<tr><td>ใช้ใน SELECT</td><td>ไม่ได้</td><td>ได้</td></tr>
+</table>
+
+<ex no="11.4" title="fn_student_gpa" level="3">
+<p>จงเขียนฟังก์ชัน <code>fn_student_gpa(p_sid)</code> คืนค่าเกรดเฉลี่ยถ่วงน้ำหนักด้วยหน่วยกิต (ไม่นับวิชาที่ยังไม่มีเกรด) แล้วใช้แสดงนิสิตทุกคนเทียบกับคอลัมน์ gpa</p>
+<answer><sql title="เฉลย" run>DELIMITER $$
+CREATE FUNCTION fn_student_gpa (p_sid VARCHAR(10))
+RETURNS DECIMAL(3,2)
+READS SQL DATA
+BEGIN
+    DECLARE v_gpa DECIMAL(3,2);
+    SELECT SUM(sub.credit * fn_grade_point(e.grade)) / SUM(sub.credit) INTO v_gpa
+    FROM   enroll e
+           INNER JOIN section sec ON e.secid   = sec.secid
+           INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE  e.stdid = p_sid AND e.grade IS NOT NULL;
+    RETURN v_gpa;
+END $$
+DELIMITER ;
+
+SELECT stdid, name, gpa AS gpa_in_table, fn_student_gpa(stdid) AS gpa_calc
+FROM   student
+ORDER  BY stdid;</sql>
+<p>นิสิตที่ไม่เคยลงหรือยังไม่มีเกรด ได้ NULL เพราะ SUM ของชุดว่างเป็น NULL</p></answer>
+</ex>
+
+<review>
+<li class="part">Stored Procedure</li>
+<li>เขียนโพรซีเยอร์ sp_student_transcript(p_sid) แสดงเทอม ชื่อวิชา หน่วยกิต เกรด ของนิสิตที่ระบุ <span class="hint">(IN parameter)</span><div class="rv-ans"><p>ดูเฉลยแบบฝึกหัดที่ 11.1 — โพรซีเยอร์ถูกสร้างไว้แล้ว เรียกใช้กับนิสิตคนอื่นได้ทันที</p><sql title="เฉลย" run>CALL sp_student_transcript('60001');</sql></div></li>
+<li>เขียนโพรซีเยอร์ sp_count_section(p_lecid, p_term, OUT p_n) แล้วเรียกใช้กับ t01 เทอม 2024-2 <span class="hint">(OUT + @ตัวแปร)</span><div class="rv-ans"><p>ดูเฉลยแบบฝึกหัดที่ 11.2 — ค่า OUT ต้องรับด้วยตัวแปรผู้ใช้ (ขึ้นต้นด้วย @) แล้ว SELECT ออกมาดู</p><sql title="เฉลย" run>CALL sp_count_section('t01', '2024-2', @n);
+SELECT @n AS n_section;</sql></div></li>
+<li>เขียนโพรซีเยอร์ sp_raise_salary(p_major, p_percent) ขึ้นเงินเดือนอาจารย์ในสาขาที่ระบุตามร้อยละที่ระบุ แล้วแสดงผลหลังปรับ <span class="hint">(UPDATE ใน procedure)</span><div class="rv-ans"><sql title="เฉลย" exec>DELIMITER $$
+CREATE PROCEDURE sp_raise_salary (IN p_major VARCHAR(30), IN p_percent DECIMAL(5,2))
+BEGIN
+    UPDATE lecturer
+    SET    salary = salary * (1 + p_percent / 100)
+    WHERE  major = p_major;
+
+    SELECT lecid, name, major, salary
+    FROM   lecturer
+    WHERE  major = p_major;
+END $$
+DELIMITER ;</sql><sql title="เฉลย" run temp>CALL sp_raise_salary('English', 5);</sql></div></li>
+<li>เขียนโพรซีเยอร์ sp_enroll(p_sid, p_secid) ที่ตรวจว่าเคยผ่านวิชาบังคับก่อน (เกรดไม่ใช่ F) แล้วจึงบันทึก มิฉะนั้นแจ้ง error <span class="hint">(IF NOT EXISTS … SIGNAL)</span><div class="rv-ans"><p>ดูตัวอย่างที่ 11.6 — หัวใจคือหา pre ของวิชาในกลุ่มเรียน แล้วตรวจด้วย <code>NOT EXISTS</code> ว่ามีการลงวิชา pre ที่ได้เกรด A–D (เกรด NULL = ยังไม่ผ่าน จึงต้องระบุ IN ('A','B','C','D') แทน <code>&lt;&gt; 'F'</code>) ถ้าไม่มีให้ SIGNAL</p><sql title="เฉลย" >SELECT sub.pre INTO v_pre
+FROM   section sec JOIN subject sub ON sec.subid = sub.subid
+WHERE  sec.secid = p_secid;
+
+IF v_pre IS NOT NULL AND NOT EXISTS (
+      SELECT 1 FROM enroll e JOIN section s ON e.secid = s.secid
+      WHERE  e.stdid = p_sid AND s.subid = v_pre
+        AND  e.grade IN ('A', 'B', 'C', 'D')) THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ยังไม่ผ่านวิชาบังคับก่อน';
+END IF;</sql><sql title="เฉลย" error>CALL sp_enroll('60015', 52);</sql></div></li>
+<li>เขียนโพรซีเยอร์ที่ใช้ WHILE สร้างกลุ่มเรียนวิชาที่ระบุให้อาจารย์ที่ระบุ ทุกเทอม (1, 2, 3) ของปีที่ระบุ <span class="hint">(WHILE i &lt;= 3)</span><div class="rv-ans"><sql title="เฉลย" exec>DELIMITER $$
+CREATE PROCEDURE sp_open_all_terms (IN p_subid VARCHAR(10), IN p_lecid VARCHAR(10), IN p_year INT)
+BEGIN
+    DECLARE i INT DEFAULT 1;
+    WHILE i <= 3 DO
+        INSERT INTO section (subid, lecid, term)
+        VALUES (p_subid, p_lecid, CONCAT(p_year, '-', i));
+        SET i = i + 1;
+    END WHILE;
+END $$
+DELIMITER ;</sql><sql title="เฉลย" run temp show="SELECT * FROM section WHERE term LIKE '2027-%'">CALL sp_open_all_terms('CS001', 't01', 2027);</sql></div></li>
+<li>เขียนโพรซีเยอร์ย้ายกลุ่มเรียนของนิสิตเป็นทรานแซกชัน ถ้าเกิดข้อผิดพลาดให้ ROLLBACK อัตโนมัติ <span class="hint">(DECLARE EXIT HANDLER FOR SQLEXCEPTION)</span><div class="rv-ans"><p>ดูตัวอย่างที่ 11.7 (sp_move_section) — ประกาศ <code>DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ROLLBACK; RESIGNAL; END;</code> ก่อน แล้วทำ <code>START TRANSACTION</code> → DELETE จากกลุ่มเดิม → INSERT กลุ่มใหม่ → COMMIT ถ้าขั้นใดเกิด error HANDLER จะ ROLLBACK ทั้งหมดและส่ง error ต่อให้ผู้เรียก</p><sql error title="ย้ายไปกลุ่มที่ไม่มีอยู่ → error และ ROLLBACK (นิสิตยังอยู่กลุ่มเดิม)">CALL sp_move_section('60009', 20, 999);</sql><sql title="เฉลย" run>SELECT * FROM enroll WHERE stdid = '60009' AND secid = 20;</sql></div></li>
+<li>อธิบายเหตุผลที่ควรคิดแบบ Set-based ก่อนใช้ Cursor และเขียน sp_report_low_gpa ใหม่โดยไม่ใช้ Cursor <span class="hint">(SELECT เดียว)</span><div class="rv-ans"><p>SQL ถูกออกแบบให้ประมวลผล<b>ทั้งชุดข้อมูล</b>ในคำสั่งเดียว DBMS จึงเลือกวิธีที่เร็วที่สุดได้ (ใช้ดัชนี ทำงานขนาน) ส่วน Cursor อ่านและประมวลผลทีละแถว มีโค้ดมาก ช้ากว่ามากเมื่อข้อมูลเยอะ และเกิดข้อผิดพลาดได้ง่ายกว่า — ใช้ Cursor เฉพาะงานที่ทำแบบชุดไม่ได้จริง ๆ</p><sql title="เฉลย" exec>DELIMITER $$
+CREATE PROCEDURE sp_report_low_gpa_set ()
+BEGIN
+    SELECT stdid, name, CONCAT('เกรดเฉลี่ย ', gpa, ' ต่ำกว่าเกณฑ์') AS note
+    FROM   student
+    WHERE  gpa < 2.00;
+END $$
+DELIMITER ;</sql><sql title="เฉลย" run>CALL sp_report_low_gpa_set();</sql></div></li>
+<li class="part">Stored Function</li>
+<li>เขียนฟังก์ชัน fn_age(p_birthday) คืนค่าอายุ แล้วใช้แสดงอายุนิสิตทุกคน <span class="hint">(DETERMINISTIC? CURDATE())</span><div class="rv-ans"><p>ฟังก์ชันนี้ <b>ไม่ใช่ DETERMINISTIC</b> — ค่าวันเกิดเดิมให้ผลต่างกันเมื่อวันที่เปลี่ยน (ขึ้นกับ CURDATE()) จึงประกาศ <code>NOT DETERMINISTIC</code> และ <code>NO SQL</code> (ไม่ได้อ่านตาราง)</p><sql title="เฉลย" run max="8">DELIMITER $$
+CREATE FUNCTION fn_age (p_birthday DATE)
+RETURNS INT
+NOT DETERMINISTIC NO SQL
+BEGIN
+    RETURN TIMESTAMPDIFF(YEAR, p_birthday, CURDATE());
+END $$
+DELIMITER ;
+
+SELECT stdid, name, birthday, fn_age(birthday) AS age FROM student;</sql></div></li>
+<li>เขียนฟังก์ชัน fn_student_gpa(p_sid) คืนค่าเกรดเฉลี่ยถ่วงน้ำหนัก แล้วเปรียบเทียบกับคอลัมน์ gpa ในตาราง <span class="hint">(READS SQL DATA)</span><div class="rv-ans"><p>ดูเฉลยแบบฝึกหัดที่ 11.4 — ฟังก์ชันอ่านตาราง enroll/section/subject จึงประกาศ <code>READS SQL DATA</code></p><sql title="เฉลย" run max="8">SELECT stdid, name, gpa AS stored_gpa, fn_student_gpa(stdid) AS calc_gpa,
+       ROUND(gpa - fn_student_gpa(stdid), 2) AS diff
+FROM   student
+WHERE  stdid IN (SELECT stdid FROM enroll WHERE grade IS NOT NULL)
+ORDER  BY stdid;</sql></div></li>
+<li>เขียนฟังก์ชัน fn_section_count(p_lecid) คืนจำนวนกลุ่มที่อาจารย์สอน แล้วใช้ใน WHERE เพื่อหาอาจารย์ที่สอนมากกว่า 5 กลุ่ม <span class="hint">(ใช้ฟังก์ชันใน WHERE)</span><div class="rv-ans"><sql title="เฉลย" run>DELIMITER $$
+CREATE FUNCTION fn_section_count (p_lecid VARCHAR(10))
+RETURNS INT
+READS SQL DATA
+BEGIN
+    DECLARE v_n INT;
+    SELECT COUNT(*) INTO v_n FROM section WHERE lecid = p_lecid;
+    RETURN v_n;
+END $$
+DELIMITER ;
+
+SELECT lecid, name, fn_section_count(lecid) AS n_section
+FROM   lecturer
+WHERE  fn_section_count(lecid) > 5;</sql><p>ใช้งานง่ายและอ่านเข้าใจ แต่ฟังก์ชันถูกเรียก<b>ทุกแถว</b> — ถ้าข้อมูลมาก การเขียนด้วย GROUP BY … HAVING จะเร็วกว่า</p></div></li>
+<li>เปรียบเทียบ Stored Procedure, Function และวิว ในแง่การเรียกใช้ พารามิเตอร์ ค่าที่คืน และงานที่เหมาะสม <span class="hint">(บทที่ 7 และ 11)</span><div class="rv-ans"><ul><li><b>Stored Procedure</b> — เรียกด้วย <code>CALL</code> · พารามิเตอร์ IN / OUT / INOUT · คืนผลลัพธ์ได้หลายชุดหรือไม่คืนเลย · เหมาะกับงานหลายขั้นตอนที่แก้ไขข้อมูล มีเงื่อนไข และทรานแซกชัน (ลงทะเบียน ย้ายกลุ่ม)</li><li><b>Stored Function</b> — เรียกในนิพจน์ SQL (SELECT / WHERE) · พารามิเตอร์ IN อย่างเดียว · คืน<b>ค่าเดียว</b>เสมอ · เหมาะกับการคำนวณที่ใช้ซ้ำ (อายุ เกรดเฉลี่ย) ไม่ควรแก้ไขข้อมูล</li><li><b>วิว</b> — ใช้แทนตารางใน FROM · ไม่มีพารามิเตอร์ (กรองด้วย WHERE ตอนเรียก) · คืนเป็นตาราง · เหมาะกับการซ่อน JOIN/สรุปข้อมูลที่ใช้บ่อย และควบคุมสิทธิ์การมองเห็น</li></ul></div></li>
+</review>

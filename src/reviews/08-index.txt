@@ -1,0 +1,66 @@
+# คำถามท้ายบท + เฉลย — ดูรูปแบบที่ apply_reviews.py
+## แนวคิดและ EXPLAIN
+จงอธิบายแนวคิดของดัชนี เปรียบเทียบกับดัชนีท้ายเล่มหนังสือ || B-Tree
+A: ดัชนีท้ายเล่มเรียงคำตามตัวอักษรพร้อมเลขหน้า ทำให้หาคำได้ทันทีโดยไม่ต้องอ่านทุกหน้า — ดัชนีของฐานข้อมูลก็เช่นกัน DBMS เก็บค่าของคอลัมน์ที่เลือก<b>เรียงลำดับ</b>ไว้ในโครงสร้าง <b>B-Tree</b> พร้อมตัวชี้ไปยังแถวจริง การค้นหาจึงไล่จากรากลงไปไม่กี่ชั้น (เวลา ~log n) แทนการอ่านทุกแถว (Full Table Scan) แลกกับพื้นที่เพิ่มและต้องปรับดัชนีทุกครั้งที่ข้อมูลเปลี่ยน
+ใช้ EXPLAIN ตรวจคำสั่ง `SELECT * FROM student WHERE name = 'Rukawa'` แล้วอธิบายค่าในคอลัมน์ type, key, rows || type = ALL
+```run
+EXPLAIN SELECT * FROM student WHERE name = 'Rukawa';
+```
+A: <b>type = ALL</b> คืออ่านทุกแถวของตาราง (Full Table Scan) · <b>key = NULL</b> คือไม่ได้ใช้ดัชนีใด เพราะคอลัมน์ name ยังไม่มีดัชนี · <b>rows</b> คือจำนวนแถวที่ MySQL ประมาณว่าต้องอ่าน (เกือบทั้งตาราง)
+## สร้างและใช้ดัชนี
+สร้างดัชนีให้คอลัมน์ section.term แล้วเปรียบเทียบผล EXPLAIN ก่อนและหลัง || type: ALL → ref
+```run title="ก่อนสร้างดัชนี"
+EXPLAIN SELECT * FROM section WHERE term = '2024-1';
+```
+```run title="สร้างดัชนี แล้ว EXPLAIN อีกครั้ง"
+CREATE INDEX idx_section_term ON section(term);
+EXPLAIN SELECT * FROM section WHERE term = '2024-1';
+```
+A: ก่อนสร้าง type = <b>index</b> — MySQL อ่านดัชนี sec_uk <b>ทั้งหมด</b> (term เป็นคอลัมน์ที่ 3 ของ sec_uk จึงค้นตรง ๆ ไม่ได้ ต้องไล่ทุกค่า) rows ≈ ทั้งตาราง หลังสร้าง type = <b>ref</b> key = idx_section_term และ rows ลดเหลือเฉพาะแถวของเทอมนั้น
+สร้างดัชนีให้ student.name แล้วตรวจว่าคำสั่ง `WHERE name LIKE 'Ru%'` และ `WHERE name LIKE '%wa'` ใช้ดัชนีหรือไม่ || wildcard นำหน้า
+```run
+CREATE INDEX idx_student_name ON student(name);
+EXPLAIN SELECT * FROM student WHERE name LIKE 'Ru%';
+```
+```run
+EXPLAIN SELECT * FROM student WHERE name LIKE '%wa';
+```
+A: <code>'Ru%'</code> ใช้ดัชนีได้ (type = range) เพราะรู้ตัวอักษรต้น จึงกระโดดไปยังช่วงที่ขึ้นต้นด้วย Ru ในดัชนีที่เรียงไว้ได้ ส่วน <code>'%wa'</code> ใช้ไม่ได้ (type = ALL) เพราะไม่รู้ว่าขึ้นต้นด้วยอะไร ต้องตรวจทุกแถว — เหมือนหาคำที่ “ลงท้ายด้วย wa” ในพจนานุกรม
+ดัชนี `idx(term, lecid)` จะช่วยคำสั่ง `WHERE lecid = 't01'` อย่างเดียวได้หรือไม่ เพราะเหตุใด || Leftmost prefix
+A: <b>ไม่ได้</b> — ดัชนีหลายคอลัมน์เรียงตาม term ก่อน แล้วจึงเรียง lecid ภายในแต่ละ term (เหมือนสมุดโทรศัพท์ที่เรียงนามสกุลก่อนชื่อ) จะใช้ได้ต้องมีเงื่อนไขของคอลัมน์ซ้ายสุด (term) — กฎ Leftmost Prefix
+```run
+CREATE INDEX idx_sec_term_lec ON section(term, lecid);
+EXPLAIN SELECT * FROM section WHERE lecid = 't01';
+```
+A: สังเกตว่า idx_sec_term_lec <b>ไม่อยู่ใน possible_keys</b> — MySQL ใช้ดัชนี sec_fk_lec ที่สร้างขึ้นอัตโนมัติพร้อม FK ของ lecid แทน
+ออกแบบดัชนีที่ทำให้คำสั่ง `SELECT name FROM lecturer WHERE major = 'English'` เป็น Covering Index || Using index
+A: สร้างดัชนี (major, name) — major ใช้ค้น และ name เป็นคอลัมน์เดียวที่ต้องแสดง เมื่อทุกคอลัมน์ที่ต้องใช้อยู่ในดัชนีแล้ว MySQL ตอบได้จากดัชนีโดยไม่ต้องอ่านแถวจริง (Extra = <b>Using index</b>)
+```run
+CREATE INDEX idx_lec_major_name ON lecturer(major, name);
+EXPLAIN SELECT name FROM lecturer WHERE major = 'English';
+```
+```run title="เพิ่มคอลัมน์ salary ที่ไม่อยู่ในดัชนี → ไม่เป็น Covering แล้ว"
+EXPLAIN SELECT name, salary FROM lecturer WHERE major = 'English';
+```
+คำสั่ง `WHERE YEAR(birthday) = 2010` ใช้ดัชนีของ birthday ได้หรือไม่ จงเขียนใหม่ให้ใช้ดัชนีได้ || BETWEEN '2010-01-01' AND '2010-12-31'
+A: <b>ไม่ได้</b> — ดัชนีเก็บค่า birthday ไม่ใช่ YEAR(birthday) เมื่อครอบคอลัมน์ด้วยฟังก์ชัน MySQL ต้องคำนวณทุกแถว ต้องเขียนเงื่อนไขเป็นช่วงของคอลัมน์ตรง ๆ แทน
+```run
+CREATE INDEX idx_student_bday ON student(birthday);
+EXPLAIN SELECT * FROM student WHERE YEAR(birthday) = 2010;
+```
+```run
+EXPLAIN SELECT * FROM student WHERE birthday BETWEEN '2010-01-01' AND '2010-12-31';
+```
+## การเลือกดัชนี
+จงระบุว่าควรสร้างดัชนีให้คอลัมน์ใดในกรณีศึกษา และไม่ควรสร้างที่ใด พร้อมเหตุผล || ใช้ค้นบ่อย / ค่าซ้ำมาก
+A- <b>ควรสร้าง</b>: section.term (ค้นรายภาคบ่อย), enroll.stdid (ทรานสคริปต์ของนิสิต — PK เริ่มด้วย secid จึงช่วยไม่ได้; ใน MySQL มีดัชนีจาก FK enroll_fk_std ให้อยู่แล้ว), student.name และ subject.name (ค้นด้วยชื่อ)
+A- <b>มีอยู่แล้ว ไม่ต้องสร้าง</b>: PK ทุกตาราง, UNIQUE sec_uk และคอลัมน์ FK (InnoDB สร้างให้อัตโนมัติ)
+A- <b>ไม่ควรสร้าง</b>: enroll.grade หรือ student.major (ค่าซ้ำมาก มีไม่กี่ค่า ดัชนีคัดแถวออกได้น้อย), คอลัมน์ที่แทบไม่ใช้ค้น เช่น birthday ถ้าไม่มีรายงานตามวันเกิด
+จงอธิบายต้นทุนของดัชนี และยกตัวอย่างสถานการณ์ที่สร้างดัชนีแล้วทำให้ระบบช้าลง || INSERT/UPDATE ถี่
+A: ดัชนี (1) ใช้พื้นที่ดิสก์และหน่วยความจำเพิ่ม (2) ทุก INSERT / UPDATE / DELETE ต้องปรับดัชนีทุกตัวของตาราง (3) ดัชนีที่ซ้ำซ้อนทำให้ optimizer เลือกยากขึ้น
+A: ตัวอย่าง: ตาราง log ที่บันทึกการเข้าใช้ระบบหลายพันแถวต่อนาที แต่แทบไม่เคยค้นหา ถ้าสร้างดัชนี 5–6 ตัว การบันทึกแต่ละครั้งต้องเขียนเพิ่มอีก 5–6 จุด ระบบช้าลงโดยไม่ได้ประโยชน์ หรือช่วงลงทะเบียนเรียนที่ INSERT enroll พร้อมกันจำนวนมาก
+เหตุใด PRIMARY KEY และ UNIQUE จึงมีดัชนีอยู่แล้วโดยอัตโนมัติ || ต้องตรวจค่าซ้ำทุกครั้งที่ INSERT
+A: ทุกครั้งที่ INSERT หรือ UPDATE DBMS ต้องตรวจว่าค่าใหม่<b>ซ้ำ</b>กับค่าที่มีอยู่หรือไม่ ถ้าไม่มีดัชนีต้องอ่านทั้งตารางทุกครั้ง จึงสร้างดัชนีให้อัตโนมัติเพื่อตรวจได้เร็ว (InnoDB ยังใช้ PK เป็น Clustered Index ที่เก็บแถวเรียงตาม PK ด้วย)
+```run
+SHOW INDEX FROM section;
+```

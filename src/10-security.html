@@ -1,0 +1,197 @@
+<!--meta {"title":"บทที่ 10 · ความปลอดภัยของฐานข้อมูล","kicker":"CHAPTER 10 · สัปดาห์ที่ 14","sub":"บัญชีผู้ใช้ การกำหนดและยกเลิกสิทธิ์ (GRANT / REVOKE) บทบาท (Role) วิวเพื่อควบคุมการเข้าถึง SQL Injection และแนวปฏิบัติด้านความปลอดภัย","img":"worker5.png"} -->
+
+<div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
+<li>อธิบายเป้าหมายและองค์ประกอบด้านความปลอดภัยของฐานข้อมูลได้</li>
+<li>สร้างและจัดการบัญชีผู้ใช้ได้</li>
+<li>กำหนดและยกเลิกสิทธิ์ในระดับฐานข้อมูล ตาราง คอลัมน์ และวิวได้</li>
+<li>ออกแบบสิทธิ์ตามหลัก Least Privilege และใช้ Role ได้</li>
+<li>อธิบาย SQL Injection และป้องกันด้วย Prepared Statement ได้</li>
+</ol></div>
+
+<toc/>
+
+<h2 id="s0"><span class="sec">10.1</span> ภาพรวมความปลอดภัยของฐานข้อมูล</h2>
+<p>ความปลอดภัยของฐานข้อมูลครอบคลุม 3 เป้าหมายหลัก (CIA)</p>
+<table class="tbl"><tr><th>เป้าหมาย</th><th>ความหมาย</th><th>ตัวอย่างภัย</th><th>เครื่องมือในบทนี้</th></tr>
+<tr><td><b>C</b>onfidentiality</td><td>เฉพาะผู้มีสิทธิ์เท่านั้นที่เห็นข้อมูล</td><td>นิสิตแอบดูเกรดคนอื่น</td><td>GRANT, View, Role</td></tr>
+<tr><td><b>I</b>ntegrity</td><td>ข้อมูลถูกแก้ได้เฉพาะผู้มีสิทธิ์ และถูกต้อง</td><td>แก้เกรดตัวเองผ่าน SQL Injection</td><td>สิทธิ์ระดับคอลัมน์, Prepared Statement, Trigger</td></tr>
+<tr><td><b>A</b>vailability</td><td>ระบบและข้อมูลพร้อมใช้งาน</td><td>ลบตารางโดยไม่ตั้งใจ, ดิสก์เสีย</td><td>สิทธิ์ DROP เฉพาะผู้ดูแล, Backup</td></tr>
+</table>
+<div class="flow"><div class="st">Authentication<small>คุณคือใคร? (บัญชี + รหัสผ่าน)</small></div><span class="ar">→</span><div class="st">Authorization<small>คุณทำอะไรได้บ้าง? (GRANT)</small></div><span class="ar">→</span><div class="st">Auditing<small>คุณทำอะไรไปแล้ว? (Log / Trigger)</small></div></div>
+<h2 id="s1"><span class="sec">10.2</span> การจัดการบัญชีผู้ใช้</h2>
+<p>บัญชีใน MySQL มี 2 ส่วน คือ <code>'ชื่อผู้ใช้'@'เครื่องต้นทาง'</code> — กำหนดได้ว่าบัญชีนี้เชื่อมต่อจากเครื่องใดได้บ้าง</p>
+<div class="box note"><div class="box-t">📝 หมายเหตุ</div><p>คำสั่งในหัวข้อ 10.2–10.4 ต้องใช้สิทธิ์ผู้ดูแลระบบ บัญชีนิสิตบนเซิร์ฟเวอร์มหาวิทยาลัยจะรันไม่ได้ — ให้ทดลองบน MySQL ในเครื่องตัวเองด้วยบัญชี root</p></div>
+<sql title="สร้าง / แก้ไข / ลบบัญชี">-- เชื่อมต่อได้จากเครื่องเดียวกันเท่านั้น
+CREATE USER 'reg_staff'@'localhost' IDENTIFIED BY 'StrongPass#2026';
+
+-- เชื่อมต่อได้จากทุกเครื่องในวง 192.168.1.x
+CREATE USER 'teacher'@'192.168.1.%' IDENTIFIED BY 'Teach#2026';
+
+-- เปลี่ยนรหัสผ่าน และบังคับให้เปลี่ยนเมื่อเข้าใช้ครั้งแรก
+ALTER USER 'reg_staff'@'localhost' IDENTIFIED BY 'NewPass#2026' PASSWORD EXPIRE;
+
+-- ดูรายชื่อบัญชีทั้งหมด และลบบัญชี
+SELECT user, host FROM mysql.user;
+DROP USER IF EXISTS 'teacher'@'192.168.1.%';</sql>
+<div class="box idea"><div class="box-t">💡 บัญชีใหม่ยังทำอะไรไม่ได้</div><p>บัญชีที่เพิ่งสร้าง<b>ไม่มีสิทธิ์ใด ๆ เลย</b> ต้อง GRANT เพิ่มเสมอ</p></div>
+
+<h2 id="s2"><span class="sec">10.3</span> การกำหนดและยกเลิกสิทธิ์ (GRANT / REVOKE)</h2>
+<fig n="8-1" no="10.1">การให้และยกเลิกสิทธิ์การเข้าถึงข้อมูล</fig>
+<table class="tbl"><tr><th>สิทธิ์</th><th>อนุญาตให้</th></tr>
+<tr><td>SELECT / INSERT / UPDATE / DELETE</td><td>อ่าน / เพิ่ม / แก้ / ลบข้อมูล</td></tr>
+<tr><td>CREATE / DROP / ALTER</td><td>สร้าง ลบ แก้โครงสร้าง</td></tr>
+<tr><td>INDEX</td><td>สร้างและลบดัชนี</td></tr>
+<tr><td>EXECUTE</td><td>เรียกใช้ Procedure / Function</td></tr>
+<tr><td>ALL PRIVILEGES</td><td>ทุกสิทธิ์ในขอบเขตที่ระบุ</td></tr>
+</table>
+<sql title="GRANT — ระดับฐานข้อมูล ตาราง คอลัมน์">-- อ่านได้ทุกตารางในฐานข้อมูล
+GRANT SELECT ON std_66011200.* TO 'teacher'@'192.168.1.%';
+
+-- ระดับตาราง
+GRANT SELECT, INSERT, UPDATE ON std_66011200.enroll TO 'reg_staff'@'localhost';
+
+-- ระดับคอลัมน์: แก้ได้เฉพาะ grade
+GRANT UPDATE (grade) ON std_66011200.enroll TO 'teacher'@'192.168.1.%';
+
+-- ทุกสิทธิ์ และมอบต่อได้
+GRANT ALL PRIVILEGES ON std_66011200.* TO 'dba'@'localhost' WITH GRANT OPTION;
+
+-- ตรวจสิทธิ์ของบัญชี
+SHOW GRANTS FOR 'teacher'@'192.168.1.%';</sql>
+<div class="box warn"><div class="box-t">⚠️ WITH GRANT OPTION</div><p>ทำให้ผู้รับสิทธิ์มอบสิทธิ์ต่อให้คนอื่นได้ ควบคุมการแพร่กระจายยาก — ใช้กับผู้ดูแลระบบเท่านั้น</p></div>
+<sql title="REVOKE">REVOKE UPDATE, DELETE ON std_66011200.enroll FROM 'reg_staff'@'localhost';
+REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'teacher'@'192.168.1.%';</sql>
+<h3>หลักการให้สิทธิ์เท่าที่จำเป็น (Principle of Least Privilege)</h3>
+<table class="tbl"><tr><th>กลุ่มผู้ใช้</th><th>ตาราง / วิว</th><th>สิทธิ์</th></tr>
+<tr><td>นิสิต</td><td>วิว v_my_enroll ของตนเอง</td><td>SELECT</td></tr>
+<tr><td>อาจารย์</td><td>student, subject, section, enroll</td><td>SELECT ทั้งหมด + UPDATE เฉพาะ grade</td></tr>
+<tr><td>เจ้าหน้าที่ทะเบียน</td><td>student, section, enroll</td><td>SELECT, INSERT, UPDATE, DELETE</td></tr>
+<tr><td>ฝ่ายบุคคล</td><td>lecturer</td><td>SELECT, INSERT, UPDATE</td></tr>
+<tr><td>ผู้ดูแลระบบ</td><td>ทุกตาราง</td><td>ALL PRIVILEGES</td></tr>
+</table>
+
+<ex no="10.1" title="บัญชี advisor" level="2">
+<p>จงสร้างบัญชี <code>advisor</code> ที่เชื่อมต่อได้จากเครื่องเดียวกันเท่านั้น ให้สิทธิ์อ่าน student และ enroll และแก้ไขได้เฉพาะคอลัมน์ grade ของ enroll จากนั้นยกเลิกสิทธิ์แก้ไขทั้งหมด</p>
+<answer><sql title="เฉลย">CREATE USER 'advisor'@'localhost' IDENTIFIED BY 'Adv#2026';
+
+GRANT SELECT ON std_66011200.student TO 'advisor'@'localhost';
+GRANT SELECT, UPDATE (grade) ON std_66011200.enroll TO 'advisor'@'localhost';
+
+REVOKE UPDATE (grade) ON std_66011200.enroll FROM 'advisor'@'localhost';
+SHOW GRANTS FOR 'advisor'@'localhost';</sql></answer>
+</ex>
+
+<h2 id="s3"><span class="sec">10.4</span> การใช้บทบาท (Role) และวิวเพื่อควบคุมการเข้าถึง</h2>
+<p>MySQL 8.0+ รองรับ <span class="term">Role</span> — กลุ่มสิทธิ์ที่ตั้งชื่อไว้ แล้วมอบให้ผู้ใช้หลายคนพร้อมกัน</p>
+<sql title="Role">CREATE ROLE 'role_teacher', 'role_staff';
+
+GRANT SELECT ON std_66011200.* TO 'role_teacher';
+GRANT UPDATE (grade) ON std_66011200.enroll TO 'role_teacher';
+GRANT SELECT, INSERT, UPDATE, DELETE ON std_66011200.enroll TO 'role_staff';
+
+-- มอบบทบาทให้ผู้ใช้ และให้มีผลทันทีเมื่อเข้าสู่ระบบ
+GRANT 'role_teacher' TO 'teacher'@'192.168.1.%';
+SET DEFAULT ROLE ALL TO 'teacher'@'192.168.1.%';</sql>
+<p>วิว + สิทธิ์ = ผู้ใช้เห็นเฉพาะส่วนที่กำหนด โดยไม่ต้องเข้าถึงตารางจริง</p>
+<sql title="ให้สิทธิ์เฉพาะวิว">CREATE VIEW v_student_public AS
+SELECT stdid, name, major FROM student;
+
+GRANT SELECT ON std_66011200.v_student_public TO 'guest'@'localhost';</sql>
+
+<ex no="10.2" title="ออกแบบ Role ห้องสมุด" level="2">
+<p>ระบบห้องสมุดมีตาราง book, member, borrow ผู้ใช้ 3 กลุ่ม: สมาชิก (ดูหนังสือ), บรรณารักษ์ (จัดการการยืม-คืน ดูสมาชิก), ผู้ดูแลระบบ จงเขียนคำสั่งสร้าง Role และกำหนดสิทธิ์</p>
+<answer><sql title="เฉลย">CREATE ROLE 'role_member', 'role_librarian', 'role_admin';
+
+GRANT SELECT ON library.book TO 'role_member';
+
+GRANT SELECT ON library.book   TO 'role_librarian';
+GRANT SELECT ON library.member TO 'role_librarian';
+GRANT SELECT, INSERT, UPDATE ON library.borrow TO 'role_librarian';
+
+GRANT ALL PRIVILEGES ON library.* TO 'role_admin';</sql></answer>
+</ex>
+
+<h2 id="s4"><span class="sec">10.5</span> การแทรกคำสั่ง SQL (SQL Injection)</h2>
+<p>ช่องโหว่ที่พบบ่อยที่สุด เกิดจาก<b>นำข้อมูลที่ผู้ใช้ป้อนไปต่อสตริงคำสั่ง SQL โดยตรง</b></p>
+<div class="code"><div class="code-head"><span>โปรแกรมที่ไม่ปลอดภัย</span></div><pre>sql = "SELECT * FROM student WHERE stdid = '" + user_input + "'";</pre></div>
+<p>ถ้าผู้ใช้ป้อน <code>' OR '1'='1</code> คำสั่งที่เกิดขึ้นจริงคือ</p>
+<sql title="คำสั่งที่ถูกแทรก → คืนข้อมูลนิสิตทั้งหมด" run max="5">SELECT * FROM student WHERE stdid = '' OR '1'='1';</sql>
+<p>วิธีป้องกันที่ได้ผลที่สุดคือ <span class="term">Prepared Statement</span> — แยกโครงสร้างคำสั่งออกจากข้อมูล ค่าที่ผู้ใช้ป้อนจะเป็น “ค่า” เสมอ ไม่ใช่ส่วนหนึ่งของคำสั่ง</p>
+<sql title="Prepared Statement ใน MySQL — ป้อนค่าปกติ" run>PREPARE stmt FROM 'SELECT stdid, name FROM student WHERE stdid = ?';
+SET @stdid = '60001';
+EXECUTE stmt USING @stdid;</sql>
+<sql title="ป้อนค่าโจมตี → ไม่ได้ข้อมูลใด" run>SET @stdid = ''' OR ''1''=''1';
+EXECUTE stmt USING @stdid;
+DEALLOCATE PREPARE stmt;</sql>
+<div class="code"><div class="code-head"><span>ในภาษาโปรแกรม</span></div><pre># Python (mysql-connector)
+cur.execute("SELECT * FROM student WHERE stdid = %s", (stdid,))
+
+// PHP (PDO)
+$stmt = $pdo->prepare('SELECT * FROM student WHERE stdid = ?');
+$stmt->execute([$stdid]);</pre></div>
+<h2 id="s5"><span class="sec">10.6</span> แนวปฏิบัติด้านความปลอดภัย</h2>
+<ol>
+<li><b>ให้สิทธิ์เท่าที่จำเป็น</b> — บัญชีที่โปรแกรมใช้ไม่ควรมี DROP/ALTER และห้ามใช้ root เชื่อมจากโปรแกรม</li>
+<li><b>ไม่เก็บรหัสผ่านเป็นข้อความธรรมดา</b> — เก็บค่าแฮช + salt ด้วย bcrypt หรือ Argon2</li>
+<li><b>เข้ารหัสการเชื่อมต่อ</b> ด้วย TLS</li>
+<li><b>สำรองข้อมูลสม่ำเสมอ</b> และทดสอบกู้คืนจริงเป็นระยะ</li>
+<li><b>เก็บและตรวจ Log</b> ว่าใครแก้ข้อมูลใด เมื่อใด</li>
+<li><b>อัปเดตซอฟต์แวร์</b> เพื่อปิดช่องโหว่</li>
+</ol>
+<div class="code"><div class="code-head"><span>สำรอง / กู้คืน (รันที่ Command Prompt ไม่ใช่ใน DBeaver)</span></div><pre>mysqldump -u root -p std_66011200 > backup_20261001.sql
+mysql     -u root -p std_66011200 < backup_20261001.sql</pre></div>
+
+<ex no="10.3" title="หาช่องโหว่" level="2">
+<p>หน้าเข้าสู่ระบบสร้างคำสั่ง <code>"SELECT * FROM users WHERE username='" + u + "' AND password='" + p + "'"</code> ผู้โจมตีป้อน username เป็น <code>admin' -- </code> จะเกิดอะไรขึ้น และแก้อย่างไร</p>
+<answer><p>คำสั่งจริงกลายเป็น <code>SELECT * FROM users WHERE username='admin' -- ' AND password='...'</code> — ส่วนหลัง <code>--</code> กลายเป็นคอมเมนต์ จึง<b>เข้าระบบเป็น admin ได้โดยไม่ต้องรู้รหัสผ่าน</b></p>
+<p>แก้โดยใช้ Prepared Statement: <code>cur.execute("SELECT * FROM users WHERE username=%s", (u,))</code> แล้วตรวจรหัสผ่านด้วยการเทียบค่าแฮช (ไม่เก็บรหัสผ่านจริง)</p></answer>
+</ex>
+
+<review>
+<li class="part">ผู้ใช้และสิทธิ์</li>
+<li>สร้างบัญชี advisor ที่เชื่อมต่อได้จากเครื่องเดียวกันเท่านั้น ให้สิทธิ์อ่าน student และ enroll และแก้ไขได้เฉพาะคอลัมน์ grade <span class="hint">(GRANT UPDATE (grade))</span><div class="rv-ans"><sql title="เฉลย" reset>CREATE USER 'advisor'@'localhost' IDENTIFIED BY 'Adv#2026';
+
+GRANT SELECT ON std_66011200.student TO 'advisor'@'localhost';
+GRANT SELECT, UPDATE (grade) ON std_66011200.enroll TO 'advisor'@'localhost';
+
+SHOW GRANTS FOR 'advisor'@'localhost';</sql><p><code>@'localhost'</code> จำกัดให้เชื่อมต่อได้จากเครื่องเซิร์ฟเวอร์เท่านั้น และ <code>UPDATE (grade)</code> อนุญาตให้แก้เฉพาะคอลัมน์ grade — ถ้าสั่ง <code>UPDATE enroll SET stdid = …</code> จะถูกปฏิเสธ</p></div></li>
+<li>ยกเลิกสิทธิ์แก้ไขทั้งหมดของบัญชี advisor แล้วตรวจสอบผล <span class="hint">(REVOKE / SHOW GRANTS)</span><div class="rv-ans"><sql title="เฉลย" >REVOKE UPDATE (grade) ON std_66011200.enroll FROM 'advisor'@'localhost';
+SHOW GRANTS FOR 'advisor'@'localhost';   -- เหลือเพียง SELECT บน student และ enroll</sql></div></li>
+<li><code>'teacher'@'localhost'</code> กับ <code>'teacher'@'%'</code> ต่างกันอย่างไร ควรใช้แบบใดในระบบจริง <span class="hint">(host)</span><div class="rv-ans"><p>บัญชีใน MySQL ระบุด้วย <b>ชื่อผู้ใช้ + host</b> สองบัญชีนี้จึงเป็นคนละบัญชี — <code>'teacher'@'localhost'</code> เชื่อมต่อได้จากเครื่องเซิร์ฟเวอร์เท่านั้น ส่วน <code>'teacher'@'%'</code> เชื่อมต่อได้จาก<b>ทุกเครื่อง</b></p><p>ระบบจริงควรจำกัด host ให้แคบที่สุดเท่าที่ใช้งานได้ เช่น <code>'teacher'@'192.168.1.%'</code> (เฉพาะเครือข่ายภายใน) หรือ localhost สำหรับบัญชีที่ใช้โดยเว็บแอปบนเครื่องเดียวกัน หลีกเลี่ยง '%' โดยเฉพาะกับบัญชีที่มีสิทธิ์สูง</p></div></li>
+<li>จงอธิบายหลักการให้สิทธิ์เท่าที่จำเป็น และออกแบบสิทธิ์ของนิสิต อาจารย์ เจ้าหน้าที่ทะเบียน และผู้ดูแลระบบ <span class="hint">(Least Privilege)</span><div class="rv-ans"><p><b>Principle of Least Privilege</b> — ผู้ใช้แต่ละคนได้รับสิทธิ์เพียงเท่าที่จำเป็นต่อการทำงานเท่านั้น ถ้าบัญชีถูกขโมยหรือใช้ผิดพลาด ความเสียหายจะจำกัด</p><ul><li><b>นิสิต</b> — SELECT ผ่านวิวที่แสดงเฉพาะข้อมูลของตนเอง (ทรานสคริปต์) และรายวิชาที่เปิด</li><li><b>อาจารย์</b> — SELECT รายชื่อในกลุ่มที่สอน (ผ่านวิว) + UPDATE (grade) ของ enroll</li><li><b>เจ้าหน้าที่ทะเบียน</b> — SELECT, INSERT, UPDATE บน student, section, enroll (ไม่ให้ DELETE หรือ DROP)</li><li><b>ผู้ดูแลระบบ (DBA)</b> — ALL PRIVILEGES รวมการสร้างผู้ใช้และสำรองข้อมูล (บัญชีแยก ใช้เท่าที่จำเป็น)</li></ul></div></li>
+<li>เหตุใดจึงไม่ควรใช้ WITH GRANT OPTION กับผู้ใช้ทั่วไป <span class="hint">(สิทธิ์แพร่กระจาย)</span><div class="rv-ans"><p><code>WITH GRANT OPTION</code> ทำให้ผู้รับสิทธิ์<b>ส่งต่อสิทธิ์</b>นั้นให้ผู้อื่นได้ สิทธิ์จะแพร่กระจายออกไปโดย DBA ควบคุมและตรวจสอบไม่ได้ว่าใครมีสิทธิ์อะไร จึงควรให้เฉพาะผู้ดูแลระบบ</p></div></li>
+<li class="part">Role และวิว</li>
+<li>ออกแบบ Role สำหรับระบบห้องสมุดที่มีสมาชิก บรรณารักษ์ และผู้ดูแลระบบ พร้อมเขียนคำสั่ง <span class="hint">(CREATE ROLE / GRANT role TO user)</span><div class="rv-ans"><sql title="เฉลย" >CREATE ROLE 'role_member', 'role_librarian', 'role_admin';
+
+GRANT SELECT ON library.book     TO 'role_member';
+GRANT SELECT ON library.category TO 'role_member';
+
+GRANT SELECT, INSERT, UPDATE ON library.*      TO 'role_librarian';
+GRANT DELETE                 ON library.borrow TO 'role_librarian';
+
+GRANT ALL PRIVILEGES ON library.* TO 'role_admin';
+
+CREATE USER 'somchai'@'localhost' IDENTIFIED BY 'Lib#2026';
+GRANT 'role_librarian' TO 'somchai'@'localhost';
+SET DEFAULT ROLE 'role_librarian' TO 'somchai'@'localhost';</sql><p>ข้อดีของ Role: กำหนดสิทธิ์เป็นกลุ่มครั้งเดียว เมื่อมีบรรณารักษ์ใหม่ก็ GRANT role ให้ทันที และเปลี่ยนสิทธิ์ของทั้งกลุ่มได้ที่จุดเดียว</p></div></li>
+<li>สร้างวิวที่แสดงเฉพาะรหัส ชื่อ สาขาของนิสิต แล้วให้สิทธิ์ผู้ใช้ guest อ่านเฉพาะวิวนี้ อธิบายประโยชน์ <span class="hint">(GRANT SELECT ON view)</span><div class="rv-ans"><sql title="เฉลย" exec>CREATE OR REPLACE VIEW v_student_public AS
+SELECT stdid, name, major FROM student;</sql><sql title="เฉลย" >CREATE USER 'guest'@'localhost' IDENTIFIED BY 'Guest#2026';
+GRANT SELECT ON std_66011200.v_student_public TO 'guest'@'localhost';</sql><p>guest เห็นเพียงรหัส ชื่อ สาขา ไม่เห็น gpa และวันเกิด และไม่มีสิทธิ์บนตาราง student โดยตรง — เป็นการควบคุมสิทธิ์<b>ระดับคอลัมน์และแถว</b>ด้วยวิว (บทที่ 7) ถ้าภายหลังต้องซ่อนข้อมูลเพิ่ม แก้วิวที่เดียว</p></div></li>
+<li class="part">SQL Injection และแนวปฏิบัติ</li>
+<li>อธิบายการแทรกคำสั่ง SQL พร้อมยกตัวอย่างคำสั่งที่มีช่องโหว่ และเขียนคำสั่งที่แก้ให้ปลอดภัย <span class="hint">(Prepared Statement)</span><div class="rv-ans"><p><b>SQL Injection</b> เกิดเมื่อโปรแกรมนำข้อความที่ผู้ใช้ป้อน<b>ต่อสตริง</b>เข้าไปในคำสั่ง SQL ผู้โจมตีจึงป้อนข้อความที่เป็นส่วนของคำสั่ง SQL เพื่อเปลี่ยนความหมายของคำสั่งได้</p><sql title="เฉลย" ># มีช่องโหว่ (Python) — ผู้ใช้ป้อน  ' OR '1'='1
+sql = "SELECT * FROM student WHERE stdid = '" + user_input + "'"
+# ได้คำสั่ง: SELECT * FROM student WHERE stdid = '' OR '1'='1'  → คืนนิสิตทุกคน
+
+# ปลอดภัย — Prepared Statement / Parameterized Query
+cursor.execute("SELECT * FROM student WHERE stdid = %s", (user_input,))</sql><sql run title="Prepared Statement ใน MySQL — ค่าที่ป้อนถูกมองเป็นข้อมูลล้วน ไม่ใช่คำสั่ง">PREPARE stmt FROM 'SELECT stdid, name FROM student WHERE stdid = ?';
+SET @input = ''' OR ''1''=''1';
+EXECUTE stmt USING @input;</sql></div></li>
+<li>ผู้โจมตีป้อน username <code>admin' -- </code> ในหน้าเข้าสู่ระบบที่ต่อสตริง SQL จะเกิดอะไรขึ้น <span class="hint">(-- คือคอมเมนต์)</span><div class="rv-ans"><p>คำสั่งที่ได้คือ <code>SELECT * FROM users WHERE username = 'admin' -- ' AND password = '…'</code> — <code>--</code> (ตามด้วยช่องว่าง) ทำให้ส่วนที่เหลือกลายเป็นคอมเมนต์ <b>เงื่อนไขรหัสผ่านถูกตัดทิ้ง</b> ผู้โจมตีจึงเข้าสู่ระบบเป็น admin ได้โดยไม่ต้องรู้รหัสผ่าน แก้ด้วย Prepared Statement</p></div></li>
+<li>เหตุใดจึงห้ามเก็บรหัสผ่านเป็นข้อความธรรมดา และควรเก็บอย่างไร <span class="hint">(bcrypt / Argon2 + salt)</span><div class="rv-ans"><p>ถ้าฐานข้อมูลรั่วไหล ผู้โจมตีได้รหัสผ่านของทุกคนทันที และผู้ใช้มักใช้รหัสเดียวกันหลายระบบ ผู้ดูแลระบบเองก็ไม่ควรเห็นรหัสผ่าน</p><p>ควรเก็บเป็น <b>ค่าแฮชทางเดียวแบบช้าที่มี salt</b> เช่น bcrypt, scrypt หรือ Argon2 (salt สุ่มต่างกันทุกบัญชี ป้องกัน rainbow table) ตอนเข้าสู่ระบบให้แฮชรหัสที่ป้อนแล้วเทียบ — ไม่ใช้ MD5/SHA-1 ธรรมดาเพราะเร็วเกินไป ถูกเดาได้ง่าย</p></div></li>
+<li>เขียนคำสั่งสำรองฐานข้อมูลด้วย mysqldump และกู้คืน แล้วอธิบายว่าทำไมต้องทดสอบการกู้คืนเป็นระยะ <span class="hint">(mysqldump &gt; / mysql &lt;)</span><div class="rv-ans"><sql title="เฉลย" ># สำรอง (รันใน Command Prompt / Terminal ไม่ใช่ใน DBeaver)
+mysqldump -u root -p std_66011200 > backup_2026-10-02.sql
+
+# กู้คืน
+mysql -u root -p std_66011200 < backup_2026-10-02.sql</sql><p>การสำรองที่ไม่เคยทดสอบกู้คืนอาจใช้ไม่ได้จริงเมื่อถึงเวลา (ไฟล์เสีย สำรองไม่ครบทุกตาราง สิทธิ์/เวอร์ชันไม่ตรง หรือไม่รู้ว่ากู้คืนใช้เวลานานเท่าไร) จึงต้องลองกู้คืนบนเครื่องทดสอบเป็นระยะ และเก็บไฟล์สำรองไว้นอกเครื่องเซิร์ฟเวอร์</p></div></li>
+<li>ระบุมาตรการด้านความปลอดภัยที่ควรใช้กับระบบลงทะเบียนเรียนของมหาวิทยาลัยอย่างน้อย 5 ข้อ พร้อมเหตุผล <span class="hint">(หัวข้อ 10.6)</span><div class="rv-ans"><ul><li><b>Least Privilege + Role</b> — นิสิต อาจารย์ เจ้าหน้าที่ได้สิทธิ์ตามหน้าที่ ลดความเสียหายเมื่อบัญชีถูกขโมย</li><li><b>Prepared Statement ทุกจุด</b> — ป้องกัน SQL Injection จากหน้าเว็บ</li><li><b>แฮชรหัสผ่านด้วย bcrypt/Argon2</b> และบังคับรหัสผ่านที่แข็งแรง/ยืนยันตัวตนสองชั้น</li><li><b>เข้ารหัสการเชื่อมต่อ (TLS/HTTPS)</b> และจำกัด host ที่เชื่อมต่อฐานข้อมูลได้ — ป้องกันการดักข้อมูล</li><li><b>สำรองข้อมูลอัตโนมัติและทดสอบกู้คืน</b> — รับมือความเสียหาย/ransomware</li><li><b>บันทึกและตรวจสอบ (Audit Log)</b> เช่น ทริกเกอร์บันทึกการแก้เกรด — ตรวจย้อนหลังได้ว่าใครแก้อะไร</li><li><b>อัปเดตแพตช์</b> DBMS และระบบปฏิบัติการสม่ำเสมอ</li></ul></div></li>
+</review>
