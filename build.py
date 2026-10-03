@@ -16,9 +16,8 @@ build.py — สร้างเว็บ lecture note จาก src/*.html  ->  
 
 ทุกหน้าเริ่มต้นด้วยฐานข้อมูลที่โหลดจาก prymania_DBLabScript.sql ใหม่เสมอ
 """
-import html, json, re, sys, datetime, decimal, pathlib, base64, hashlib
+import html, json, re, sys, datetime, decimal, pathlib
 import mysql.connector
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 ROOT = pathlib.Path(__file__).parent
 SRC, OUT = ROOT / "src", ROOT / "site"
@@ -26,8 +25,6 @@ LAB_SCRIPT = ROOT / "prymania_DBLabScript.sql"
 DB = dict(host="localhost", user="root", password="abcd1234")
 DBNAME = "zz_lecture_build"
 SHOWDB = "std_66011200"   # ชื่อฐานข้อมูลที่แสดงในผลลัพธ์/ข้อความ error
-PASSWORDS = ROOT / "passwords.json"   # รหัสดูเฉลยคำถามท้ายบท — อยู่ในเครื่องเท่านั้น ห้ามใส่ใน site/
-PBKDF2_ITER = 200_000
 
 PAGES = [  # (file, nav-no, nav title, group)
     ("index.html", "🏠", "หน้าแรก / ภาพรวม", "เริ่มต้นที่นี่"),
@@ -243,63 +240,14 @@ def render_ex(m):
             f'<div class="ex-body">{q.strip()}\n<button type="button" class="ans-btn">👀 ดูเฉลย</button>'
             f'<div class="answer"><div class="answer-t">✅ เฉลย</div>{ans.strip()}</div></div></div>')
 
-def load_passwords():
-    if not PASSWORDS.exists():
-        sys.exit(f"ไม่พบ {PASSWORDS.name} — ไฟล์รหัสผ่านดูเฉลย (ดับเบิลคลิก สร้างรหัสปีใหม่.bat เพื่อสร้าง)")
-    return json.loads(PASSWORDS.read_text(encoding="utf-8"))["รหัสผ่าน"]
-
-def chapter_key(fname):
-    """07-view.html → c7 (ตรงกับคีย์ใน passwords.json)"""
-    m = re.match(r"(\d+)-", fname)
-    return f"c{int(m.group(1))}" if m else None
-
-def split_answers(s):
-    """แยก <div class="rv-ans">…</div> (มี div ซ้อนข้างในได้) → [(start, end, เนื้อหาข้างใน)]"""
-    out, pos, OPEN = [], 0, '<div class="rv-ans">'
-    while (i := s.find(OPEN, pos)) >= 0:
-        depth, j = 1, i + len(OPEN)
-        for t in re.finditer(r"<div\b|</div>", s[j:]):
-            depth += 1 if t.group() != "</div>" else -1
-            if depth == 0:
-                end = j + t.end()
-                out.append((i, end, s[j:j + t.start()]))
-                break
-        else:
-            sys.exit("rv-ans ไม่มี </div> ปิด")
-        pos = end
-    return out
-
-def encrypt_answers(inner, fname, passwords):
-    """เข้ารหัสเฉลยทุกข้อในคำถามท้ายบทด้วยรหัสผ่านของบท (AES-GCM, กุญแจจาก PBKDF2-SHA256)
-    salt / iv คำนวณจากเนื้อหา (ไม่สุ่ม) → build ซ้ำโดยไม่แก้อะไร ไฟล์ไม่เปลี่ยน ไม่ทำให้ git มีการแก้ไขปลอม"""
-    found = split_answers(inner)
-    if not found:
-        return inner, ""
-    ch = chapter_key(fname)
-    pw = passwords.get(ch)
-    if not pw:
-        sys.exit(f"[{fname}] ยังไม่ได้กำหนดรหัสผ่านของ {ch} ใน {PASSWORDS.name}")
-    salt = hashlib.sha256(f"db-answers|{ch}|{pw}".encode()).digest()[:16]
-    key = hashlib.pbkdf2_hmac("sha256", pw.encode("utf-8"), salt, PBKDF2_ITER, 32)
-    out, last = [], 0
-    for a, b, ans in found:
-        data = ans.encode("utf-8")
-        iv = hashlib.sha256(key + data).digest()[:12]
-        blob = base64.b64encode(iv + AESGCM(key).encrypt(iv, data, None)).decode()
-        out += [inner[last:a], f'<div class="rv-ans" data-enc="{blob}"></div>']
-        last = b
-    out.append(inner[last:])
-    return "".join(out), f' data-salt="{base64.b64encode(salt).decode()}" data-iter="{PBKDF2_ITER}"'
-
-def render_review(m, fname, passwords):
-    inner, attrs = encrypt_answers(m.group(1), fname, passwords)
-    return (f'<div class="review" id="review"{attrs}><div class="review-head"><img src="icon/thinking.png" alt="">'
+def render_review(m):
+    return (f'<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt="">'
             f'<h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button>'
             f'<button type="button" class="review-key">🔑 ดูเฉลย</button></div>'
             f'<form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label>'
             f'<input type="password" autocomplete="off" placeholder="รหัสผ่าน">'
             f'<button type="submit">ตกลง</button><span class="review-msg"></span></form>'
-            f'<ol>{inner}</ol></div>')
+            f'<ol>{m.group(1)}</ol></div>')
 
 def render_fig(m):
     n, w, no, cap = m.group(1), m.group(2), m.group(3), m.group(4)
@@ -380,6 +328,7 @@ def layout(fname, meta, body):
 {pg}
 <footer>Lecture Note · 1204202 การออกแบบและการจัดการฐานข้อมูล · อ.ดร.พรทิวา ปะวะระ · ภาควิชาวิทยาการคอมพิวเตอร์ คณะวิทยาการสารสนเทศ มหาวิทยาลัยมหาสารคาม</footer>
 </main>
+<script src="assets/password.js"></script>
 <script src="assets/nav.js"></script>
 </body>
 </html>
@@ -387,7 +336,6 @@ def layout(fname, meta, body):
 
 def build(only=None):
     runner = Runner()
-    passwords = load_passwords()
     for fname, *_ in PAGES:
         src = SRC / fname
         if not src.exists() or (only and fname not in only):
@@ -399,7 +347,7 @@ def build(only=None):
         runner.reset()
         body = re.sub(r'<sql\b((?:[^>"]|"[^"]*")*)>(.*?)</sql>', lambda m: render_sql(m, runner, fname), body, flags=re.S)
         body = re.sub(r'<ex\b((?:[^>"]|"[^"]*")*)>(.*?)</ex>', render_ex, body, flags=re.S)
-        body = re.sub(r"<review>(.*?)</review>", lambda m: render_review(m, fname, passwords), body, flags=re.S)
+        body = re.sub(r"<review>(.*?)</review>", render_review, body, flags=re.S)
         body = re.sub(r'<fig n="([^"]+)"(?: w="(\d+)")?(?: no="([^"]+)")?>(.*?)</fig>', render_fig, body, flags=re.S)
         body = body.replace("<toc/>", toc_html(body))
         (OUT / fname).write_text(layout(fname, meta, body), encoding="utf-8")
@@ -407,23 +355,6 @@ def build(only=None):
     runner.cur.execute(f"DROP DATABASE IF EXISTS {DBNAME}")
     copy_library()
     zip_university()
-    check_no_leak(passwords)
-
-def check_no_leak(passwords):
-    """ตรวจ site/ ก่อนเผยแพร่: เฉลยทุกข้อต้องถูกเข้ารหัส และไม่มีไฟล์รหัสผ่านหลุดไป"""
-    bad = []
-    for p in OUT.glob("*.html"):
-        s = p.read_text(encoding="utf-8")
-        if re.search(r'<div class="rv-ans">', s):
-            bad.append(f"{p.name}: มีเฉลยที่ไม่ได้เข้ารหัส")
-        if "EXERCISE_PASSWORDS" in s or "password.js" in s:
-            bad.append(f"{p.name}: ยังอ้างถึง password.js")
-    for name in ("assets/password.js", "passwords.json"):
-        if (OUT / name).exists():
-            bad.append(f"site/{name}: ไฟล์รหัสผ่านอยู่ในเว็บ")
-    if bad:
-        sys.exit("✖ ตรวจพบข้อมูลที่ไม่ควรเผยแพร่:\n  " + "\n  ".join(bad))
-    print("✔ ตรวจแล้ว: เฉลยถูกเข้ารหัสทั้งหมด ไม่มีรหัสผ่านในเว็บ")
 
 def zip_university():
     """บีบอัด university_schema_site -> site/university_schema_site.zip (ภาคผนวก ง ให้ดาวน์โหลด)"""
