@@ -212,12 +212,12 @@ SELECT secid, &#x27;60015&#x27; FROM section WHERE term = &#x27;2026-2&#x27; AND
         SIGNAL SQLSTATE &#x27;45000&#x27;
             SET MESSAGE_TEXT = &#x27;ลงทะเบียนเกิน 22 หน่วยกิตต่อภาคเรียน&#x27;;
     END IF;
-END</td><td>BEFORE</td><td>2026-10-03 18:53:20.900000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_enroll_after_update</td><td>UPDATE</td><td>enroll</td><td>BEGIN
+END</td><td>BEFORE</td><td>2026-10-04 14:59:31.230000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_enroll_after_update</td><td>UPDATE</td><td>enroll</td><td>BEGIN
     IF NOT (OLD.grade &lt;=&gt; NEW.grade) THEN
         INSERT INTO grade_log (secid, stdid, old_grade, new_grade, changed_by, changed_at)
         VALUES (OLD.secid, OLD.stdid, OLD.grade, NEW.grade, CURRENT_USER(), NOW());
     END IF;
-END</td><td>AFTER</td><td>2026-10-03 18:53:20.900000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_student_before_insert</td><td>INSERT</td><td>student</td><td>BEGIN
+END</td><td>AFTER</td><td>2026-10-04 14:59:31.220000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_student_before_insert</td><td>INSERT</td><td>student</td><td>BEGIN
     IF NEW.name IS NULL THEN
         SIGNAL SQLSTATE &#x27;45000&#x27;
             SET MESSAGE_TEXT = &#x27;ต้องระบุชื่อนิสิต&#x27;;
@@ -226,10 +226,10 @@ END</td><td>AFTER</td><td>2026-10-03 18:53:20.900000</td><td>ERROR_FOR_DIVISION_
     IF NEW.major IS NULL THEN
         SET NEW.major = &#x27;Undeclared&#x27;;
     END IF;
-END</td><td>BEFORE</td><td>2026-10-03 18:53:20.890000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_subject_before_insert</td><td>INSERT</td><td>subject</td><td>BEGIN
+END</td><td>BEFORE</td><td>2026-10-04 14:59:31.210000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_subject_before_insert</td><td>INSERT</td><td>subject</td><td>BEGIN
     SET NEW.subid = UPPER(TRIM(NEW.subid));
     SET NEW.name  = TRIM(NEW.name);
-END</td><td>BEFORE</td><td>2026-10-03 18:53:20.890000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr></table></div>
+END</td><td>BEFORE</td><td>2026-10-04 14:59:31.210000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr></table></div>
 <h2 id="s6"><span class="sec">12.6</span> รักษาข้อมูลสรุปให้สอดคล้องอัตโนมัติ</h2>
 <p>บางครั้งเราเลือก<b>ดีนอร์มัลไลซ์</b> (บทที่ 3) เก็บค่าสรุปไว้ในตาราง เพื่อให้อ่านเร็ว เช่น จำนวนนิสิตในแต่ละกลุ่มเรียน — ความเสี่ยงคือค่าไม่ตรงกับข้อมูลจริง ทริกเกอร์ช่วยปรับค่าให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง</p>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 1 — เพิ่มคอลัมน์ n_student ใน section และกำหนดค่าเริ่มต้นจากข้อมูลจริง</span></div><pre class="sql">ALTER TABLE section ADD COLUMN n_student INT NOT NULL DEFAULT 0;

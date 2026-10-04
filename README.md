@@ -8,7 +8,7 @@
 - `prymania_DBLabScript.sql` — schema + data กรณีศึกษา (ทุกหน้าเริ่มจากข้อมูลชุดนี้ใหม่)
 - `docs/` — ผลลัพธ์ (GitHub Pages เปิดจากโฟลเดอร์นี้) (assets/style.css, assets/nav.js, image/, icon/)
 
-## Build
+## Build (note to prymania)
 ```
 python build.py                 # ทุกหน้า
 python build.py 05-select.html  # เฉพาะหน้า
@@ -48,3 +48,4 @@ python apply_reviews.py && python build.py
 ภาคผนวก ง ไม่มีหน้าของตัวเอง — เมนูและการ์ดหน้าแรกลิงก์ไป `library_tutorial_site/index.html` (เปิดแท็บใหม่)
 
 หมายเหตุ: `src/07-view-transaction.html` และ `src/08-security-procedure-trigger.html` เป็นฉบับเก่า (ไม่อยู่ใน PAGES แล้ว)
+ 

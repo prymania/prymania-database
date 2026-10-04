@@ -48,7 +48,8 @@ A: ข้อดีของ Role: กำหนดสิทธิ์เป็น�
 สร้างวิวที่แสดงเฉพาะรหัส ชื่อ สาขาของนิสิต แล้วให้สิทธิ์ผู้ใช้ guest อ่านเฉพาะวิวนี้ อธิบายประโยชน์ || GRANT SELECT ON view
 ```exec
 CREATE OR REPLACE VIEW v_student_public AS
-SELECT stdid, name, major FROM student;
+    SELECT    stdid, name, major
+    FROM      student;
 ```
 ```
 CREATE USER 'guest'@'localhost' IDENTIFIED BY 'Guest#2026';

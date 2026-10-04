@@ -142,8 +142,9 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON std_66011200.enroll TO &#x27;role_staff&
 GRANT &#x27;role_teacher&#x27; TO &#x27;teacher&#x27;@&#x27;192.168.1.%&#x27;;
 SET DEFAULT ROLE ALL TO &#x27;teacher&#x27;@&#x27;192.168.1.%&#x27;;</pre></div>
 <p>วิว + สิทธิ์ = ผู้ใช้เห็นเฉพาะส่วนที่กำหนด โดยไม่ต้องเข้าถึงตารางจริง</p>
-<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ให้สิทธิ์เฉพาะวิว</span></div><pre class="sql">CREATE VIEW v_student_public AS
-SELECT stdid, name, major FROM student;
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ให้สิทธิ์เฉพาะวิว</span></div><pre class="sql">CREATE OR REPLACE VIEW v_student_public AS
+    SELECT    stdid, name, major
+    FROM      student;
 
 GRANT SELECT ON std_66011200.v_student_public TO &#x27;guest&#x27;@&#x27;localhost&#x27;;</pre></div>
 
@@ -223,7 +224,8 @@ CREATE USER &#x27;somchai&#x27;@&#x27;localhost&#x27; IDENTIFIED BY &#x27;Lib#20
 GRANT &#x27;role_librarian&#x27; TO &#x27;somchai&#x27;@&#x27;localhost&#x27;;
 SET DEFAULT ROLE &#x27;role_librarian&#x27; TO &#x27;somchai&#x27;@&#x27;localhost&#x27;;</pre></div><p>ข้อดีของ Role: กำหนดสิทธิ์เป็นกลุ่มครั้งเดียว เมื่อมีบรรณารักษ์ใหม่ก็ GRANT role ให้ทันที และเปลี่ยนสิทธิ์ของทั้งกลุ่มได้ที่จุดเดียว</p></div></li>
 <li>สร้างวิวที่แสดงเฉพาะรหัส ชื่อ สาขาของนิสิต แล้วให้สิทธิ์ผู้ใช้ guest อ่านเฉพาะวิวนี้ อธิบายประโยชน์ <span class="hint">(GRANT SELECT ON view)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_student_public AS
-SELECT stdid, name, major FROM student;</pre></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE USER &#x27;guest&#x27;@&#x27;localhost&#x27; IDENTIFIED BY &#x27;Guest#2026&#x27;;
+    SELECT    stdid, name, major
+    FROM      student;</pre></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE USER &#x27;guest&#x27;@&#x27;localhost&#x27; IDENTIFIED BY &#x27;Guest#2026&#x27;;
 GRANT SELECT ON std_66011200.v_student_public TO &#x27;guest&#x27;@&#x27;localhost&#x27;;</pre></div><p>guest เห็นเพียงรหัส ชื่อ สาขา ไม่เห็น gpa และวันเกิด และไม่มีสิทธิ์บนตาราง student โดยตรง — เป็นการควบคุมสิทธิ์<b>ระดับคอลัมน์และแถว</b>ด้วยวิว (บทที่ 7) ถ้าภายหลังต้องซ่อนข้อมูลเพิ่ม แก้วิวที่เดียว</p></div></li>
 <li class="part">SQL Injection และแนวปฏิบัติ</li>
 <li>อธิบายการแทรกคำสั่ง SQL พร้อมยกตัวอย่างคำสั่งที่มีช่องโหว่ และเขียนคำสั่งที่แก้ให้ปลอดภัย <span class="hint">(Prepared Statement)</span><div class="rv-ans"><p><b>SQL Injection</b> เกิดเมื่อโปรแกรมนำข้อความที่ผู้ใช้ป้อน<b>ต่อสตริง</b>เข้าไปในคำสั่ง SQL ผู้โจมตีจึงป้อนข้อความที่เป็นส่วนของคำสั่ง SQL เพื่อเปลี่ยนความหมายของคำสั่งได้</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql"># มีช่องโหว่ (Python) — ผู้ใช้ป้อน  &#x27; OR &#x27;1&#x27;=&#x27;1

@@ -27,34 +27,34 @@ A: <code>CREATE VIEW … AS SELECT</code> เก็บเพียง<b>คำ�
 ## สร้างและจัดการวิว
 สร้างวิว v_math_student แสดงรหัส ชื่อ gpa ของนิสิตสาขา Math แล้วใช้วิวแสดงคนที่ gpa ต่ำกว่า 3.00 || WHERE ในวิว + WHERE ตอนเรียกใช้
 ```run
-CREATE VIEW v_math_student AS
-SELECT stdid, name, gpa
-FROM   student
-WHERE  major = 'Math';
+CREATE OR REPLACE VIEW v_math_student AS
+    SELECT    stdid, name, gpa
+    FROM      student
+    WHERE     major = 'Math';
 
 SELECT * FROM v_math_student WHERE gpa < 3.00;
 ```
 สร้างวิว v_lecturer_income(lecturer_id, lecturer_name, monthly, yearly, tax) โดย tax = 7% ของ yearly แล้วแสดงอาจารย์ที่ต้องเสียภาษีเกิน 40,000 || ตั้งชื่อคอลัมน์หลังชื่อวิว
 ```run
-CREATE VIEW v_lecturer_income (lecturer_id, lecturer_name, monthly, yearly, tax) AS
-SELECT lecid, name, salary, salary * 12, salary * 12 * 0.07
-FROM   lecturer;
+CREATE OR REPLACE VIEW v_lecturer_income (lecturer_id, lecturer_name, monthly, yearly, tax) AS
+    SELECT    lecid, name, salary, salary * 12, salary * 12 * 0.07
+    FROM      lecturer;
 
 SELECT * FROM v_lecturer_income WHERE tax > 40000 ORDER BY tax DESC;
 ```
 สร้างวิว v_student_age แสดงรหัส ชื่อ สาขา (NULL แสดง Undeclared) อายุ และช่วงอายุ (“ต่ำกว่า 15” / “15 ขึ้นไป”) แล้วนับจำนวนนิสิตในแต่ละช่วงอายุ || TIMESTAMPDIFF + CASE
 A: นิสิตที่ไม่มีวันเกิดจะมี age เป็น NULL จึงจัดเป็นกลุ่ม “ไม่ทราบ”
 ```run
-CREATE VIEW v_student_age AS
-SELECT stdid, name,
-       IFNULL(major, 'Undeclared')               AS major,
-       TIMESTAMPDIFF(YEAR, birthday, CURDATE())  AS age,
-       CASE
-           WHEN birthday IS NULL THEN 'ไม่ทราบ'
-           WHEN TIMESTAMPDIFF(YEAR, birthday, CURDATE()) < 15 THEN 'ต่ำกว่า 15'
-           ELSE '15 ขึ้นไป'
-       END                                       AS age_group
-FROM   student;
+CREATE OR REPLACE VIEW v_student_age AS
+    SELECT    stdid, name,
+              IFNULL(major, 'Undeclared')               AS major,
+              TIMESTAMPDIFF(YEAR, birthday, CURDATE())  AS age,
+              CASE
+                  WHEN birthday IS NULL THEN 'ไม่ทราบ'
+                  WHEN TIMESTAMPDIFF(YEAR, birthday, CURDATE()) < 15 THEN 'ต่ำกว่า 15'
+                  ELSE '15 ขึ้นไป'
+              END                                       AS age_group
+    FROM      student;
 
 SELECT age_group, COUNT(*) AS n_student
 FROM   v_student_age
@@ -63,9 +63,9 @@ GROUP  BY age_group;
 แก้วิว v_math_student ให้มีคอลัมน์ birthday เพิ่ม แล้วตรวจโครงสร้างวิวใหม่ || CREATE OR REPLACE VIEW / DESCRIBE
 ```run
 CREATE OR REPLACE VIEW v_math_student AS
-SELECT stdid, name, gpa, birthday
-FROM   student
-WHERE  major = 'Math';
+    SELECT    stdid, name, gpa, birthday
+    FROM      student
+    WHERE     major = 'Math';
 
 DESCRIBE v_math_student;
 ```
@@ -81,15 +81,15 @@ DROP VIEW v_math_student;
 ```
 สร้างวิว v_transcript แสดง stdid ชื่อนิสิต รหัสวิชา ชื่อวิชา หน่วยกิต เทอม ชื่อผู้สอน เกรด แล้วใช้แสดงทรานสคริปต์ของนิสิต 60007 || JOIN 5 ตาราง
 ```run
-CREATE VIEW v_transcript AS
-SELECT s.stdid, s.name AS student_name,
-       sub.subid, sub.name AS subject_name, sub.credit,
-       sec.term, l.name AS lecturer_name, e.grade
-FROM   enroll e
-       INNER JOIN student  s   ON e.stdid   = s.stdid
-       INNER JOIN section  sec ON e.secid   = sec.secid
-       INNER JOIN subject  sub ON sec.subid = sub.subid
-       INNER JOIN lecturer l   ON sec.lecid = l.lecid;
+CREATE OR REPLACE VIEW v_transcript AS
+    SELECT    s.stdid, s.name AS student_name,
+              sub.subid, sub.name AS subject_name, sub.credit,
+              sec.term, l.name AS lecturer_name, e.grade
+    FROM      enroll e
+              INNER JOIN student  s   ON e.stdid   = s.stdid
+              INNER JOIN section  sec ON e.secid   = sec.secid
+              INNER JOIN subject  sub ON sec.subid = sub.subid
+              INNER JOIN lecturer l   ON sec.lecid = l.lecid;
 
 SELECT term, subid, subject_name, credit, lecturer_name, grade
 FROM   v_transcript
@@ -98,45 +98,47 @@ ORDER  BY term;
 ```
 สร้างวิว v_subject_full แสดงรหัสวิชา ชื่อวิชา หน่วยกิต ชื่อวิชาบังคับก่อน (ไม่มีให้แสดง “-”) แล้วแสดงวิชาทุกวิชาที่ต้องผ่าน Programming ก่อน || Self Join + LEFT JOIN
 ```run
-CREATE VIEW v_subject_full AS
-SELECT sub.subid, sub.name, sub.credit,
-       IFNULL(pre.name, '-') AS pre_name
-FROM   subject sub
-       LEFT JOIN subject pre ON sub.pre = pre.subid;
+CREATE OR REPLACE VIEW v_subject_full AS
+    SELECT    sub.subid, sub.name, sub.credit,
+              IFNULL(pre.name, '-') AS pre_name
+    FROM      subject sub
+              LEFT JOIN subject pre ON sub.pre = pre.subid;
 
 SELECT * FROM v_subject_full WHERE pre_name = 'Programming';
 ```
 สร้างวิว v_section_full แสดง secid เทอม ชื่อวิชา ชื่ออาจารย์ จำนวนนิสิต จำนวนที่ได้ A และ F (กลุ่มที่ไม่มีคนลงให้แสดง 0) || LEFT JOIN + SUM(CASE …)
 ```run max="8"
-CREATE VIEW v_section_full AS
-SELECT sec.secid, sec.term, sub.name AS subject_name, l.name AS lecturer_name,
-       COUNT(e.stdid)                                  AS n_student,
-       SUM(CASE WHEN e.grade = 'A' THEN 1 ELSE 0 END)  AS n_A,
-       SUM(CASE WHEN e.grade = 'F' THEN 1 ELSE 0 END)  AS n_F
-FROM   section sec
-       INNER JOIN subject  sub ON sec.subid = sub.subid
-       INNER JOIN lecturer l   ON sec.lecid = l.lecid
-       LEFT  JOIN enroll   e   ON sec.secid = e.secid
-GROUP  BY sec.secid, sec.term, sub.name, l.name;
+CREATE OR REPLACE VIEW v_section_full AS
+    SELECT    sec.secid, sec.term, sub.name AS subject_name, l.name AS lecturer_name,
+              COUNT(e.stdid)                                  AS n_student,
+              SUM(CASE WHEN e.grade = 'A' THEN 1 ELSE 0 END)  AS n_A,
+              SUM(CASE WHEN e.grade = 'F' THEN 1 ELSE 0 END)  AS n_F
+    FROM      section sec
+              INNER JOIN subject  sub ON sec.subid = sub.subid
+              INNER JOIN lecturer l   ON sec.lecid = l.lecid
+              LEFT  JOIN enroll   e   ON sec.secid = e.secid
+    GROUP BY  sec.secid, sec.term, sub.name, l.name;
 
 SELECT * FROM v_section_full ORDER BY n_student, secid;
 ```
 สร้างวิว v_lecturer_term แสดงรหัสอาจารย์ ชื่อ เทอม และจำนวนกลุ่มที่สอนในเทอมนั้น แล้วแสดงอาจารย์ที่สอนมากกว่า 1 กลุ่มในเทอมเดียวกัน || GROUP BY lecid, name, term
 ```run max="10"
-CREATE VIEW v_lecturer_term AS
-SELECT l.lecid, l.name, sec.term, COUNT(*) AS n_section
-FROM   lecturer l
-       INNER JOIN section sec ON l.lecid = sec.lecid
-GROUP  BY l.lecid, l.name, sec.term;
+CREATE OR REPLACE VIEW v_lecturer_term AS
+    SELECT    l.lecid, l.name, sec.term, COUNT(*) AS n_section
+    FROM      lecturer l
+              INNER JOIN section sec ON l.lecid = sec.lecid
+    GROUP BY  l.lecid, l.name, sec.term;
 
 SELECT * FROM v_lecturer_term WHERE n_section > 1 ORDER BY lecid, term;
 ```
 สร้างวิว v_people รวมรหัส ชื่อ สาขา ของนิสิตและอาจารย์ พร้อมคอลัมน์บอกประเภท แล้วนับจำนวนคนในแต่ละสาขา (รวมทั้งนิสิตและอาจารย์) || UNION ALL
 ```run
-CREATE VIEW v_people AS
-SELECT stdid AS id, name, major, 'student'  AS type FROM student
-UNION ALL
-SELECT lecid,       name, major, 'lecturer'         FROM lecturer;
+CREATE OR REPLACE VIEW v_people AS
+    SELECT    stdid AS id, name, major, 'student' AS type
+    FROM      student
+    UNION ALL
+    SELECT    lecid, name, major, 'lecturer'
+    FROM      lecturer;
 
 SELECT major,
        SUM(type = 'student')  AS n_student,
@@ -150,7 +152,8 @@ ORDER  BY n_total DESC;
 A: วิวนี้สร้างไว้แล้วในหัวข้อ 7.8 (ใช้ CREATE OR REPLACE ได้) จากนั้นให้สิทธิ์ผู้ใช้อ่าน<b>เฉพาะวิว</b> โดยไม่ให้สิทธิ์ตาราง student — ผู้ใช้จะเห็นเพียง 3 คอลัมน์ ไม่เห็น gpa และวันเกิด
 ```exec
 CREATE OR REPLACE VIEW v_student_public AS
-SELECT stdid, name, major FROM student;
+    SELECT    stdid, name, major
+    FROM      student;
 ```
 ```
 GRANT SELECT ON std_66011200.v_student_public TO 'guest'@'localhost';
@@ -160,10 +163,10 @@ GRANT SELECT ON std_66011200.v_student_public TO 'guest'@'localhost';
 แสดงสาขาที่มีอาจารย์มากที่สุด (ถ้าเท่ากันแสดงทุกสาขา) และอธิบายว่าทำไม `MAX(COUNT(*))` ใช้ไม่ได้ || วิวนับอาจารย์ต่อสาขา → MAX
 A: SQL ไม่อนุญาตให้ซ้อนฟังก์ชันรวมในระดับเดียวกัน (Error 1111) ต้องนับก่อน 1 ชั้นแล้วจึงหาค่าสูงสุดจากผลนับ
 ```run
-CREATE VIEW v_major_lecturer AS
-SELECT major, COUNT(*) AS n_lecturer
-FROM   lecturer
-GROUP  BY major;
+CREATE OR REPLACE VIEW v_major_lecturer AS
+    SELECT    major, COUNT(*) AS n_lecturer
+    FROM      lecturer
+    GROUP BY  major;
 
 SELECT major, n_lecturer
 FROM   v_major_lecturer
@@ -173,10 +176,10 @@ WHERE  n_lecturer =
 ```
 แสดงภาคเรียนที่เปิดกลุ่มเรียนมากที่สุด และภาคเรียนที่เปิดน้อยที่สุด ในผลลัพธ์เดียว || วิวนับ section ต่อ term + UNION
 ```run
-CREATE VIEW v_term_section AS
-SELECT term, COUNT(*) AS n_section
-FROM   section
-GROUP  BY term;
+CREATE OR REPLACE VIEW v_term_section AS
+    SELECT    term, COUNT(*) AS n_section
+    FROM      section
+    GROUP BY  term;
 
 SELECT 'มากที่สุด' AS type, term, n_section
 FROM   v_term_section
@@ -202,11 +205,11 @@ ORDER  BY n_enroll DESC;
 ```
 แสดงนิสิตที่ลงทะเบียนจำนวนวิชามากที่สุดในแต่ละสาขา || วิวนับวิชาต่อคน + Correlated Subquery
 ```run
-CREATE VIEW v_student_nsubject AS
-SELECT s.stdid, s.name, s.major, COUNT(e.secid) AS n_subject
-FROM   student s
-       LEFT JOIN enroll e ON s.stdid = e.stdid
-GROUP  BY s.stdid, s.name, s.major;
+CREATE OR REPLACE VIEW v_student_nsubject AS
+    SELECT    s.stdid, s.name, s.major, COUNT(e.secid) AS n_subject
+    FROM      student s
+              LEFT JOIN enroll e ON s.stdid = e.stdid
+    GROUP BY  s.stdid, s.name, s.major;
 
 SELECT a.major, a.stdid, a.name, a.n_subject
 FROM   v_student_nsubject a
@@ -229,15 +232,15 @@ ORDER  BY g.student_major, g.gpa_calc DESC;
 แสดงอาจารย์ที่อัตราการได้ A ของนิสิตในทุกกลุ่มที่ตนสอน (รวมกัน) สูงกว่าอัตราเฉลี่ยของทั้งมหาวิทยาลัย || วิวสรุปรายอาจารย์ (ใช้ lecid)
 A: จัดกลุ่มด้วย lecid (ไม่ใช่ชื่อ เพราะมี Yoda 2 คน) และนับเฉพาะการลงทะเบียนที่มีเกรดแล้ว
 ```run
-CREATE VIEW v_lecturer_rate AS
-SELECT l.lecid, l.name,
-       COUNT(e.grade)                               AS n_graded,
-       ROUND(SUM(e.grade = 'A') * 100 / COUNT(e.grade), 1) AS pct_A
-FROM   lecturer l
-       INNER JOIN section sec ON l.lecid  = sec.lecid
-       INNER JOIN enroll  e   ON sec.secid = e.secid
-WHERE  e.grade IS NOT NULL
-GROUP  BY l.lecid, l.name;
+CREATE OR REPLACE VIEW v_lecturer_rate AS
+    SELECT    l.lecid, l.name,
+              COUNT(e.grade)                               AS n_graded,
+              ROUND(SUM(e.grade = 'A') * 100 / COUNT(e.grade), 1) AS pct_A
+    FROM      lecturer l
+              INNER JOIN section sec ON l.lecid  = sec.lecid
+              INNER JOIN enroll  e   ON sec.secid = e.secid
+    WHERE     e.grade IS NOT NULL
+    GROUP BY  l.lecid, l.name;
 
 SELECT *
 FROM   v_lecturer_rate
@@ -258,11 +261,11 @@ ORDER  BY t.student_id, t.term;
 ```
 แสดงชื่อวิชาที่เปิดสอนทั้งในภาคเรียน 2024-1 และ 2024-2 || วิวนับจำนวนภาคต่อวิชา = 2
 ```run
-CREATE VIEW v_subject_2024 AS
-SELECT subid, COUNT(DISTINCT term) AS n_term
-FROM   section
-WHERE  term IN ('2024-1', '2024-2')
-GROUP  BY subid;
+CREATE OR REPLACE VIEW v_subject_2024 AS
+    SELECT    subid, COUNT(DISTINCT term) AS n_term
+    FROM      section
+    WHERE     term IN ('2024-1', '2024-2')
+    GROUP BY  subid;
 
 SELECT sub.subid, sub.name
 FROM   v_subject_2024 v
@@ -271,13 +274,13 @@ WHERE  v.n_term = 2;
 ```
 แสดงวิชาที่ทุกกลุ่มเรียนไม่มีนิสิตได้ F เลย และมีผู้ได้เกรดแล้วอย่างน้อย 3 คน || วิวสรุปรายวิชาจาก v_section_summary
 ```run
-CREATE VIEW v_subject_result AS
-SELECT subject_name,
-       COUNT(*)                     AS n_section,
-       SUM(n_student - n_waiting)   AS n_graded,
-       SUM(n_F)                     AS n_F
-FROM   v_section_summary
-GROUP  BY subject_name;
+CREATE OR REPLACE VIEW v_subject_result AS
+    SELECT    subject_name,
+              COUNT(*)                     AS n_section,
+              SUM(n_student - n_waiting)   AS n_graded,
+              SUM(n_F)                     AS n_F
+    FROM      v_section_summary
+    GROUP BY  subject_name;
 
 SELECT *
 FROM   v_subject_result
@@ -286,16 +289,17 @@ WHERE  n_F = 0 AND n_graded >= 3;
 แสดงการลงทะเบียนที่นิสิตยังไม่เคยผ่านวิชาบังคับก่อน แล้วสรุปว่านิสิตแต่ละคนมีกี่รายการ เรียงจากมากไปน้อย || v_passed + v_subject_pre + GROUP BY
 A: เป็นขั้นที่ 3 ของโจทย์ที่ 7 ในหัวข้อ 7.7 — เก็บรายการที่ผิดกฎเป็นวิวก่อน แล้วสรุป
 ```run max="8"
-CREATE VIEW v_violation AS
-SELECT e.student_id, e.student_name, e.term, e.subject_name, p.pre_name
-FROM   v_enroll_detail e
-       INNER JOIN v_subject_pre p ON e.subject_id = p.subid
-WHERE  p.pre_id IS NOT NULL
-  AND  NOT EXISTS
-       (SELECT *
-        FROM   v_passed x
-        WHERE  x.student_id = e.student_id
-          AND  x.subject_id = p.pre_id);
+CREATE OR REPLACE VIEW v_violation AS
+    SELECT    e.student_id, e.student_name, e.term, e.subject_name, p.pre_name
+    FROM      v_enroll_detail e
+              INNER JOIN v_subject_pre p ON e.subject_id = p.subid
+    WHERE     p.pre_id IS NOT NULL
+    AND       NOT EXISTS (
+                  SELECT    *
+                  FROM      v_passed x
+                  WHERE     x.student_id = e.student_id
+                  AND       x.subject_id = p.pre_id
+              );
 
 SELECT student_id, student_name, COUNT(*) AS n_violation
 FROM   v_violation
@@ -304,10 +308,10 @@ ORDER  BY n_violation DESC, student_id;
 ```
 แสดงอาจารย์ที่เงินเดือนสูงสุดในแต่ละสาขา และส่วนต่างจากเงินเดือนเฉลี่ยของสาขานั้น || วิวสรุปเงินเดือนรายสาขา แล้ว JOIN กลับ
 ```run
-CREATE VIEW v_major_salary AS
-SELECT major, MAX(salary) AS max_salary, ROUND(AVG(salary), 2) AS avg_salary
-FROM   lecturer
-GROUP  BY major;
+CREATE OR REPLACE VIEW v_major_salary AS
+    SELECT    major, MAX(salary) AS max_salary, ROUND(AVG(salary), 2) AS avg_salary
+    FROM      lecturer
+    GROUP BY  major;
 
 SELECT l.major, l.lecid, l.name, l.salary, m.avg_salary,
        l.salary - m.avg_salary AS diff_from_avg
@@ -369,10 +373,10 @@ UPDATE v_cs_student_safe SET major = 'Math' WHERE stdid = '60003';
 ```
 สร้างวิวอาจารย์ที่เงินเดือน ≥ 40,000 พร้อม WITH CHECK OPTION แล้วทดลองลดเงินเดือนอาจารย์ผ่านวิวให้ต่ำกว่า 40,000 || CHECK OPTION ใช้กับเงื่อนไขทุกแบบ
 ```exec
-CREATE VIEW v_senior_lecturer AS
-SELECT lecid, name, salary, major
-FROM   lecturer
-WHERE  salary >= 40000
+CREATE OR REPLACE VIEW v_senior_lecturer AS
+    SELECT    lecid, name, salary, major
+    FROM      lecturer
+    WHERE     salary >= 40000
 WITH CHECK OPTION;
 ```
 ```error

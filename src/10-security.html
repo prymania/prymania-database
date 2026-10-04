@@ -93,8 +93,9 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON std_66011200.enroll TO 'role_staff';
 GRANT 'role_teacher' TO 'teacher'@'192.168.1.%';
 SET DEFAULT ROLE ALL TO 'teacher'@'192.168.1.%';</sql>
 <p>วิว + สิทธิ์ = ผู้ใช้เห็นเฉพาะส่วนที่กำหนด โดยไม่ต้องเข้าถึงตารางจริง</p>
-<sql title="ให้สิทธิ์เฉพาะวิว">CREATE VIEW v_student_public AS
-SELECT stdid, name, major FROM student;
+<sql title="ให้สิทธิ์เฉพาะวิว">CREATE OR REPLACE VIEW v_student_public AS
+    SELECT    stdid, name, major
+    FROM      student;
 
 GRANT SELECT ON std_66011200.v_student_public TO 'guest'@'localhost';</sql>
 
@@ -175,7 +176,8 @@ CREATE USER 'somchai'@'localhost' IDENTIFIED BY 'Lib#2026';
 GRANT 'role_librarian' TO 'somchai'@'localhost';
 SET DEFAULT ROLE 'role_librarian' TO 'somchai'@'localhost';</sql><p>ข้อดีของ Role: กำหนดสิทธิ์เป็นกลุ่มครั้งเดียว เมื่อมีบรรณารักษ์ใหม่ก็ GRANT role ให้ทันที และเปลี่ยนสิทธิ์ของทั้งกลุ่มได้ที่จุดเดียว</p></div></li>
 <li>สร้างวิวที่แสดงเฉพาะรหัส ชื่อ สาขาของนิสิต แล้วให้สิทธิ์ผู้ใช้ guest อ่านเฉพาะวิวนี้ อธิบายประโยชน์ <span class="hint">(GRANT SELECT ON view)</span><div class="rv-ans"><sql title="เฉลย" exec>CREATE OR REPLACE VIEW v_student_public AS
-SELECT stdid, name, major FROM student;</sql><sql title="เฉลย" >CREATE USER 'guest'@'localhost' IDENTIFIED BY 'Guest#2026';
+    SELECT    stdid, name, major
+    FROM      student;</sql><sql title="เฉลย" >CREATE USER 'guest'@'localhost' IDENTIFIED BY 'Guest#2026';
 GRANT SELECT ON std_66011200.v_student_public TO 'guest'@'localhost';</sql><p>guest เห็นเพียงรหัส ชื่อ สาขา ไม่เห็น gpa และวันเกิด และไม่มีสิทธิ์บนตาราง student โดยตรง — เป็นการควบคุมสิทธิ์<b>ระดับคอลัมน์และแถว</b>ด้วยวิว (บทที่ 7) ถ้าภายหลังต้องซ่อนข้อมูลเพิ่ม แก้วิวที่เดียว</p></div></li>
 <li class="part">SQL Injection และแนวปฏิบัติ</li>
 <li>อธิบายการแทรกคำสั่ง SQL พร้อมยกตัวอย่างคำสั่งที่มีช่องโหว่ และเขียนคำสั่งที่แก้ให้ปลอดภัย <span class="hint">(Prepared Statement)</span><div class="rv-ans"><p><b>SQL Injection</b> เกิดเมื่อโปรแกรมนำข้อความที่ผู้ใช้ป้อน<b>ต่อสตริง</b>เข้าไปในคำสั่ง SQL ผู้โจมตีจึงป้อนข้อความที่เป็นส่วนของคำสั่ง SQL เพื่อเปลี่ยนความหมายของคำสั่งได้</p><sql title="เฉลย" ># มีช่องโหว่ (Python) — ผู้ใช้ป้อน  ' OR '1'='1
