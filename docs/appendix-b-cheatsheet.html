@@ -114,6 +114,10 @@ LIMIT    จำนวน [OFFSET ข้าม];</pre></div>
 <tr><td>รวม / ร่วม / ผลต่าง</td><td><code>UNION</code> / <code>INTERSECT</code> / <code>EXCEPT</code></td><td>6</td></tr>
 <tr><td>ตรวจการมีอยู่</td><td><code>WHERE [NOT] EXISTS (SELECT 1 FROM … WHERE …)</code></td><td>6</td></tr>
 <tr><td>เทียบกับค่าสรุป</td><td><code>WHERE c &gt; (SELECT AVG(c) FROM t)</code></td><td>6</td></tr>
+<tr><td>ตั้งชื่อผลลัพธ์ชั่วคราว (CTE)</td><td><code>WITH x AS (SELECT …) SELECT … FROM x;</code></td><td>7</td></tr>
+<tr><td>ไล่ลำดับชั้น (เช่น วิชาบังคับก่อนทุกชั้น)</td><td><code>WITH RECURSIVE r AS (anchor UNION ALL SELECT … JOIN r …)</code></td><td>7</td></tr>
+<tr><td>อันดับ / สูงสุดต่อกลุ่ม (เท่ากันได้หมด)</td><td><code>RANK() OVER (PARTITION BY g ORDER BY c DESC)</code> แล้วกรองใน CTE</td><td>7</td></tr>
+<tr><td>เทียบแถวก่อนหน้า / ผลรวมสะสม</td><td><code>LAG(c) OVER (…)</code> / <code>SUM(c) OVER (PARTITION BY g ORDER BY t)</code></td><td>7</td></tr>
 </table>
 
 <h2 id="adv"><span class="sec">ADV</span> View, Index, Transaction</h2>

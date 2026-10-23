@@ -386,3 +386,72 @@ A: ถูกปฏิเสธด้วย Error 1369 เช่นกัน — 
 อธิบายข้อเสียของการใช้ `SELECT *` ในวิว และผลที่เกิดเมื่อลบตารางหรือคอลัมน์ที่วิวอ้างถึง || หัวข้อ 7.10
 A: MySQL ขยาย <code>*</code> เป็นรายชื่อคอลัมน์<b>ตอนสร้างวิว</b> — คอลัมน์ที่เพิ่มในตารางภายหลังจะไม่ปรากฏในวิว ต้องสร้างวิวใหม่ และอ่านนิยามวิวแล้วไม่รู้ว่ามีคอลัมน์อะไรบ้าง
 A: ถ้าลบตารางหรือลบ/เปลี่ยนชื่อคอลัมน์ที่วิวอ้างถึง วิวยังอยู่แต่<b>ใช้งานไม่ได้</b> SELECT จากวิวจะเกิด Error 1356 (View references invalid table(s) or column(s)) จนกว่าจะแก้นิยามวิวหรือลบวิวทิ้ง
+## CTE และ Window Function
+จงอธิบายความแตกต่างระหว่าง `GROUP BY major` กับ `AVG(gpa) OVER (PARTITION BY major)` ในแง่จำนวนแถวของผลลัพธ์ และยกตัวอย่างโจทย์ที่เหมาะกับแต่ละแบบ || ยุบแถว vs ไม่ยุบแถว
+A: <b>GROUP BY</b> ยุบนิสิตทุกคนในสาขาเหลือ <b>1 แถวต่อสาขา</b> จึงแสดงคอลัมน์รายคน (เช่น name) ไม่ได้ — เหมาะกับรายงานสรุป เช่น “จำนวนนิสิตและ gpa เฉลี่ยของแต่ละสาขา”
+A: <b>OVER (PARTITION BY …)</b> คำนวณค่าเฉลี่ยของกลุ่มแล้ว<b>แปะไว้ทุกแถว</b> จำนวนแถวเท่าเดิม — เหมาะกับโจทย์ที่ต้องเห็นทั้งรายคนและค่าของกลุ่ม เช่น “นิสิตแต่ละคนสูงหรือต่ำกว่าค่าเฉลี่ยสาขาเท่าไร”
+```run
+SELECT major, COUNT(*) AS n_row_group_by FROM student WHERE gpa IS NOT NULL GROUP BY major;
+```
+```run max="6"
+SELECT stdid, name, major, gpa,
+       ROUND(AVG(gpa) OVER (PARTITION BY major), 2) AS major_avg
+FROM   student
+WHERE  gpa IS NOT NULL
+ORDER  BY major, stdid;
+```
+แสดงอาจารย์ที่เงินเดือนสูงสุด 2 อันดับแรกในแต่ละสาขา (ถ้าเงินเดือนเท่ากันให้นับเป็นอันดับเดียวกัน) || DENSE_RANK() OVER (PARTITION BY major …) + CTE
+A: ใช้ <code>DENSE_RANK</code> เพราะต้องการ “2 ระดับเงินเดือน” — ถ้าใช้ ROW_NUMBER คนที่เงินเดือนเท่ากันจะถูกตัดทิ้งแบบสุ่ม และต้องกรองในชั้นนอก (CTE) เพราะ Window Function ใช้ใน WHERE ไม่ได้
+```run
+WITH r AS (
+    SELECT lecid, name, major, salary,
+           DENSE_RANK() OVER (PARTITION BY major ORDER BY salary DESC) AS rnk
+    FROM   lecturer
+    WHERE  salary IS NOT NULL
+)
+SELECT major, rnk, lecid, name, salary
+FROM   r
+WHERE  rnk <= 2
+ORDER  BY major, rnk, lecid;
+```
+แสดงจำนวนนิสิตในแต่ละสาขา พร้อมร้อยละเทียบกับนิสิตทั้งหมด ในคำสั่งเดียว || COUNT(*) * 100 / SUM(COUNT(*)) OVER ()
+A: <code>OVER ()</code> ที่ว่างเปล่า = หน้าต่างเดียวครอบทุกแถว จึงได้ผลรวมทั้งหมดมาแปะทุกแถว — Window Function ทำงานหลัง GROUP BY จึงซ้อนกับฟังก์ชันรวมได้ (<code>SUM(COUNT(*))</code>)
+```run
+SELECT IFNULL(major, 'Undeclared') AS major,
+       COUNT(*)                                        AS n_student,
+       ROUND(COUNT(*) * 100 / SUM(COUNT(*)) OVER (), 1) AS pct
+FROM   student
+GROUP  BY major
+ORDER  BY n_student DESC, major;
+```
+เขียนข้อท้าทาย “นิสิตที่เกรดเฉลี่ยรายภาคไม่เคยลดลง” ใหม่ด้วย `LAG()` แล้วเปรียบเทียบกับวิธี Self Join + NOT EXISTS || LAG(term_gpa) OVER (PARTITION BY student_id ORDER BY term)
+A: ชั้นที่ 1 ใช้ LAG ดึงเกรดของภาคก่อนมาไว้แถวเดียวกัน ชั้นที่ 2 นับว่ามีภาคที่ลดลงหรือไม่ — อ่านตรงกับโจทย์กว่า และอ่านวิวเพียงครั้งเดียว (วิธี Self Join อ่าน 3 ครั้ง)
+```run
+WITH t AS (
+    SELECT student_id, student_name, term, term_gpa,
+           LAG(term_gpa) OVER (PARTITION BY student_id ORDER BY term) AS prev_gpa
+    FROM   v_student_term_gpa
+)
+SELECT student_id, student_name,
+       COUNT(*)                                             AS n_term,
+       GROUP_CONCAT(term_gpa ORDER BY term SEPARATOR ' → ') AS gpa_by_term
+FROM   t
+GROUP  BY student_id, student_name
+HAVING COUNT(*) >= 2
+   AND SUM(term_gpa < prev_gpa) = 0;
+```
+A: <code>term_gpa &lt; prev_gpa</code> ให้ 1 เมื่อลดลง และ NULL ในภาคแรก (ไม่มีภาคก่อน) ซึ่ง SUM ข้ามไป — ผลลัพธ์ต้องเท่ากับวิธี Self Join
+ใช้ Recursive CTE แสดงทุกวิชาที่ต้องผ่านมาก่อน (ทุกชั้น) จึงจะลงวิชา EN004 Writing ได้ พร้อมระดับ || anchor = EN004, JOIN ด้วย p.subid = c.pre
+```run
+WITH RECURSIVE chain AS (
+    SELECT subid, name, pre, 0 AS level
+    FROM   subject
+    WHERE  subid = 'EN004'
+    UNION ALL
+    SELECT p.subid, p.name, p.pre, c.level + 1
+    FROM   subject p
+           INNER JOIN chain c ON p.subid = c.pre
+)
+SELECT level, subid, name FROM chain WHERE level > 0 ORDER BY level;
+```
+A: ได้ EN002 Reading (ระดับ 1) และ EN001 English (ระดับ 2) — ส่วน Self Join ครั้งเดียวจะเห็นแค่ EN002

@@ -48,7 +48,7 @@
   <img src="icon/drink2.png" alt="" class="sidebar-img">
 </aside>
 <main class="content">
-<div class="page-head"><span class="kicker">CHAPTER 09 · สัปดาห์ที่ 13</span><h1>บทที่ 9 · ทรานแซกชัน (Transaction)</h1><p class="sub">แนวคิดทรานแซกชัน คุณสมบัติ ACID autocommit COMMIT ROLLBACK SAVEPOINT Implicit Commit การทำงานพร้อมกัน ระดับการแยกรายการ และการล็อก</p></div>
+<div class="page-head"><span class="kicker">CHAPTER 09 · สัปดาห์ที่ 10</span><h1>บทที่ 9 · ทรานแซกชัน (Transaction)</h1><p class="sub">แนวคิดทรานแซกชัน คุณสมบัติ ACID autocommit COMMIT ROLLBACK SAVEPOINT Implicit Commit การทำงานพร้อมกัน ระดับการแยกรายการ และการล็อก</p></div>
 
 
 <div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
@@ -253,7 +253,11 @@ SELECT lecid, salary FROM lecturer WHERE lecid = &#x27;t01&#x27;;</pre></div>
 <div class="box tip"><div class="box-t">✅ ลดโอกาส Deadlock</div><ul><li>เข้าถึงแถว/ตารางใน<b>ลำดับเดียวกัน</b>ทุกทรานแซกชัน (เช่น เรียงตาม lecid เสมอ)</li><li>ทำทรานแซกชันให้<b>สั้น</b> — ไม่รอ input จากผู้ใช้กลางทรานแซกชัน</li><li>มีดัชนีที่เหมาะสม เพื่อล็อกเฉพาะแถวที่จำเป็น</li><li>เตรียมโค้ดให้ลองใหม่ (retry) เมื่อเจอ Error 1213</li></ul></div>
 
 <div class="ex" id="ex9.4"><div class="ex-head"><span class="ex-badge">ฝึก 9.4</span><span class="ex-title">ระบุปัญหาและระดับที่เหมาะสม</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>ระบบลงทะเบียน: นิสิตกดลงทะเบียน → ระบบนับจำนวนคนในกลุ่ม → ถ้าน้อยกว่า 40 จึง INSERT — ถ้านิสิต 2 คนกดพร้อมกันตอนมี 39 คน จะเกิดอะไรขึ้น และควรแก้อย่างไร</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>ทั้งสองคนนับได้ 39 พร้อมกัน → ทั้งคู่ INSERT สำเร็จ → กลุ่มมี 41 คน (คล้าย Lost Update / Phantom)</p><p>แก้โดยทำทั้งหมดในทรานแซกชันเดียว และล็อกข้อมูลที่ใช้ตัดสินใจ เช่น <code>SELECT … FROM section WHERE secid = ? FOR UPDATE</code> ก่อนนับ (session ที่สองต้องรอ) หรือใช้ระดับ SERIALIZABLE เฉพาะทรานแซกชันนี้ หรือบังคับด้วย Trigger (บทที่ 12)</p></div></div></div>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>ทั้งสองคนนับได้ 39 พร้อมกัน → ทั้งคู่ INSERT สำเร็จ → กลุ่มมี 41 คน (คล้าย Lost Update / Phantom)</p><p>แก้ได้ 3 แนวทาง (ทุกแนวทางต้องทำใน<b>ทรานแซกชันเดียว</b>)</p>
+<ol><li><b>ล็อกแถวที่ใช้ตัดสินใจ</b> — <code>SELECT … FROM section WHERE secid = ? FOR UPDATE</code> ก่อนนับ session ที่สองต้องรอจนคนแรก COMMIT</li>
+<li><b>UPDATE แบบมีเงื่อนไขในคำสั่งเดียว (Atomic Update)</b> — ถ้าเก็บจำนวนที่นั่งคงเหลือไว้ <code>UPDATE section SET seats_left = seats_left - 1 WHERE secid = ? AND seats_left &gt; 0</code> แล้วตรวจจำนวนแถวที่ถูกแก้ ถ้าเป็น 0 แปลว่าเต็ม → ROLLBACK (InnoDB ล็อกแถวให้เองระหว่าง UPDATE จึงไม่มีทางลบเกิน)</li>
+<li><b>SERIALIZABLE</b> เฉพาะทรานแซกชันนี้ — ถูกต้องแต่รอกันมากและเกิด Deadlock ได้บ่อย</li></ol>
+<div class="box warn"><div class="box-t">⚠️ Trigger อย่างเดียวไม่พอ</div><p>ทริกเกอร์ที่ <code>SELECT COUNT(*)</code> ก่อน INSERT (บทที่ 12) ก็ยังเจอปัญหาเดียวกัน — ใน REPEATABLE READ ทั้งสอง session อ่านได้ 39 จาก snapshot ของตัวเองแล้วผ่านทั้งคู่ ทริกเกอร์จึงต้องใช้ร่วมกับการล็อก (ข้อ 1 หรือ 2)</p></div></div></div></div>
 
 <div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
 <li class="part">แนวคิดและ ACID</li>

@@ -299,3 +299,16 @@ table.tbl.demo tr + tr.fr:not(.fr-top) td{border-top:1px solid var(--line)}
 .review .rv-ans li{margin:2px 0;padding-left:0}
 .review .rv-ans li::before{content:none}
 @media print{.review .rv-ans{display:none}.review.unlocked .rv-ans{display:block}}
+
+/* ---------- Chen คู่กับ Crow's Foot (บทที่ 2) ---------- */
+.npair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin:14px 0 18px;align-items:stretch}
+.npair > div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column}
+.npair .np-c{border-top:5px solid var(--teal)} .npair .np-f{border-top:5px solid var(--tang)}
+.np-t{font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--teal2);margin-bottom:4px}
+.np-f .np-t{color:var(--tang2)}
+.npair .shot{margin:4px 0 0}
+.npair .shot img{border:none;max-width:100% !important}
+.npair svg{display:block;margin:0 auto}
+.np-note{font-size:13.5px;color:var(--mute);margin-top:auto;padding-top:6px;line-height:1.6}
+@media(max-width:860px){.npair{grid-template-columns:1fr}}
+.npair.stack{grid-template-columns:minmax(0,1fr)}

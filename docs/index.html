@@ -66,8 +66,8 @@
 
 <div class="part-t">// ส่วนที่ 1 · ออกแบบฐานข้อมูล (สอบกลางภาค)</div>
 <div class="cards">
-  <a class="tcard" href="01-intro.html"><span class="num">01</span><b>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</b><span>ข้อมูล vs สารสนเทศ, ปัญหาระบบแฟ้ม, DBMS, สถาปัตยกรรม 3 ระดับ, วงจรพัฒนา</span><em class="wk">สัปดาห์ 1</em></a>
-  <a class="tcard" href="02-er-model.html"><span class="num">02</span><b>แบบจำลองความสัมพันธ์ (ER Model)</b><span>เอนทิตี แอตทริบิวต์ ความสัมพันธ์ 1:1 / 1:M / M:N และการเขียน ER จากโจทย์</span><em class="wk">สัปดาห์ 2–3</em></a>
+  <a class="tcard" href="01-intro.html"><span class="num">01</span><b>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</b><span>ข้อมูล vs สารสนเทศ, ปัญหาระบบแฟ้ม, DBMS, สถาปัตยกรรม 3 ระดับ, ฐานข้อมูลยุคใหม่ (Cloud / NewSQL / Vector) &amp; AI กับ SQL, วงจรพัฒนา</span><em class="wk">สัปดาห์ 1</em></a>
+  <a class="tcard" href="02-er-model.html"><span class="num">02</span><b>แบบจำลองความสัมพันธ์ (ER Model)</b><span>เอนทิตี แอตทริบิวต์ ความสัมพันธ์ 1:1 / 1:M / M:N, การเขียน ER จากโจทย์ และ Crow's Foot / Mermaid</span><em class="wk">สัปดาห์ 2–3</em></a>
   <a class="tcard" href="03-relational-normalization.html"><span class="num">03</span><b>แปลง ER เป็นตาราง &amp; Normalization</b><span>ชนิดของคีย์, กฎความคงสภาพ, กฎการแปลง, FD, 1NF → 2NF → 3NF → BCNF</span><em class="wk">สัปดาห์ 2–3</em></a>
 </div>
 
@@ -75,21 +75,21 @@
 <div class="cards">
   <a class="tcard p2" href="04-sql-ddl-dml.html"><span class="num">04</span><b>สร้างตารางและจัดการข้อมูลพื้นฐาน</b><span>ชนิดข้อมูล, CREATE TABLE, constraint, FK + CASCADE, INSERT / UPDATE / DELETE</span><em class="wk">สัปดาห์ 4–5</em></a>
   <a class="tcard p2" href="05-select.html"><span class="num">05</span><b>การแสดงข้อมูลด้วยคำสั่ง SELECT</b><span>WHERE, NULL, LIKE, ORDER BY, LIMIT, ฟังก์ชันรวม, GROUP BY / HAVING, CASE</span><em class="wk">สัปดาห์ 6</em></a>
-  <a class="tcard p2" href="06-join.html"><span class="num">06</span><b>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</b><span>INNER / LEFT / Self Join, UNION / INTERSECT / EXCEPT, Subquery, INSERT…SELECT, UPDATE + CASE</span><em class="wk">สัปดาห์ 9–12</em></a>
+  <a class="tcard p2" href="06-join.html"><span class="num">06</span><b>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</b><span>INNER / LEFT / Self Join, UNION / INTERSECT / EXCEPT, Subquery, INSERT…SELECT, UPDATE + CASE</span><em class="wk">สัปดาห์ 7–8</em></a>
 </div>
 
 <div class="part-t">// ส่วนที่ 3 · ขั้นสูง (สอบปลายภาค)</div>
 <div class="cards">
-  <a class="tcard p3" href="07-view.html"><span class="num">07</span><b>วิว (View)</b><span>สร้าง/จัดการวิว, วิวจากหลายตาราง, วิวสรุปข้อมูล, ใช้วิวแก้โจทย์ซับซ้อน, WITH CHECK OPTION, CTE</span><em class="wk">สัปดาห์ 13</em></a>
-  <a class="tcard p3" href="08-index.html"><span class="num">08</span><b>ดัชนี (Index)</b><span>B-Tree, EXPLAIN, ดัชนีหลายคอลัมน์, Leftmost Prefix, Covering Index, กรณีที่ดัชนีใช้ไม่ได้</span><em class="wk">สัปดาห์ 13</em></a>
-  <a class="tcard p3" href="09-transaction.html"><span class="num">09</span><b>ทรานแซกชัน (Transaction)</b><span>ACID, COMMIT / ROLLBACK / SAVEPOINT, Implicit Commit, Isolation Level, Lock, Deadlock</span><em class="wk">สัปดาห์ 13</em></a>
+  <a class="tcard p3" href="07-view.html"><span class="num">07</span><b>วิว (View)</b><span>สร้าง/จัดการวิว, วิวจากหลายตาราง, วิวสรุปข้อมูล, ใช้วิวแก้โจทย์ซับซ้อน, WITH CHECK OPTION, CTE, Recursive CTE, Window Function (RANK / LAG)</span><em class="wk">สัปดาห์ 9</em></a>
+  <a class="tcard p3" href="08-index.html"><span class="num">08</span><b>ดัชนี (Index)</b><span>B-Tree, EXPLAIN, ดัชนีหลายคอลัมน์, Leftmost Prefix, Covering Index, กรณีที่ดัชนีใช้ไม่ได้</span><em class="wk">สัปดาห์ 10</em></a>
+  <a class="tcard p3" href="09-transaction.html"><span class="num">09</span><b>ทรานแซกชัน (Transaction)</b><span>ACID, COMMIT / ROLLBACK / SAVEPOINT, Implicit Commit, Isolation Level, Lock, Deadlock</span><em class="wk">สัปดาห์ 10</em></a>
 </div>
 
 <div class="part-t">// ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรมฐานข้อมูล</div>
 <div class="cards">
-  <a class="tcard p3" href="10-security.html"><span class="num">10</span><b>ความปลอดภัยของฐานข้อมูล</b><span>User, GRANT / REVOKE, Role, วิวควบคุมสิทธิ์, SQL Injection, แนวปฏิบัติ</span><em class="wk">สัปดาห์ 14</em></a>
-  <a class="tcard p3" href="11-stored-procedure.html"><span class="num">11</span><b>Stored Procedure &amp; Function</b><span>IN / OUT / INOUT, IF / WHILE, Cursor, SIGNAL, HANDLER + Transaction, Function</span><em class="wk">สัปดาห์ 15</em></a>
-  <a class="tcard p3" href="12-trigger.html"><span class="num">12</span><b>ทริกเกอร์ (Trigger)</b><span>BEFORE / AFTER, OLD / NEW, ตรวจสอบข้อมูล, Audit Log, กฎธุรกิจข้ามตาราง, ข้อมูลสรุป</span><em class="wk">สัปดาห์ 15</em></a>
+  <a class="tcard p3" href="10-security.html"><span class="num">10</span><b>ความปลอดภัยของฐานข้อมูล</b><span>User, GRANT / REVOKE, Role, วิวควบคุมสิทธิ์, SQL Injection, แนวปฏิบัติ</span><em class="wk">สัปดาห์ 11</em></a>
+  <a class="tcard p3" href="11-stored-procedure.html"><span class="num">11</span><b>Stored Procedure &amp; Function</b><span>IN / OUT / INOUT, IF / WHILE, Cursor, SIGNAL, HANDLER + Transaction, Function</span><em class="wk">สัปดาห์ 12</em></a>
+  <a class="tcard p3" href="12-trigger.html"><span class="num">12</span><b>ทริกเกอร์ (Trigger)</b><span>BEFORE / AFTER, OLD / NEW, ตรวจสอบข้อมูล, Audit Log, กฎธุรกิจข้ามตาราง, ข้อมูลสรุป</span><em class="wk">สัปดาห์ 13</em></a>
 </div>
 
 <div class="part-t">// ภาคผนวก</div>

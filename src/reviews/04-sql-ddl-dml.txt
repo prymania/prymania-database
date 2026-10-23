@@ -1,6 +1,6 @@
 # คำถามท้ายบท + เฉลย — ดูรูปแบบที่ apply_reviews.py
 ## ประเภทคำสั่งและชนิดข้อมูล
-จงอธิบายความแตกต่างระหว่าง DDL, DML, DQL, DCL และ TCL พร้อมยกตัวอย่างคำสั่งกลุ่มละ 2 คำสั่ง || ตารางที่ 4.1
+จงอธิบายความแตกต่างระหว่าง DDL, DML, DQL, DCL และ TCL พร้อมยกตัวอย่างคำสั่งกลุ่มละ 2 คำสั่ง || ตารางประเภทคำสั่ง หัวข้อ 4.1
 A- <b>DDL</b> (นิยามโครงสร้าง) — CREATE TABLE, ALTER TABLE, DROP TABLE, TRUNCATE
 A- <b>DML</b> (จัดการข้อมูล) — INSERT, UPDATE, DELETE
 A- <b>DQL</b> (แสดงข้อมูล) — SELECT, SHOW / DESCRIBE
@@ -102,7 +102,7 @@ CREATE TABLE product (
     CONSTRAINT prod_fk_cat FOREIGN KEY (cid) REFERENCES category(cid) ON DELETE RESTRICT
 );
 ```
-จงอธิบายความแตกต่างของ ON DELETE CASCADE, SET NULL และ RESTRICT พร้อมยกตัวอย่างว่าคอลัมน์ใดในกรณีศึกษาควรใช้แบบใด || ตารางที่ 4.4
+จงอธิบายความแตกต่างของ ON DELETE CASCADE, SET NULL และ RESTRICT พร้อมยกตัวอย่างว่าคอลัมน์ใดในกรณีศึกษาควรใช้แบบใด || ตารางหัวข้อ 4.4.1
 A- <b>CASCADE</b> — ลบแถวแม่แล้วลบแถวลูกตามอัตโนมัติ เช่น enroll.secid (ลบกลุ่มเรียน การลงทะเบียนของกลุ่มนั้นไม่มีความหมายแล้ว)
 A- <b>SET NULL</b> — ลบแถวแม่แล้วตั้ง FK ของลูกเป็น NULL เช่น subject.pre (ลบวิชาบังคับก่อน วิชาอื่นยังอยู่แต่ไม่มี pre) หรือ student.advisor_id
 A- <b>RESTRICT / NO ACTION</b> (ค่าปริยาย) — ไม่ยอมให้ลบแถวแม่ที่ยังมีลูกอ้างอยู่ เช่น section.lecid ในระบบจริงควรห้ามลบอาจารย์ที่มีประวัติการสอน เพื่อรักษาข้อมูลย้อนหลัง
@@ -122,7 +122,7 @@ ALTER TABLE student ADD CONSTRAINT std_fk_adv
 ALTER TABLE student DROP FOREIGN KEY std_fk_adv;   -- ต้องลบ FK ก่อน
 ALTER TABLE student DROP COLUMN advisor_id;
 ```
-จงเปรียบเทียบ DROP TABLE, TRUNCATE TABLE และ DELETE FROM ในแง่โครงสร้าง เงื่อนไข AUTO_INCREMENT และ ROLLBACK || ตารางที่ 4.5
+จงเปรียบเทียบ DROP TABLE, TRUNCATE TABLE และ DELETE FROM ในแง่โครงสร้าง เงื่อนไข AUTO_INCREMENT และ ROLLBACK || ตารางเปรียบเทียบ หัวข้อ 4.6.2
 A- <b>DROP TABLE</b> — ลบทั้งโครงสร้างและข้อมูล ใช้เงื่อนไขไม่ได้ ROLLBACK ไม่ได้ (DDL)
 A- <b>TRUNCATE TABLE</b> — ลบข้อมูลทั้งหมดแต่เก็บโครงสร้าง ใช้ WHERE ไม่ได้ รีเซ็ต AUTO_INCREMENT กลับเป็น 1 ROLLBACK ไม่ได้ (DDL) เร็วมาก
 A- <b>DELETE FROM</b> — ลบเฉพาะแถวตาม WHERE ได้ โครงสร้างอยู่ AUTO_INCREMENT ไม่รีเซ็ต ROLLBACK ได้ (DML) ทำงานผ่าน FK/ทริกเกอร์ทีละแถว

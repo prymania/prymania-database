@@ -1,4 +1,4 @@
-<!--meta {"title":"บทที่ 10 · ความปลอดภัยของฐานข้อมูล","kicker":"CHAPTER 10 · สัปดาห์ที่ 14","sub":"บัญชีผู้ใช้ การกำหนดและยกเลิกสิทธิ์ (GRANT / REVOKE) บทบาท (Role) วิวเพื่อควบคุมการเข้าถึง SQL Injection และแนวปฏิบัติด้านความปลอดภัย","img":"worker5.png"} -->
+<!--meta {"title":"บทที่ 10 · ความปลอดภัยของฐานข้อมูล","kicker":"CHAPTER 10 · สัปดาห์ที่ 11","sub":"บัญชีผู้ใช้ การกำหนดและยกเลิกสิทธิ์ (GRANT / REVOKE) บทบาท (Role) วิวเพื่อควบคุมการเข้าถึง SQL Injection และแนวปฏิบัติด้านความปลอดภัย","img":"worker5.png"} -->
 
 <div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
 <li>อธิบายเป้าหมายและองค์ประกอบด้านความปลอดภัยของฐานข้อมูลได้</li>
@@ -98,6 +98,19 @@ SET DEFAULT ROLE ALL TO 'teacher'@'192.168.1.%';</sql>
     FROM      student;
 
 GRANT SELECT ON std_66011200.v_student_public TO 'guest'@'localhost';</sql>
+<h3>วิวที่ “เห็นเฉพาะแถวของตัวเอง” (จำลอง Row-Level Security)</h3>
+<p>MySQL ไม่มีการกำหนดสิทธิ์รายแถวโดยตรง แต่ทำได้ด้วยวิวที่กรองด้วยชื่อผู้ใช้ที่กำลังเชื่อมต่อ — สมมติบัญชีนิสิตตั้งชื่อเป็น <code>s</code> + รหัสนิสิต (เช่น <code>s60001</code>) ตามแบบเซิร์ฟเวอร์ของวิชา</p>
+<sql title="วิว v_my_enroll — นิสิตแต่ละคนเห็นเฉพาะผลการเรียนของตนเอง" exec>CREATE OR REPLACE VIEW v_my_enroll AS
+    SELECT    sec.term, sub.subid, sub.name, sub.credit, e.grade
+    FROM      enroll e
+              INNER JOIN section sec ON e.secid   = sec.secid
+              INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE     CONCAT('s', e.stdid) = SUBSTRING_INDEX(USER(), '@', 1);</sql>
+<div class="code"><div class="code-head"><span>ให้นิสิตทุกคนอ่านได้เฉพาะวิวนี้ (ผ่าน Role)</span></div><pre class="sql">CREATE ROLE 'role_student';
+GRANT SELECT ON std_66011200.v_my_enroll TO 'role_student';
+GRANT 'role_student' TO 's60001'@'%';
+-- เมื่อ s60001 สั่ง SELECT * FROM v_my_enroll; จะเห็นเฉพาะแถวของ 60001</pre></div>
+<div class="box warn"><div class="box-t">⚠️ USER() ไม่ใช่ CURRENT_USER()</div><p>วิวใน MySQL ทำงานด้วยสิทธิ์ของ<b>ผู้สร้าง</b>เป็นค่าปริยาย (<code>SQL SECURITY DEFINER</code>) — ภายในวิว <code>CURRENT_USER()</code> จะคืนชื่อผู้สร้างวิว (เช่น root) ทุกครั้ง ต้องใช้ <code>USER()</code> ซึ่งคืนชื่อบัญชีที่<b>เข้าสู่ระบบจริง</b> และเพราะวิวเป็น DEFINER นิสิตจึงอ่านวิวได้โดยไม่ต้องมีสิทธิ์บนตาราง enroll เลย</p></div>
 
 <ex no="10.2" title="ออกแบบ Role ห้องสมุด" level="2">
 <p>ระบบห้องสมุดมีตาราง book, member, borrow ผู้ใช้ 3 กลุ่ม: สมาชิก (ดูหนังสือ), บรรณารักษ์ (จัดการการยืม-คืน ดูสมาชิก), ผู้ดูแลระบบ จงเขียนคำสั่งสร้าง Role และกำหนดสิทธิ์</p>

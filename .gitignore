@@ -5,3 +5,5 @@ __pycache__/
 library_tutorial_site/
 # โฟลเดอร์ผลลัพธ์เก่า (ก่อนเปลี่ยนเป็น docs/)
 site/
+# แบบทดสอบท้ายบท (มีเฉลย) — ไม่เผยแพร่ใน repository
+quiz/

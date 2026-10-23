@@ -1,4 +1,4 @@
-<!--meta {"title":"บทที่ 7 · วิว (View)","kicker":"CHAPTER 07 · สัปดาห์ที่ 13","sub":"แนวคิดของวิว การสร้างและจัดการวิว วิวจากหลายตาราง วิวสรุปข้อมูล วิวซ้อนวิว การใช้วิวแก้โจทย์ที่ซับซ้อน การปรับปรุงข้อมูลผ่านวิว และข้อควรระวัง","img":"awesome.png"} -->
+<!--meta {"title":"บทที่ 7 · วิว (View)","kicker":"CHAPTER 07 · สัปดาห์ที่ 9","sub":"แนวคิดของวิว การสร้างและจัดการวิว วิวจากหลายตาราง วิวสรุปข้อมูล วิวซ้อนวิว การใช้วิวแก้โจทย์ที่ซับซ้อน การปรับปรุงข้อมูลผ่านวิว ข้อควรระวัง และ CTE / Recursive CTE / Window Function","img":"awesome.png"} -->
 
 <div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
 <li>อธิบายแนวคิดของวิว ความแตกต่างจากตารางจริง และประโยชน์ของวิวได้</li>
@@ -7,6 +7,7 @@
 <li>แตกโจทย์ที่ซับซ้อนออกเป็นวิวทีละชั้น แล้วใช้วิวตอบคำถามได้</li>
 <li>ระบุได้ว่าวิวใดปรับปรุงข้อมูลผ่านได้ และใช้ WITH CHECK OPTION ได้</li>
 <li>อธิบายข้อควรระวังของวิว และเปรียบเทียบวิวกับตาราง Derived Table และ CTE ได้</li>
+<li>ใช้ CTE, Recursive CTE และ Window Function (RANK, LAG, SUM … OVER) แก้โจทย์อันดับ สูงสุดต่อกลุ่ม และข้อมูลลำดับชั้นได้</li>
 </ol></div>
 
 <toc/>
@@ -677,6 +678,165 @@ ORDER  BY pct_A DESC, secid;</sql>
 <answer><p>(ก) <b>วิว</b> — ใช้ซ้ำบ่อย ตรรกะเดียวกันทุกที่<br>(ข) <b>CTE</b> — ใช้ครั้งเดียว ไม่ต้องสร้างของถาวร<br>(ค) <b>วิว</b> + GRANT เฉพาะวิว<br>(ง) <b>ตารางจริง</b> (snapshot ด้วย INSERT … SELECT / CREATE TABLE … AS SELECT) — เพราะวิวแสดงข้อมูลล่าสุดเสมอ ไม่เก็บค่าในอดีต</p></answer>
 </ex>
 
+<h2 id="s11"><span class="sec">7.11</span> CTE และ Window Function — เครื่องมือสมัยใหม่สำหรับโจทย์สรุปข้อมูล</h2>
+<p>ตั้งแต่ MySQL 8.0 รองรับเครื่องมือตามมาตรฐาน SQL อีก 2 อย่างที่ DBMS สมัยใหม่ทุกตัวมี (PostgreSQL, SQL Server, Oracle, SQLite) และพบบ่อยมากในงานวิเคราะห์ข้อมูลจริง — ทำโจทย์ในหัวข้อ 7.7 ได้สั้นลงโดย<b>ไม่ต้องสร้างวิวถาวร</b></p>
+<div class="vs">
+<div><h4>🧱 CTE (WITH)</h4><p>ตั้งชื่อให้ผลลัพธ์ของ SELECT ชั่วคราว แล้วใช้ต่อในคำสั่งเดียวกัน — เหมือน “วิวที่มีอายุแค่คำสั่งเดียว” และเขียนแบบ<b>เรียกตัวเองซ้ำ (Recursive)</b> ได้</p></div>
+<div><h4>🪟 Window Function (OVER)</h4><p>คำนวณค่าสรุป (อันดับ ค่าเฉลี่ย ผลรวมสะสม ค่าของแถวก่อนหน้า) <b>โดยไม่ยุบแถว</b> — ต่างจาก GROUP BY ที่รวมหลายแถวเหลือแถวเดียว</p></div>
+</div>
+
+<h3>7.11.1 CTE หลายชั้น</h3>
+<p>โจทย์ที่ 1 (สาขาที่มีนิสิตมากที่สุด) เขียนด้วย CTE ได้ในคำสั่งเดียว — <code>major_count</code> ถูกใช้ 2 ครั้ง (ชั้นนอกและใน Subquery) โดยเขียนนิยามครั้งเดียว</p>
+<sql title="โจทย์ที่ 1 ด้วย CTE" run>WITH major_count AS (
+    SELECT major, COUNT(*) AS n_student
+    FROM   student
+    WHERE  major IS NOT NULL
+    GROUP  BY major
+)
+SELECT major, n_student
+FROM   major_count
+WHERE  n_student =
+       (SELECT MAX(n_student)
+        FROM   major_count);</sql>
+<p>CTE หลายตัวคั่นด้วยจุลภาค และตัวหลัง<b>อ้างถึงตัวก่อนหน้าได้</b> — จึงแตกโจทย์เป็นขั้นได้เหมือนวิวซ้อนวิว แต่ทุกขั้นอยู่ในคำสั่งเดียว อ่านจากบนลงล่างได้ทันที</p>
+<sql title="CTE 2 ชั้น — เกรดเฉลี่ยรายภาคของนิสิตแต่ละคน คำนวณจากตารางจริง" run max="8">WITH graded AS (                         -- ชั้นที่ 1: แปลงเกรดเป็นแต้ม
+    SELECT e.stdid, sec.term, sub.credit,
+           CASE e.grade WHEN 'A' THEN 4 WHEN 'B' THEN 3 WHEN 'C' THEN 2
+                        WHEN 'D' THEN 1 ELSE 0 END AS point
+    FROM   enroll e
+           INNER JOIN section sec ON e.secid   = sec.secid
+           INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE  e.grade IS NOT NULL
+),
+term_gpa AS (                            -- ชั้นที่ 2: สรุปจากชั้นที่ 1
+    SELECT stdid, term,
+           ROUND(SUM(credit * point) / SUM(credit), 2) AS term_gpa
+    FROM   graded
+    GROUP  BY stdid, term
+)
+SELECT * FROM term_gpa ORDER BY stdid, term;</sql>
+
+<h3>7.11.2 Recursive CTE — ไล่ตามความสัมพันธ์แบบวกกลับ</h3>
+<p>คอลัมน์ <code>subject.pre</code> เป็นความสัมพันธ์วกกลับ (บทที่ 2) — Self Join หนึ่งครั้งเห็นวิชาบังคับก่อนได้แค่ 1 ชั้น แต่ถ้าถามว่า “จะลง Project (CS009) ต้องผ่านวิชาอะไรมาก่อน<b>ทั้งหมด</b>” ต้องไล่ต่อไปเรื่อย ๆ จนสุดสาย ซึ่ง Recursive CTE ทำได้</p>
+<div class="flow">
+<div class="st">① ส่วนเริ่มต้น (Anchor)<small>แถวแรก: CS009</small></div><span class="ar">→ UNION ALL →</span>
+<div class="st">② ส่วนเรียกซ้ำ (Recursive)<small>JOIN กับผลรอบก่อน หา pre ของแถวที่เพิ่งได้</small></div><span class="ar">→</span>
+<div class="st">③ หยุดเมื่อ<small>รอบใดไม่ได้แถวใหม่ (pre เป็น NULL)</small></div>
+</div>
+<sql title="วิชาบังคับก่อนทุกชั้นของ CS009 (Project)" run>WITH RECURSIVE chain AS (
+    SELECT subid, name, pre, 0 AS level          -- ① Anchor
+    FROM   subject
+    WHERE  subid = 'CS009'
+    UNION ALL
+    SELECT p.subid, p.name, p.pre, c.level + 1   -- ② ไปหาวิชา pre ของแถวรอบก่อน
+    FROM   subject p
+           INNER JOIN chain c ON p.subid = c.pre
+)
+SELECT level, subid, name FROM chain ORDER BY level;</sql>
+<p>กลับทิศทางได้ด้วย — เริ่มจากวิชาที่ไม่มี pre แล้วไล่ลงไปหาวิชาที่ต่อยอด ได้ “แผนผังหลักสูตร” ทั้งหมดพร้อมเส้นทาง</p>
+<sql title="แผนผังวิชาต่อเนื่องทั้งหมด" run>WITH RECURSIVE tree AS (
+    SELECT subid, name, 0 AS depth,
+           CAST(subid AS CHAR(100)) AS path      -- ต้อง CAST ให้ยาวพอ
+    FROM   subject
+    WHERE  pre IS NULL
+    UNION ALL
+    SELECT s.subid, s.name, t.depth + 1,
+           CONCAT(t.path, ' → ', s.subid)
+    FROM   subject s
+           INNER JOIN tree t ON s.pre = t.subid
+)
+SELECT path, name, depth FROM tree ORDER BY path;</sql>
+<div class="box warn"><div class="box-t">⚠️ ข้อควรระวังของ Recursive CTE</div><ul>
+<li>ชนิดและความยาวของคอลัมน์ถูกกำหนดจาก<b>ส่วน Anchor</b> — path ที่ยาวขึ้นทุกรอบจึงต้อง <code>CAST(… AS CHAR(100))</code> ไว้ตั้งแต่ต้น ไม่เช่นนั้นได้ Error “Data too long”</li>
+<li>ถ้าข้อมูลวนเป็นวง (A ต้องผ่าน B และ B ต้องผ่าน A) จะเรียกซ้ำไม่จบ — MySQL หยุดที่ <code>cte_max_recursion_depth</code> (ค่าปริยาย 1000 รอบ) แล้วแจ้ง error</li>
+<li>บทที่ 8 ใช้ Recursive CTE อีกแบบ คือสร้างลำดับตัวเลข 1 … 50,000 เพื่อสร้างข้อมูลทดสอบ</li>
+</ul></div>
+
+<h3>7.11.3 Window Function — สรุปโดยไม่ยุบแถว</h3>
+<p>รูปแบบ: <code>ฟังก์ชัน() OVER (PARTITION BY แบ่งกลุ่ม ORDER BY เรียงภายในกลุ่ม)</code> — <b>PARTITION BY</b> คล้าย GROUP BY แต่ทุกแถวยังอยู่ครบ แต่ละแถวได้ค่าสรุปของกลุ่มตัวเองมาแปะไว้</p>
+<sql title="gpa ของนิสิตเทียบกับค่าเฉลี่ยของสาขาตัวเอง — ทุกแถวยังอยู่" run>SELECT stdid, name, major, gpa,
+       ROUND(AVG(gpa) OVER (PARTITION BY major), 2)       AS major_avg,
+       ROUND(gpa - AVG(gpa) OVER (PARTITION BY major), 2) AS diff
+FROM   student
+WHERE  major IS NOT NULL AND gpa IS NOT NULL
+ORDER  BY major, gpa DESC;</sql>
+<p>เทียบกับแบบฝึกหัด 6.10 ที่ต้องเขียน Correlated Subquery คำนวณค่าเฉลี่ยของสาขาทีละแถว — Window Function ได้ทั้งค่าของแถวและค่าของกลุ่มในคำสั่งเดียว</p>
+<h4>ฟังก์ชันจัดอันดับ: ROW_NUMBER · RANK · DENSE_RANK</h4>
+<sql title="จัดอันดับเงินเดือนอาจารย์ — สังเกตแถวที่เงินเดือนเท่ากัน" run>SELECT lecid, name, salary,
+       ROW_NUMBER() OVER (ORDER BY salary DESC, lecid) AS row_no,
+       RANK()       OVER (ORDER BY salary DESC)        AS rnk,
+       DENSE_RANK() OVER (ORDER BY salary DESC)        AS dense_rnk
+FROM   lecturer
+WHERE  salary IS NOT NULL
+ORDER  BY salary DESC, lecid;</sql>
+<table class="tbl"><tr><th>ฟังก์ชัน</th><th>ค่าที่เท่ากัน</th><th>ลำดับถัดไป</th><th>ใช้เมื่อ</th></tr>
+<tr><td><code>ROW_NUMBER()</code></td><td>ได้เลขต่างกัน (1, 2)</td><td>3</td><td>ต้องการแถวเดียวต่อกลุ่ม / แบ่งหน้า</td></tr>
+<tr><td><code>RANK()</code></td><td>ได้อันดับเดียวกัน (1, 1)</td><td>3 (ข้าม)</td><td>อันดับแบบการแข่งขัน</td></tr>
+<tr><td><code>DENSE_RANK()</code></td><td>ได้อันดับเดียวกัน (1, 1)</td><td>2 (ไม่ข้าม)</td><td>“3 อันดับเงินเดือนแรก” โดยนับค่าที่ต่างกัน</td></tr>
+</table>
+<p>นี่คือคำตอบของปัญหา “LIMIT 1 ได้คนเดียวทั้งที่ Yoda สองคนเงินเดือนเท่ากัน” ในบทที่ 5 — เลือก <code>rnk = 1</code> จะได้ทุกคนที่เท่ากัน</p>
+<h4>Top-N ต่อกลุ่ม — ต้องครอบด้วย CTE</h4>
+<p>Window Function คำนวณในขั้น SELECT ซึ่งทำงาน<b>หลัง</b> WHERE (หัวข้อ 5.2) จึงกรองด้วย WHERE ในคำสั่งเดียวกันไม่ได้</p>
+<sql title="ใช้ Window Function ใน WHERE → Error" error>SELECT student_major, student_name, gpa_calc
+FROM   v_student_gpa
+WHERE  RANK() OVER (PARTITION BY student_major ORDER BY gpa_calc DESC) = 1;</sql>
+<sql title="โจทย์ที่ 3 (หัวข้อ 7.7) — นิสิตที่ gpa_calc สูงสุดในแต่ละสาขา ด้วย RANK + CTE" run>WITH ranked AS (
+    SELECT student_major, student_id, student_name, gpa_calc,
+           RANK() OVER (PARTITION BY student_major ORDER BY gpa_calc DESC) AS rnk
+    FROM   v_student_gpa
+    WHERE  student_major IS NOT NULL
+)
+SELECT student_major, student_id, student_name, gpa_calc
+FROM   ranked
+WHERE  rnk = 1
+ORDER  BY student_major;</sql>
+<p>ได้ผลเท่ากับโจทย์ที่ 3 ที่ใช้ Correlated Subquery — และเปลี่ยนเป็น “3 อันดับแรกของแต่ละสาขา” ได้ง่าย ๆ โดยแก้เป็น <code>rnk &lt;= 3</code></p>
+<h4>LAG และผลรวมสะสม — เทียบกับแถวก่อนหน้า</h4>
+<p><code>LAG(คอลัมน์)</code> ดึงค่าของแถว<b>ก่อนหน้า</b>ในกลุ่ม (<code>LEAD</code> = แถวถัดไป) ส่วน <code>SUM() OVER (… ORDER BY …)</code> ให้ผลรวมสะสม — ตั้งชื่อหน้าต่างที่ใช้ซ้ำด้วย <code>WINDOW</code> ได้</p>
+<sql title="เกรดเฉลี่ยแต่ละภาคเทียบภาคก่อน และหน่วยกิตสะสม" run max="10">SELECT student_id, student_name, term, term_gpa,
+       LAG(term_gpa)          OVER w            AS prev_gpa,
+       term_gpa - LAG(term_gpa) OVER w          AS change_gpa,
+       SUM(term_credit)       OVER w            AS cum_credit
+FROM   v_student_term_gpa
+WINDOW w AS (PARTITION BY student_id ORDER BY term)
+ORDER  BY student_id, term;</sql>
+<table class="tbl"><tr><th>กลุ่ม</th><th>ฟังก์ชัน</th><th>ตัวอย่างโจทย์</th></tr>
+<tr><td>จัดอันดับ</td><td>ROW_NUMBER, RANK, DENSE_RANK, NTILE(n)</td><td>อันดับ gpa ในสาขา, แบ่งนิสิตเป็น 4 กลุ่มเท่า ๆ กัน</td></tr>
+<tr><td>สรุปต่อกลุ่ม</td><td>SUM, AVG, COUNT, MIN, MAX + OVER</td><td>ส่วนต่างจากค่าเฉลี่ยของสาขา, ร้อยละของทั้งหมด</td></tr>
+<tr><td>สะสม</td><td>SUM / COUNT + OVER (… ORDER BY …)</td><td>หน่วยกิตสะสม, ยอดขายสะสมรายเดือน</td></tr>
+<tr><td>แถวข้างเคียง</td><td>LAG, LEAD, FIRST_VALUE, LAST_VALUE</td><td>เกรดดีขึ้นหรือแย่ลงจากภาคก่อน</td></tr>
+</table>
+<div class="box idea"><div class="box-t">💡 เลือกเครื่องมือไหนดี</div><p><b>วิว</b> — ตรรกะที่ใช้ซ้ำหลายคำสั่ง/หลายโปรแกรม หรือต้องให้สิทธิ์ · <b>CTE</b> — แตกโจทย์เป็นขั้นในคำสั่งเดียว และงานไล่ลำดับชั้น (Recursive) · <b>Window Function</b> — โจทย์ “อันดับ / สูงสุดต่อกลุ่ม / เทียบกับกลุ่ม / สะสม / เทียบแถวก่อน” ซึ่งเคยต้องใช้ Correlated Subquery — ใช้ร่วมกันได้ เช่น Window Function บนวิว แล้วครอบด้วย CTE อย่างตัวอย่างข้างบน</p></div>
+
+<ex no="7.14" title="วิชายอดนิยมของแต่ละภาค ด้วย DENSE_RANK" level="2">
+<p>เขียนโจทย์ที่ 4 (หัวข้อ 7.7) ใหม่โดยใช้วิว <code>v_term_subject</code> + <code>DENSE_RANK()</code> + CTE แสดงวิชาที่มีผู้ลงทะเบียนมากที่สุดของแต่ละภาค (ถ้าเท่ากันแสดงทุกวิชา)</p>
+<answer><sql title="เฉลย" run>WITH r AS (
+    SELECT term, subject_name, n_student,
+           DENSE_RANK() OVER (PARTITION BY term ORDER BY n_student DESC) AS rnk
+    FROM   v_term_subject
+    WHERE  n_student > 0
+)
+SELECT term, subject_name, n_student
+FROM   r
+WHERE  rnk = 1
+ORDER  BY term, subject_name;</sql>
+<p>ได้ผลเท่ากับโจทย์ที่ 4 — ถ้าเปลี่ยนเป็น <code>rnk &lt;= 2</code> จะได้ 2 อันดับแรกของทุกภาคทันที ซึ่งแบบ Subquery + MAX ทำได้ยาก</p></answer>
+</ex>
+<ex no="7.15" title="วิชาที่ต่อยอดจาก Programming ทุกชั้น" level="3">
+<p>ใช้ Recursive CTE แสดงรหัส ชื่อ และระดับ (1 = ต่อจาก CS001 โดยตรง, 2 = ต่อจากวิชาระดับ 1, …) ของทุกวิชาที่ต้องผ่าน CS001 มาก่อนไม่ว่าทางตรงหรือทางอ้อม</p>
+<answer><sql title="เฉลย" run>WITH RECURSIVE next_sub AS (
+    SELECT subid, name, 1 AS level
+    FROM   subject
+    WHERE  pre = 'CS001'
+    UNION ALL
+    SELECT s.subid, s.name, n.level + 1
+    FROM   subject s
+           INNER JOIN next_sub n ON s.pre = n.subid
+)
+SELECT level, subid, name FROM next_sub ORDER BY level, subid;</sql>
+<p>ทิศทางตรงข้ามกับตัวอย่าง CS009: ตัวอย่างนั้น JOIN ด้วย <code>p.subid = c.pre</code> (ขึ้นไปหาวิชาบังคับก่อน) ข้อนี้ JOIN ด้วย <code>s.pre = n.subid</code> (ลงไปหาวิชาที่ต่อยอด)</p></answer>
+</ex>
+
 <review>
 <li class="part">แนวคิดของวิว</li>
 <li>จงอธิบายความแตกต่างระหว่างวิวกับตารางจริง ในแง่สิ่งที่เก็บ การสร้าง ข้อกำหนดบังคับ และการปรับปรุงข้อมูล <span class="hint">(หัวข้อ 7.1)</span><div class="rv-ans"><ul><li><b>สิ่งที่เก็บ</b> — ตารางเก็บข้อมูลจริง วิวเก็บเพียงคำสั่ง SELECT</li><li><b>การสร้าง</b> — ตารางใช้ CREATE TABLE วิวใช้ CREATE VIEW … AS SELECT</li><li><b>ข้อกำหนดบังคับ</b> — ตารางมี PK / FK / CHECK ของตัวเอง วิวไม่มี (อาศัยของตารางจริง และเพิ่มได้เพียง WITH CHECK OPTION)</li><li><b>การปรับปรุงข้อมูล</b> — ตาราง INSERT/UPDATE/DELETE ได้เสมอ วิวทำได้บางกรณี (แต่ละแถวต้องชี้กลับไปยังแถวเดียวในตารางจริงได้) และการเปลี่ยนแปลงเกิดที่ตารางจริง</li></ul></div></li>
@@ -937,4 +1097,48 @@ WHERE  TABLE_SCHEMA = DATABASE()
     WHERE     salary >= 40000
 WITH CHECK OPTION;</sql><sql title="เฉลย" error>UPDATE v_senior_lecturer SET salary = 30000 WHERE lecid = 't01';</sql><p>ถูกปฏิเสธด้วย Error 1369 เช่นกัน — CHECK OPTION ตรวจเงื่อนไขใน WHERE ของวิวทุกรูปแบบ ไม่ใช่เฉพาะเงื่อนไขเท่ากับ ส่วนการขึ้นเงินเดือนผ่านวิวยังทำได้ตามปกติ</p></div></li>
 <li>อธิบายข้อเสียของการใช้ <code>SELECT *</code> ในวิว และผลที่เกิดเมื่อลบตารางหรือคอลัมน์ที่วิวอ้างถึง <span class="hint">(หัวข้อ 7.10)</span><div class="rv-ans"><p>MySQL ขยาย <code>*</code> เป็นรายชื่อคอลัมน์<b>ตอนสร้างวิว</b> — คอลัมน์ที่เพิ่มในตารางภายหลังจะไม่ปรากฏในวิว ต้องสร้างวิวใหม่ และอ่านนิยามวิวแล้วไม่รู้ว่ามีคอลัมน์อะไรบ้าง</p><p>ถ้าลบตารางหรือลบ/เปลี่ยนชื่อคอลัมน์ที่วิวอ้างถึง วิวยังอยู่แต่<b>ใช้งานไม่ได้</b> SELECT จากวิวจะเกิด Error 1356 (View references invalid table(s) or column(s)) จนกว่าจะแก้นิยามวิวหรือลบวิวทิ้ง</p></div></li>
+<li class="part">CTE และ Window Function</li>
+<li>จงอธิบายความแตกต่างระหว่าง <code>GROUP BY major</code> กับ <code>AVG(gpa) OVER (PARTITION BY major)</code> ในแง่จำนวนแถวของผลลัพธ์ และยกตัวอย่างโจทย์ที่เหมาะกับแต่ละแบบ <span class="hint">(ยุบแถว vs ไม่ยุบแถว)</span><div class="rv-ans"><p><b>GROUP BY</b> ยุบนิสิตทุกคนในสาขาเหลือ <b>1 แถวต่อสาขา</b> จึงแสดงคอลัมน์รายคน (เช่น name) ไม่ได้ — เหมาะกับรายงานสรุป เช่น “จำนวนนิสิตและ gpa เฉลี่ยของแต่ละสาขา”</p><p><b>OVER (PARTITION BY …)</b> คำนวณค่าเฉลี่ยของกลุ่มแล้ว<b>แปะไว้ทุกแถว</b> จำนวนแถวเท่าเดิม — เหมาะกับโจทย์ที่ต้องเห็นทั้งรายคนและค่าของกลุ่ม เช่น “นิสิตแต่ละคนสูงหรือต่ำกว่าค่าเฉลี่ยสาขาเท่าไร”</p><sql title="เฉลย" run>SELECT major, COUNT(*) AS n_row_group_by FROM student WHERE gpa IS NOT NULL GROUP BY major;</sql><sql title="เฉลย" run max="6">SELECT stdid, name, major, gpa,
+       ROUND(AVG(gpa) OVER (PARTITION BY major), 2) AS major_avg
+FROM   student
+WHERE  gpa IS NOT NULL
+ORDER  BY major, stdid;</sql></div></li>
+<li>แสดงอาจารย์ที่เงินเดือนสูงสุด 2 อันดับแรกในแต่ละสาขา (ถ้าเงินเดือนเท่ากันให้นับเป็นอันดับเดียวกัน) <span class="hint">(DENSE_RANK() OVER (PARTITION BY major …) + CTE)</span><div class="rv-ans"><p>ใช้ <code>DENSE_RANK</code> เพราะต้องการ “2 ระดับเงินเดือน” — ถ้าใช้ ROW_NUMBER คนที่เงินเดือนเท่ากันจะถูกตัดทิ้งแบบสุ่ม และต้องกรองในชั้นนอก (CTE) เพราะ Window Function ใช้ใน WHERE ไม่ได้</p><sql title="เฉลย" run>WITH r AS (
+    SELECT lecid, name, major, salary,
+           DENSE_RANK() OVER (PARTITION BY major ORDER BY salary DESC) AS rnk
+    FROM   lecturer
+    WHERE  salary IS NOT NULL
+)
+SELECT major, rnk, lecid, name, salary
+FROM   r
+WHERE  rnk <= 2
+ORDER  BY major, rnk, lecid;</sql></div></li>
+<li>แสดงจำนวนนิสิตในแต่ละสาขา พร้อมร้อยละเทียบกับนิสิตทั้งหมด ในคำสั่งเดียว <span class="hint">(COUNT(*) * 100 / SUM(COUNT(*)) OVER ())</span><div class="rv-ans"><p><code>OVER ()</code> ที่ว่างเปล่า = หน้าต่างเดียวครอบทุกแถว จึงได้ผลรวมทั้งหมดมาแปะทุกแถว — Window Function ทำงานหลัง GROUP BY จึงซ้อนกับฟังก์ชันรวมได้ (<code>SUM(COUNT(*))</code>)</p><sql title="เฉลย" run>SELECT IFNULL(major, 'Undeclared') AS major,
+       COUNT(*)                                        AS n_student,
+       ROUND(COUNT(*) * 100 / SUM(COUNT(*)) OVER (), 1) AS pct
+FROM   student
+GROUP  BY major
+ORDER  BY n_student DESC, major;</sql></div></li>
+<li>เขียนข้อท้าทาย “นิสิตที่เกรดเฉลี่ยรายภาคไม่เคยลดลง” ใหม่ด้วย <code>LAG()</code> แล้วเปรียบเทียบกับวิธี Self Join + NOT EXISTS <span class="hint">(LAG(term_gpa) OVER (PARTITION BY student_id ORDER BY term))</span><div class="rv-ans"><p>ชั้นที่ 1 ใช้ LAG ดึงเกรดของภาคก่อนมาไว้แถวเดียวกัน ชั้นที่ 2 นับว่ามีภาคที่ลดลงหรือไม่ — อ่านตรงกับโจทย์กว่า และอ่านวิวเพียงครั้งเดียว (วิธี Self Join อ่าน 3 ครั้ง)</p><sql title="เฉลย" run>WITH t AS (
+    SELECT student_id, student_name, term, term_gpa,
+           LAG(term_gpa) OVER (PARTITION BY student_id ORDER BY term) AS prev_gpa
+    FROM   v_student_term_gpa
+)
+SELECT student_id, student_name,
+       COUNT(*)                                             AS n_term,
+       GROUP_CONCAT(term_gpa ORDER BY term SEPARATOR ' → ') AS gpa_by_term
+FROM   t
+GROUP  BY student_id, student_name
+HAVING COUNT(*) >= 2
+   AND SUM(term_gpa < prev_gpa) = 0;</sql><p><code>term_gpa &lt; prev_gpa</code> ให้ 1 เมื่อลดลง และ NULL ในภาคแรก (ไม่มีภาคก่อน) ซึ่ง SUM ข้ามไป — ผลลัพธ์ต้องเท่ากับวิธี Self Join</p></div></li>
+<li>ใช้ Recursive CTE แสดงทุกวิชาที่ต้องผ่านมาก่อน (ทุกชั้น) จึงจะลงวิชา EN004 Writing ได้ พร้อมระดับ <span class="hint">(anchor = EN004, JOIN ด้วย p.subid = c.pre)</span><div class="rv-ans"><sql title="เฉลย" run>WITH RECURSIVE chain AS (
+    SELECT subid, name, pre, 0 AS level
+    FROM   subject
+    WHERE  subid = 'EN004'
+    UNION ALL
+    SELECT p.subid, p.name, p.pre, c.level + 1
+    FROM   subject p
+           INNER JOIN chain c ON p.subid = c.pre
+)
+SELECT level, subid, name FROM chain WHERE level > 0 ORDER BY level;</sql><p>ได้ EN002 Reading (ระดับ 1) และ EN001 English (ระดับ 2) — ส่วน Self Join ครั้งเดียวจะเห็นแค่ EN002</p></div></li>
 </review>

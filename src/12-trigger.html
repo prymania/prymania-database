@@ -1,4 +1,4 @@
-<!--meta {"title":"บทที่ 12 · ทริกเกอร์ (Trigger)","kicker":"CHAPTER 12 · สัปดาห์ที่ 15","sub":"แนวคิดของทริกเกอร์ BEFORE / AFTER, OLD / NEW, การตรวจสอบข้อมูล การบันทึกประวัติ กฎธุรกิจข้ามตาราง การรักษาข้อมูลสรุปให้สอดคล้อง และข้อควรระวัง","img":"you-did-it.png"} -->
+<!--meta {"title":"บทที่ 12 · ทริกเกอร์ (Trigger)","kicker":"CHAPTER 12 · สัปดาห์ที่ 13","sub":"แนวคิดของทริกเกอร์ BEFORE / AFTER, OLD / NEW, การตรวจสอบข้อมูล การบันทึกประวัติ กฎธุรกิจข้ามตาราง การรักษาข้อมูลสรุปให้สอดคล้อง และข้อควรระวัง","img":"you-did-it.png"} -->
 
 <div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
 <li>อธิบายแนวคิด จังหวะการทำงาน (BEFORE / AFTER) และเหตุการณ์ของทริกเกอร์ได้</li>
@@ -86,7 +86,7 @@ FOR EACH ROW
 BEGIN
     IF NOT (OLD.grade <=> NEW.grade) THEN
         INSERT INTO grade_log (secid, stdid, old_grade, new_grade, changed_by, changed_at)
-        VALUES (OLD.secid, OLD.stdid, OLD.grade, NEW.grade, CURRENT_USER(), NOW());
+        VALUES (OLD.secid, OLD.stdid, OLD.grade, NEW.grade, USER(), NOW());
     END IF;
 END $$
 
@@ -94,6 +94,7 @@ DELIMITER ;</sql>
 <sql title="ทดสอบ — แก้เกรด 2 รายการ" run show="SELECT log_id, secid, stdid, old_grade, new_grade, changed_by FROM grade_log">UPDATE enroll SET grade = 'B' WHERE secid = 34 AND stdid = '70033';
 UPDATE enroll SET grade = 'D' WHERE secid = 1  AND stdid = '60006';</sql>
 <div class="box idea"><div class="box-t">💡 ตัวดำเนินการ &lt;=&gt;</div><p>NULL-safe equal: คืนค่าจริงเมื่อทั้งสองฝั่งเป็น NULL — จำเป็นเพราะเกรดเดิมอาจเป็น NULL (เช่น 70033 ใน secid 34) ถ้าใช้ <code>=</code> จะได้ Unknown และไม่ถูกบันทึก</p></div>
+<div class="box warn"><div class="box-t">⚠️ บันทึกผู้แก้ด้วย USER() ไม่ใช่ CURRENT_USER()</div><p>ทริกเกอร์ทำงานด้วยสิทธิ์ของ<b>ผู้สร้างทริกเกอร์</b> (DEFINER) — ภายในทริกเกอร์ <code>CURRENT_USER()</code> จึงคืนชื่อผู้สร้าง (เช่น root) เสมอ ไม่ว่าใครเป็นคนแก้เกรด Audit Log จะไร้ประโยชน์ ต้องใช้ <code>USER()</code> ซึ่งคืนบัญชีที่เข้าสู่ระบบจริง (ในตัวอย่างนี้เราเชื่อมต่อด้วย root จึงเห็นค่าเดียวกัน)</p></div>
 <h2 id="s5"><span class="sec">12.5</span> กฎธุรกิจที่ต้องอ่านข้อมูลหลายตาราง</h2>
 <p>CHECK บังคับกฎนี้ไม่ได้ เพราะต้องอ่านข้อมูลจากหลายตาราง</p>
 <sql title="สร้างทริกเกอร์" exec>DELIMITER $$
@@ -167,6 +168,30 @@ SELECT sec.secid, sec.n_student AS stored_count,
         FROM   enroll e
         WHERE  e.secid = sec.secid) AS real_count
 FROM   section sec WHERE secid = 52;</sql>
+<p><b>ยังไม่ครบ!</b> ถ้ามีการ<b>ย้ายกลุ่มเรียน</b>ด้วย UPDATE (เปลี่ยน secid ของแถวใน enroll) ทั้งสองทริกเกอร์ข้างบนไม่ทำงาน จำนวนของทั้งกลุ่มเดิมและกลุ่มใหม่จะผิด ต้องมีทริกเกอร์ AFTER UPDATE ด้วย</p>
+<sql title="ขั้นที่ 4 — ทริกเกอร์สำหรับการย้ายกลุ่มเรียน" exec>DELIMITER $$
+
+CREATE TRIGGER tg_enroll_after_update_count
+AFTER UPDATE ON enroll
+FOR EACH ROW
+BEGIN
+    IF NOT (OLD.secid <=> NEW.secid) THEN
+        UPDATE section SET n_student = n_student - 1 WHERE secid = OLD.secid;
+        UPDATE section SET n_student = n_student + 1 WHERE secid = NEW.secid;
+    END IF;
+END $$
+
+DELIMITER ;</sql>
+<sql title="ทดสอบ — ย้าย 60014 จากกลุ่ม 52 ไปกลุ่ม 51" run temp>UPDATE enroll SET secid = 51 WHERE secid = 52 AND stdid = '60014';
+SELECT sec.secid, sec.n_student AS stored_count,
+       (SELECT COUNT(*) FROM enroll e WHERE e.secid = sec.secid) AS real_count
+FROM   section sec WHERE secid IN (51, 52);</sql>
+<div class="box warn"><div class="box-t">⚠️ กับดักสำคัญของ MySQL: ON DELETE CASCADE ไม่กระตุ้นทริกเกอร์</div><p>แถวที่ถูกลบหรือแก้<b>โดยอัตโนมัติจาก FK (CASCADE / SET NULL)</b> จะไม่เรียกทริกเกอร์ของตารางลูก — เช่น ลบนิสิต 60014 ทิ้ง แถวของเขาใน enroll ถูกลบตามด้วย CASCADE แต่ <code>tg_enroll_after_delete_count</code> ไม่ทำงาน ค่า n_student จึงค้างไว้ที่ 1 ทั้งที่ไม่มีใครอยู่แล้ว (เช่นเดียวกับ Audit Log บน enroll — จะไม่มีบันทึกการลบเหล่านั้น)</p></div>
+<sql title="ทดลอง — ลบนิสิตที่ลงกลุ่ม 52 อยู่ แล้วเทียบจำนวน" run temp>DELETE FROM student WHERE stdid = '60014';
+SELECT sec.secid, sec.n_student AS stored_count,
+       (SELECT COUNT(*) FROM enroll e WHERE e.secid = sec.secid) AS real_count
+FROM   section sec WHERE secid = 52;</sql>
+<p>ทางแก้: ลบแถวลูกเองด้วยคำสั่ง DELETE ก่อน (ทริกเกอร์จะทำงาน) แล้วจึงลบแถวแม่ หรือเขียนทริกเกอร์ที่ตารางแม่ (เช่น BEFORE DELETE ON student) ให้ปรับค่าสรุปเอง หรือคำนวณใหม่เป็นระยะด้วยคำสั่งในขั้นที่ 1</p>
 <div class="box note"><div class="box-t">📝 ทางเลือก: วิว vs ทริกเกอร์</div><p>วิว (บทที่ 7) คำนวณใหม่ทุกครั้ง — ถูกต้องเสมอแต่ช้าเมื่อข้อมูลมาก ส่วนเก็บค่าไว้ + ทริกเกอร์ — อ่านเร็วมากแต่ซับซ้อนกว่า และถ้ามีคนปิดทริกเกอร์หรือแก้ข้อมูลด้วยวิธีอื่น ค่าอาจไม่ตรง ควรมีคำสั่งตรวจ/คำนวณใหม่ (เช่นขั้นที่ 1) ไว้ใช้เป็นระยะ</p></div>
 
 <h2 id="s7"><span class="sec">12.7</span> การจัดการทริกเกอร์ และข้อควรระวัง</h2>
@@ -221,7 +246,7 @@ AFTER DELETE ON student
 FOR EACH ROW
 BEGIN
     INSERT INTO student_deleted_log
-    VALUES (OLD.stdid, OLD.name, OLD.major, CURRENT_USER(), NOW());
+    VALUES (OLD.stdid, OLD.name, OLD.major, USER(), NOW());
 END $$
 DELIMITER ;
 
@@ -286,7 +311,7 @@ AFTER DELETE ON student
 FOR EACH ROW
 BEGIN
     INSERT INTO student_deleted_log
-    VALUES (OLD.stdid, OLD.name, OLD.major, CURRENT_USER(), NOW());
+    VALUES (OLD.stdid, OLD.name, OLD.major, USER(), NOW());
 END $$
 DELIMITER ;</sql><sql title="เฉลย" run temp show="SELECT stdid, name, major, deleted_by FROM student_deleted_log">DELETE FROM student WHERE stdid = '60016';</sql><p>ใช้ <b>OLD</b> เพราะเหตุการณ์ DELETE มีเฉพาะข้อมูลเดิม และใช้ AFTER เพื่อบันทึกเมื่อการลบสำเร็จแล้วเท่านั้น</p></div></li>
 <li>เขียนทริกเกอร์บันทึกประวัติการแก้เกรด และอธิบายว่าทำไมต้องใช้ <code>&lt;=&gt;</code> แทน <code>=</code> <span class="hint">(NULL-safe equal)</span><div class="rv-ans"><sql title="เฉลย" exec>CREATE TABLE grade_log (
@@ -306,7 +331,7 @@ FOR EACH ROW
 BEGIN
     IF NOT (OLD.grade <=> NEW.grade) THEN
         INSERT INTO grade_log (secid, stdid, old_grade, new_grade, changed_by, changed_at)
-        VALUES (OLD.secid, OLD.stdid, OLD.grade, NEW.grade, CURRENT_USER(), NOW());
+        VALUES (OLD.secid, OLD.stdid, OLD.grade, NEW.grade, USER(), NOW());
     END IF;
 END $$
 DELIMITER ;</sql><sql title="เฉลย" run temp show="SELECT secid, stdid, old_grade, new_grade FROM grade_log">UPDATE enroll SET grade = 'B' WHERE secid = 34 AND stdid = '70033';   -- เดิมเป็น NULL

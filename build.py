@@ -253,7 +253,8 @@ def render_fig(m):
     n, w, no, cap = m.group(1), m.group(2), m.group(3), m.group(4)
     style = f' style="max-width:{w}px"' if w else ""
     no = no or n.replace("-", ".")
-    return (f'<figure class="shot"><img src="image/fig{n}.jpg" alt="ภาพที่ {no}" loading="lazy"{style}>'
+    ext = "svg" if (OUT / "image" / f"fig{n}.svg").exists() else "jpg"   # มีภาพ SVG ที่วาดใหม่ให้ใช้ก่อน
+    return (f'<figure class="shot"><img src="image/fig{n}.{ext}" alt="ภาพที่ {no}" loading="lazy"{style}>'
             f'<figcaption><b>ภาพที่ {no}</b> {cap}</figcaption></figure>')
 
 def toc_html(body):

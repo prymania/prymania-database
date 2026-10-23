@@ -1,4 +1,4 @@
-<!--meta {"title":"บทที่ 9 · ทรานแซกชัน (Transaction)","kicker":"CHAPTER 09 · สัปดาห์ที่ 13","sub":"แนวคิดทรานแซกชัน คุณสมบัติ ACID autocommit COMMIT ROLLBACK SAVEPOINT Implicit Commit การทำงานพร้อมกัน ระดับการแยกรายการ และการล็อก","img":"drink2.png"} -->
+<!--meta {"title":"บทที่ 9 · ทรานแซกชัน (Transaction)","kicker":"CHAPTER 09 · สัปดาห์ที่ 10","sub":"แนวคิดทรานแซกชัน คุณสมบัติ ACID autocommit COMMIT ROLLBACK SAVEPOINT Implicit Commit การทำงานพร้อมกัน ระดับการแยกรายการ และการล็อก","img":"drink2.png"} -->
 
 <div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
 <li>อธิบายแนวคิดของทรานแซกชันและคุณสมบัติ ACID ได้</li>
@@ -193,7 +193,11 @@ SELECT lecid, salary FROM lecturer WHERE lecid = 't01';</sql>
 
 <ex no="9.4" title="ระบุปัญหาและระดับที่เหมาะสม" level="2">
 <p>ระบบลงทะเบียน: นิสิตกดลงทะเบียน → ระบบนับจำนวนคนในกลุ่ม → ถ้าน้อยกว่า 40 จึง INSERT — ถ้านิสิต 2 คนกดพร้อมกันตอนมี 39 คน จะเกิดอะไรขึ้น และควรแก้อย่างไร</p>
-<answer><p>ทั้งสองคนนับได้ 39 พร้อมกัน → ทั้งคู่ INSERT สำเร็จ → กลุ่มมี 41 คน (คล้าย Lost Update / Phantom)</p><p>แก้โดยทำทั้งหมดในทรานแซกชันเดียว และล็อกข้อมูลที่ใช้ตัดสินใจ เช่น <code>SELECT … FROM section WHERE secid = ? FOR UPDATE</code> ก่อนนับ (session ที่สองต้องรอ) หรือใช้ระดับ SERIALIZABLE เฉพาะทรานแซกชันนี้ หรือบังคับด้วย Trigger (บทที่ 12)</p></answer>
+<answer><p>ทั้งสองคนนับได้ 39 พร้อมกัน → ทั้งคู่ INSERT สำเร็จ → กลุ่มมี 41 คน (คล้าย Lost Update / Phantom)</p><p>แก้ได้ 3 แนวทาง (ทุกแนวทางต้องทำใน<b>ทรานแซกชันเดียว</b>)</p>
+<ol><li><b>ล็อกแถวที่ใช้ตัดสินใจ</b> — <code>SELECT … FROM section WHERE secid = ? FOR UPDATE</code> ก่อนนับ session ที่สองต้องรอจนคนแรก COMMIT</li>
+<li><b>UPDATE แบบมีเงื่อนไขในคำสั่งเดียว (Atomic Update)</b> — ถ้าเก็บจำนวนที่นั่งคงเหลือไว้ <code>UPDATE section SET seats_left = seats_left - 1 WHERE secid = ? AND seats_left &gt; 0</code> แล้วตรวจจำนวนแถวที่ถูกแก้ ถ้าเป็น 0 แปลว่าเต็ม → ROLLBACK (InnoDB ล็อกแถวให้เองระหว่าง UPDATE จึงไม่มีทางลบเกิน)</li>
+<li><b>SERIALIZABLE</b> เฉพาะทรานแซกชันนี้ — ถูกต้องแต่รอกันมากและเกิด Deadlock ได้บ่อย</li></ol>
+<div class="box warn"><div class="box-t">⚠️ Trigger อย่างเดียวไม่พอ</div><p>ทริกเกอร์ที่ <code>SELECT COUNT(*)</code> ก่อน INSERT (บทที่ 12) ก็ยังเจอปัญหาเดียวกัน — ใน REPEATABLE READ ทั้งสอง session อ่านได้ 39 จาก snapshot ของตัวเองแล้วผ่านทั้งคู่ ทริกเกอร์จึงต้องใช้ร่วมกับการล็อก (ข้อ 1 หรือ 2)</p></div></answer>
 </ex>
 
 <review>

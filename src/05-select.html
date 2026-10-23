@@ -46,8 +46,9 @@ FROM     ชื่อตาราง
 FROM   student;</sql>
 <sql title="ตัวอย่างที่ 5.3 — ชื่อแทน (Alias) ด้วย AS" run max="5">SELECT stdid AS student_id,
        name  AS student_name,
-       gpa   AS 'grade point'
+       gpa   AS `grade point`
 FROM   student;</sql>
+<p>ชื่อแทนที่มีช่องว่างต้องครอบด้วย backtick <code>`…`</code> (ของ MySQL) หรือ <code>"…"</code> (มาตรฐาน SQL) — MySQL ยอมรับ <code>'…'</code> ด้วย แต่ไม่ควรใช้ เพราะ <code>'…'</code> คือข้อความ (string) และ DBMS อื่นไม่รองรับ</p>
 <sql title="ตัวอย่างที่ 5.4 — กำจัดค่าซ้ำด้วย DISTINCT" run>SELECT DISTINCT major
 FROM   student;</sql>
 <sql title="ตัวอย่างที่ 5.5 — คำนวณคอลัมน์ใหม่" run max="6">SELECT lecid, name, salary,
@@ -179,7 +180,7 @@ FROM   lecturer
 WHERE  salary IS NOT NULL
 ORDER  BY salary DESC
 LIMIT  4 OFFSET 3;</sql>
-<div class="box warn"><div class="box-t">⚠️ LIMIT กับค่าที่เท่ากัน</div><p>Yoda (t03) และ Yoda (t14) มีเงินเดือน 80,000 เท่ากัน ถ้าจะเอา “อันดับ 1” ด้วย LIMIT 1 จะได้แค่คนเดียวแบบสุ่ม — วิธีที่ถูกคือใช้ Subquery (บทที่ 6)</p></div>
+<div class="box warn"><div class="box-t">⚠️ LIMIT กับค่าที่เท่ากัน</div><p>Yoda (t03) และ Yoda (t14) มีเงินเดือน 80,000 เท่ากัน ถ้าจะเอา “อันดับ 1” ด้วย LIMIT 1 จะได้แค่คนเดียวแบบสุ่ม — วิธีที่ถูกคือใช้ Subquery (บทที่ 6) หรือ <code>RANK()</code> (Window Function — หัวข้อ 7.11)</p></div>
 
 <ex no="5.7" title="ORDER BY + LIMIT" level="1">
 <p>จงแสดงรายวิชา 3 วิชาที่มีหน่วยกิตมากที่สุด ถ้าหน่วยกิตเท่ากันให้เรียงตามรหัสวิชา</p>

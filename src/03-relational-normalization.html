@@ -104,7 +104,7 @@ teach    ( <u>lid</u>, <u>sid</u>, term )      -- term เป็นแอตท�
 
 <ex no="3.4" title="แปลง ER ระบบข้อมูลบุคลากร" level="2">
 <p>จงแปลงแผนภาพ ER ต่อไปนี้ (จากบทที่ 2) เป็นตาราง ระบุ PK (ขีดเส้นใต้) และ FK (*)</p>
-<fig n="2-27" w="520">ER ระบบข้อมูลบุคลากร</fig>
+<fig n="2-27" w="790">ER ระบบข้อมูลบุคลากร</fig>
 <answer><div class="code"><div class="code-head"><span>เฉลย</span></div><pre>department ( <u>DID</u>, Name, Room, head_eid* )      -- head of (1:1) → FK อ้างอิง employee
 employee   ( <u>EID</u>, Name, Salary, Birthday, DID* ) -- work at (1:M) → FK ฝั่งพนักงาน
 emp_phone  ( <u>EID</u>*, <u>Phone</u> )                    -- ถ้า Phone เป็นพหุค่า
@@ -188,8 +188,9 @@ enroll  ( <u>stdid</u>, <u>subid</u>, grade )</pre></div>
 <p><code>stdid → major → major_name, major_head</code> เปลี่ยนหัวหน้าสาขา CS ต้องแก้ทุกแถวของนิสิต CS → แยกตาราง</p>
 <div class="code"><div class="code-head"><span>3NF</span></div><pre>student ( <u>stdid</u>, name, major* )
 major   ( <u>major</u>, major_name, major_head )</pre></div>
-<h3>3.7.4 BCNF — ตัวกำหนดทุกตัวต้องเป็น Candidate Key</h3>
-<p>ต่างจาก 3NF เฉพาะกรณีมีคีย์คู่แข่งหลายชุดซ้อนทับกัน เช่น <code>TEACHING(student, subject, lecturer)</code> โดยอาจารย์ 1 คนสอนวิชาเดียว → <code>lecturer → subject</code> แต่ lecturer ไม่ใช่ candidate key จึงแยกเป็น <code>TEACHES(lecturer, subject)</code> และ <code>ENROLLS(student, lecturer)</code></p>
+<h3>3.7.4 BCNF — ตัวกำหนดทุกตัวต้องเป็น Super Key</h3>
+<p>นิยาม: ทุก FD <code>X → Y</code> ที่ไม่ใช่ trivial (Y ไม่ได้เป็นส่วนหนึ่งของ X) ตัวกำหนด <b>X ต้องเป็น Super Key</b> (คือมี Candidate Key อยู่ข้างใน) — ต่างจาก 3NF เฉพาะกรณีมีคีย์คู่แข่งหลายชุดซ้อนทับกัน เช่น <code>TEACHING(student, subject, lecturer)</code> โดยอาจารย์ 1 คนสอนวิชาเดียว → <code>lecturer → subject</code> แต่ lecturer ไม่ใช่ Super Key จึงแยกเป็น <code>TEACHES(lecturer, subject)</code> และ <code>ENROLLS(student, lecturer)</code></p>
+<div class="box note"><div class="box-t">📝 ราคาของ BCNF</div><p>หลังแยกตาราง FD <code>(student, subject) → lecturer</code> ไม่อยู่ในตารางใดตารางหนึ่งอีกแล้ว (เสีย <b>Dependency Preservation</b>) — DBMS จึงห้าม “นิสิตคนเดียวมีอาจารย์ 2 คนในวิชาเดียวกัน” ด้วยคีย์ไม่ได้ ต้องตรวจด้วยทริกเกอร์หรือโปรแกรม ในทางปฏิบัติจึงมักหยุดที่ 3NF ถ้าการแยกถึง BCNF ทำให้เสียกฎสำคัญ</p></div>
 <h3>3.7.5 Denormalization</h3>
 <p>ยอมให้ซ้ำซ้อนบางส่วน<b>โดยเจตนา</b> เพื่อลดการ JOIN เพิ่มความเร็วการอ่าน (เช่น ระบบรายงาน คลังข้อมูล) ต้องแลกกับความเสี่ยงข้อมูลไม่สอดคล้อง จึงควรมีกลไกรักษา เช่น Trigger</p>
 <div class="box note"><div class="box-t">📝 ในทางปฏิบัติ</div><p>ระบบงานประจำวัน (OLTP) ควรทำให้ถึง <b>3NF</b> เป็นอย่างน้อย — ตาราง <code>student.gpa</code> ในกรณีศึกษาเป็นตัวอย่างการดีนอร์มัลไลซ์ เพราะ GPA จริงคำนวณได้จาก enroll + subject (บทที่ 7)</p></div>
@@ -198,7 +199,7 @@ major   ( <u>major</u>, major_name, major_head )</pre></div>
 <p>กำหนด <code>ORDER_DETAIL(order_id, product_id, product_name, unit_price, qty, customer_id, customer_name, order_date)</code> PK = (order_id, product_id) จงหา FD แล้วแยกตารางให้อยู่ใน 3NF</p>
 <answer><div class="code"><div class="code-head"><span>FD</span></div><pre>product_id          → product_name, unit_price        (Partial)
 order_id            → customer_id, order_date         (Partial)
-customer_id         → customer_name                   (Transitive ผ่าน order_id)
+customer_id         → customer_name                   (Transitive: order_id → customer_id → customer_name)
 order_id,product_id → qty                             (Full)</pre></div>
 <div class="code"><div class="code-head"><span>3NF</span></div><pre>product    ( <u>product_id</u>, product_name, unit_price )
 customer   ( <u>customer_id</u>, customer_name )

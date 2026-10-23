@@ -59,7 +59,7 @@ AFTER DELETE ON student
 FOR EACH ROW
 BEGIN
     INSERT INTO student_deleted_log
-    VALUES (OLD.stdid, OLD.name, OLD.major, CURRENT_USER(), NOW());
+    VALUES (OLD.stdid, OLD.name, OLD.major, USER(), NOW());
 END $$
 DELIMITER ;
 ```
@@ -86,7 +86,7 @@ FOR EACH ROW
 BEGIN
     IF NOT (OLD.grade <=> NEW.grade) THEN
         INSERT INTO grade_log (secid, stdid, old_grade, new_grade, changed_by, changed_at)
-        VALUES (OLD.secid, OLD.stdid, OLD.grade, NEW.grade, CURRENT_USER(), NOW());
+        VALUES (OLD.secid, OLD.stdid, OLD.grade, NEW.grade, USER(), NOW());
     END IF;
 END $$
 DELIMITER ;

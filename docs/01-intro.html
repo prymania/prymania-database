@@ -48,7 +48,7 @@
   <img src="icon/thinking.png" alt="" class="sidebar-img">
 </aside>
 <main class="content">
-<div class="page-head"><span class="kicker">CHAPTER 01 · สัปดาห์ที่ 1</span><h1>บทที่ 1 · ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</h1><p class="sub">ข้อมูล สารสนเทศ ระบบแฟ้มข้อมูล DBMS สถาปัตยกรรม 3 ระดับ แบบจำลองข้อมูล และวงจรการพัฒนาระบบฐานข้อมูล</p></div>
+<div class="page-head"><span class="kicker">CHAPTER 01 · สัปดาห์ที่ 1</span><h1>บทที่ 1 · ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</h1><p class="sub">ข้อมูล สารสนเทศ ระบบแฟ้มข้อมูล DBMS สถาปัตยกรรม 3 ระดับ แบบจำลองข้อมูล ฐานข้อมูลยุคใหม่ (Cloud, NewSQL, Vector) AI กับ SQL และวงจรการพัฒนาระบบฐานข้อมูล</p></div>
 
 
 <div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
@@ -57,6 +57,7 @@
 <li>อธิบายหน้าที่และองค์ประกอบของระบบจัดการฐานข้อมูล (DBMS) ได้</li>
 <li>อธิบายสถาปัตยกรรม 3 ระดับ และความเป็นอิสระของข้อมูลได้</li>
 <li>จำแนกแบบจำลองข้อมูล ระบุบทบาทบุคลากร และอธิบายวงจรการพัฒนาระบบฐานข้อมูลได้</li>
+<li>เลือกกลุ่มฐานข้อมูลยุคใหม่ (Cloud DBaaS, NoSQL, NewSQL, Data Warehouse, Vector DB) ให้เหมาะกับงาน และใช้ AI ช่วยเขียน SQL อย่างรู้เท่าทันได้</li>
 </ol></div>
 
 <div class="pagetoc"><div class="pagetoc-t">📑 ในบทนี้</div><ul><li><a href="#s1">1.1  ข้อมูล สารสนเทศ และฐานข้อมูล</a></li><li><a href="#s2">1.2  ระบบแฟ้มข้อมูลแบบเดิม และปัญหาที่เกิดขึ้น</a></li><li><a href="#s3">1.3  ระบบจัดการฐานข้อมูล (DBMS)</a></li><li><a href="#s4">1.4  องค์ประกอบของระบบฐานข้อมูล</a></li><li><a href="#s5">1.5  สถาปัตยกรรมของระบบฐานข้อมูล</a></li><li><a href="#s6">1.6  แบบจำลองข้อมูล และประเภทของฐานข้อมูล</a></li><li><a href="#s7">1.7  ข้อดีและข้อจำกัดของระบบฐานข้อมูล</a></li><li><a href="#s8">1.8  วงจรการพัฒนาระบบฐานข้อมูล</a></li></ul></div>
@@ -188,6 +189,28 @@
 <div class="ex" id="ex1.6"><div class="ex-head"><span class="ex-badge">ฝึก 1.6</span><span class="ex-title">Relational หรือ NoSQL</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>ระบบต่อไปนี้ควรเลือกฐานข้อมูลแบบใด<br>(ก) ระบบลงทะเบียนเรียนที่ต้องการความถูกต้องของเกรดและการเชื่อมโยงนิสิต-รายวิชา<br>(ข) ระบบเก็บ log การคลิกของผู้ใช้เว็บวันละหลายสิบล้านรายการ ที่รูปแบบข้อมูลเปลี่ยนบ่อย</p>
 <button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>Relational</b> — ข้อมูลมีโครงสร้างชัดเจน มีความสัมพันธ์ ต้องการกฎความคงสภาพและทรานแซกชัน</p><p>(ข) <b>NoSQL</b> — ปริมาณมาก โครงสร้างไม่คงที่ ต้องขยายระบบแนวนอน</p></div></div></div>
 
+<h3>1.6.1 ระบบฐานข้อมูลยุคใหม่ที่ควรรู้จัก</h3>
+<p>แนวคิดเชิงสัมพันธ์ที่เรียนในวิชานี้ยังเป็นแกนหลักของระบบงานส่วนใหญ่ แต่วิธี<b>ติดตั้ง ขยาย และใช้งาน</b>ฐานข้อมูลเปลี่ยนไปมากในช่วง 10 ปีหลัง</p>
+<table class="tbl"><tr><th>กลุ่ม</th><th>แนวคิด</th><th>ตัวอย่างผลิตภัณฑ์</th><th>เหมาะกับ</th></tr>
+<tr><td><b>Cloud DBaaS</b><br>(Database as a Service)</td><td>เช่าฐานข้อมูลบนคลาวด์ ผู้ให้บริการดูแลการติดตั้ง สำรองข้อมูล อัปเดต และขยายเครื่องให้</td><td>Amazon RDS / Aurora, Google Cloud SQL, Azure SQL Database, Supabase</td><td>แทบทุกระบบใหม่ — ลดงาน DBA ด้านเครื่อง แต่ต้องออกแบบและเขียน SQL เองเหมือนเดิม</td></tr>
+<tr><td><b>NoSQL</b> 4 แบบ</td><td>Document · Key-Value · Wide-Column · Graph</td><td>MongoDB · Redis · Cassandra · Neo4j</td><td>ข้อมูลโครงสร้างยืดหยุ่น, แคชความเร็วสูง, log ปริมาณมหาศาล, เครือข่ายความสัมพันธ์ (เพื่อนของเพื่อน)</td></tr>
+<tr><td><b>NewSQL / Distributed SQL</b></td><td>ใช้ SQL และรับประกัน ACID เหมือนเชิงสัมพันธ์ แต่กระจายข้อมูลหลายเครื่องได้แบบ NoSQL</td><td>Google Spanner, CockroachDB, TiDB, YugabyteDB</td><td>ระบบที่ต้องการทั้งความถูกต้องและรองรับผู้ใช้ทั่วโลก เช่น การเงิน อีคอมเมิร์ซ</td></tr>
+<tr><td><b>Data Warehouse / Lakehouse</b></td><td>ฐานข้อมูลสำหรับ<b>วิเคราะห์</b> (OLAP) อ่านข้อมูลจำนวนมากเพื่อสรุป ต่างจากระบบงานประจำวัน (OLTP)</td><td>Google BigQuery, Snowflake, Databricks</td><td>รายงานผู้บริหาร Dashboard — ยังใช้ SQL เป็นภาษาหลัก</td></tr>
+<tr><td><b>Vector Database</b></td><td>เก็บ “เวกเตอร์” (ตัวเลขหลายร้อยมิติที่ AI แปลงจากข้อความ/ภาพ) แล้วค้นหา<b>ตามความหมาย</b> ไม่ใช่ตามคำที่ตรงกัน</td><td>pgvector (PostgreSQL), MySQL 9 (ชนิด VECTOR), Pinecone, Milvus</td><td>ค้นหาเชิงความหมาย ระบบแนะนำ และ Chatbot ที่ตอบจากเอกสารขององค์กร (RAG)</td></tr>
+</table>
+<div class="box note"><div class="box-t">📝 ในทางปฏิบัติ: ใช้หลายแบบร่วมกัน (Polyglot Persistence)</div><p>ระบบลงทะเบียนเรียนจริงอาจเก็บข้อมูลนิสิตและเกรดใน <b>MySQL</b> (ต้องถูกต้อง มี ACID) ใช้ <b>Redis</b> เก็บ session ผู้ใช้ช่วงลงทะเบียนที่คนเข้าพร้อมกันมาก และส่งข้อมูลไป <b>Data Warehouse</b> เพื่อทำรายงานผู้บริหาร — แต่ทุกแบบยังต้องการคนที่เข้าใจการออกแบบข้อมูล คีย์ และ SQL ซึ่งคือสิ่งที่เรียนในวิชานี้</p></div>
+
+<h3>1.6.2 AI ช่วยเขียน SQL — แล้วทำไมยังต้องเรียน SQL?</h3>
+<p>ปัจจุบันเครื่องมือ AI (เช่น ChatGPT, Claude, Gemini, GitHub Copilot) และ DBMS หลายตัวแปลงคำถามภาษาคนเป็น SQL ได้ (<span class="term">Text-to-SQL</span>) เช่น พิมพ์ว่า “นิสิตสาขา CS ที่ไม่เคยได้ A” แล้วได้คำสั่ง SELECT ทันที — มีประโยชน์มาก แต่ผู้ใช้ต้อง<b>อ่านและตรวจคำสั่งเป็น</b></p>
+<div class="vs">
+<div class="good"><h4>✅ ใช้ AI ได้ดีเมื่อ</h4><ul><li>ร่างคำสั่งแรก แล้วเรานำมาตรวจและปรับ</li><li>อธิบายคำสั่ง SQL ที่ยาวหรือ error ที่อ่านไม่เข้าใจ</li><li>แนะนำดัชนีหรือวิธีเขียนแบบอื่นให้เปรียบเทียบ</li></ul></div>
+<div class="bad"><h4>⚠️ AI ผิดได้บ่อยในเรื่อง</h4><ul><li>เดาชื่อตาราง/คอลัมน์ที่ไม่มีอยู่จริง</li><li>ลืมกรณี NULL (เช่น <code>NOT IN</code> กับค่าว่าง — บทที่ 6)</li><li>ใช้ INNER JOIN ทั้งที่ต้อง LEFT JOIN ทำให้แถวหายเงียบ ๆ</li><li>เขียน UPDATE / DELETE ที่กระทบแถวมากเกินตั้งใจ</li></ul></div>
+</div>
+<div class="box warn"><div class="box-t">⚠️ กติกาเมื่อใช้ AI กับฐานข้อมูล</div><p>(1) รันคำสั่งที่ AI เขียนกับ<b>ข้อมูลทดสอบ</b>ก่อนเสมอ และตรวจจำนวนแถวที่ได้ว่าสมเหตุสมผล (2) คำสั่งที่แก้ไขข้อมูลต้อง SELECT ด้วยเงื่อนไขเดียวกันดูก่อน (บทที่ 4) (3) <b>ห้ามวางข้อมูลส่วนบุคคลจริง</b> (ชื่อ เลขบัตรประชาชน เกรด) ลงในเครื่องมือ AI สาธารณะ — ขัดกับ พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA) ให้ส่งเพียงโครงสร้างตาราง (CREATE TABLE) ก็พอ</p></div>
+
+<div class="ex" id="ex1.7"><div class="ex-head"><span class="ex-badge">ฝึก 1.7</span><span class="ex-title">เลือกระบบฐานข้อมูลยุคใหม่</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงเลือกกลุ่มฐานข้อมูลจากหัวข้อ 1.6.1 ที่เหมาะกับแต่ละงาน พร้อมเหตุผล<br>(ก) มหาวิทยาลัยไม่มี DBA ประจำ ต้องการระบบลงทะเบียนที่สำรองข้อมูลอัตโนมัติ<br>(ข) Chatbot ตอบคำถามนิสิตจากคู่มือระเบียบการ 300 หน้า<br>(ค) ผู้บริหารต้องการวิเคราะห์ผลการเรียนย้อนหลัง 20 ปีของทุกคณะ<br>(ง) แอปหาเพื่อนร่วมวิชาที่แนะนำ “เพื่อนของเพื่อนที่ลงวิชาเดียวกัน”</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>Cloud DBaaS</b> (เช่น MySQL บน Amazon RDS / Cloud SQL) — ผู้ให้บริการดูแลการสำรองและอัปเดต แต่ยังเป็นฐานข้อมูลเชิงสัมพันธ์ที่ใช้ SQL เหมือนเดิม<br>(ข) <b>Vector Database</b> — แปลงเนื้อหาคู่มือเป็นเวกเตอร์ แล้วค้นหาย่อหน้าที่ความหมายใกล้กับคำถาม ส่งให้ AI สรุปคำตอบ (RAG)<br>(ค) <b>Data Warehouse</b> — งานวิเคราะห์ (OLAP) อ่านข้อมูลจำนวนมากเพื่อสรุป ไม่ควรรันบนฐานข้อมูลที่ใช้ลงทะเบียนจริง<br>(ง) <b>Graph Database</b> (NoSQL) — คำถามแบบเดินตามความสัมพันธ์หลายชั้นทำได้ตรงกว่า JOIN หลายรอบ</p></div></div></div>
+
 <h2 id="s7"><span class="sec">1.7</span> ข้อดีและข้อจำกัดของระบบฐานข้อมูล</h2>
 <div class="vs">
 <div class="good"><h4>✅ ข้อดี</h4><ul><li>ลดความซ้ำซ้อนและความไม่สอดคล้อง</li><li>ใช้ข้อมูลร่วมกันได้หลายหน่วยงาน</li><li>บังคับใช้มาตรฐานและกฎจากส่วนกลาง</li><li>กำหนดสิทธิ์ได้ละเอียดถึงคอลัมน์</li><li>สำรอง/กู้คืนได้อย่างเป็นระบบ</li><li>รองรับผู้ใช้จำนวนมากพร้อมกัน</li></ul></div>
@@ -206,7 +229,7 @@
 </table>
 <div class="box warn"><div class="box-t">⚠️ ข้อควรระวัง</div><p>ความผิดพลาดที่พบบ่อยที่สุดของผู้เริ่มต้น คือ <b>ข้ามขั้นตอนออกแบบแล้วสร้างตารางทันที</b> ซึ่งมักได้โครงสร้างที่ข้อมูลซ้ำซ้อนและแก้ไขยากในภายหลัง</p></div>
 
-<div class="ex" id="ex1.7"><div class="ex-head"><span class="ex-badge">ฝึก 1.7</span><span class="ex-title">เรียงลำดับให้ถูก</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>นิสิตกลุ่มหนึ่งทำโปรเจคระบบร้านกาแฟ จงเรียงลำดับงานต่อไปนี้ให้ถูกต้อง: (A) เขียน CREATE TABLE (B) สัมภาษณ์เจ้าของร้าน (C) วาด ER (D) ตรวจว่าตารางอยู่ใน 3NF (E) แปลง ER เป็นตาราง (F) เขียนรายงานยอดขายด้วย SELECT</p>
+<div class="ex" id="ex1.8"><div class="ex-head"><span class="ex-badge">ฝึก 1.8</span><span class="ex-title">เรียงลำดับให้ถูก</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>นิสิตกลุ่มหนึ่งทำโปรเจคระบบร้านกาแฟ จงเรียงลำดับงานต่อไปนี้ให้ถูกต้อง: (A) เขียน CREATE TABLE (B) สัมภาษณ์เจ้าของร้าน (C) วาด ER (D) ตรวจว่าตารางอยู่ใน 3NF (E) แปลง ER เป็นตาราง (F) เขียนรายงานยอดขายด้วย SELECT</p>
 <button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p><b>B → C → E → D → A → F</b></p></div></div></div>
 
 <div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
@@ -245,6 +268,12 @@ ORDER  BY ORDINAL_POSITION;</pre></div>
 <li>จงเรียงลำดับขั้นตอนในวงจรการพัฒนาระบบฐานข้อมูล และระบุผลผลิตของแต่ละขั้น <span class="hint">(Requirement → ER → Table → Normalize → SQL)</span><div class="rv-ans"><p>(1) รวบรวมและวิเคราะห์ความต้องการ → เอกสารความต้องการ (2) ออกแบบเชิงแนวคิด → แผนภาพ ER (3) ออกแบบเชิงตรรกะ → โครงสร้างตารางที่ผ่านนอร์มัลไลเซชัน (4) ออกแบบเชิงกายภาพ → ชนิดข้อมูล ดัชนี (5) สร้างและนำไปใช้ → สคริปต์ SQL ฐานข้อมูลจริง (6) ทดสอบ บำรุงรักษา และปรับปรุง</p></div></li>
 <li>เหตุใดการข้ามขั้นตอนออกแบบแล้วสร้างตารางทันทีจึงเป็นความผิดพลาดที่พบบ่อย ยกตัวอย่างผลเสีย <span class="hint">(ซ้ำซ้อน แก้ยาก)</span><div class="rv-ans"><p>เพราะดูเหมือนเร็ว แต่ได้ตารางที่ไม่ผ่านนอร์มัลไลเซชัน เช่น เก็บชื่อวิชาและหน่วยกิตซ้ำในทุกแถวของการลงทะเบียน → แก้ชื่อวิชาต้องแก้หลายแถว (Update Anomaly) ลบการลงทะเบียนสุดท้ายแล้วข้อมูลวิชาหายไปด้วย (Deletion Anomaly) และเมื่อมีข้อมูลแล้วการแก้โครงสร้างทำได้ยากและเสี่ยง</p></div></li>
 <li>เลือกระบบงานที่คุ้นเคย (เช่น ยืม-คืนหนังสือ) แล้วระบุข้อมูลที่ต้องเก็บ กลุ่มผู้ใช้ และข้อมูลที่แต่ละกลุ่มควรเห็น <span class="hint">(External view แต่ละกลุ่ม)</span><div class="rv-ans"><p>ตัวอย่างระบบห้องสมุด — ข้อมูล: สมาชิก หนังสือ หมวดหมู่ ผู้แต่ง การยืม-คืน ค่าปรับ</p><ul><li><b>สมาชิก</b> — ค้นหนังสือ ดูสถานะว่าง ประวัติการยืมและค่าปรับของตนเอง</li><li><b>บรรณารักษ์</b> — ข้อมูลหนังสือและสมาชิกทั้งหมด บันทึกยืม-คืน ค่าปรับ</li><li><b>ผู้บริหาร</b> — รายงานสรุป เช่น หนังสือยอดนิยม จำนวนการยืมต่อเดือน (ไม่จำเป็นต้องเห็นข้อมูลส่วนตัวของสมาชิก)</li></ul></div></li>
+<li class="part">ฐานข้อมูลยุคใหม่และ AI</li>
+<li>จงเปรียบเทียบ Cloud DBaaS, NewSQL และ Vector Database ว่าแต่ละแบบแก้ปัญหาอะไร และยกตัวอย่างผลิตภัณฑ์อย่างละ 1 ตัว <span class="hint">(หัวข้อ 1.6.1)</span><div class="rv-ans"><ul><li><b>Cloud DBaaS</b> — แก้ภาระการดูแลเครื่อง (ติดตั้ง สำรอง อัปเดต ขยาย) ผู้ให้บริการทำให้ เช่น Amazon RDS, Google Cloud SQL — ตัวฐานข้อมูลข้างในยังเป็น MySQL/PostgreSQL ที่ใช้ SQL ปกติ</li><li><b>NewSQL / Distributed SQL</b> — แก้ข้อจำกัดที่ฐานข้อมูลเชิงสัมพันธ์ขยายหลายเครื่องยาก โดยยังคง SQL และ ACID เช่น Google Spanner, CockroachDB, TiDB</li><li><b>Vector Database</b> — แก้ปัญหาการค้นหา “ตามความหมาย” ซึ่ง LIKE หรือดัชนีปกติทำไม่ได้ เก็บเวกเตอร์ที่ AI สร้างจากข้อความ/ภาพ เช่น pgvector, Pinecone ใช้กับระบบแนะนำและ Chatbot แบบ RAG</li></ul></div></li>
+<li>นิสิตใช้ AI สร้างคำสั่ง SQL “ลบนิสิตที่ไม่ได้ลงทะเบียนวิชาใดเลย” จงระบุขั้นตอนตรวจสอบก่อนนำไปรันจริง และข้อมูลใดไม่ควรส่งให้ AI <span class="hint">(ตรวจชื่อตาราง, SELECT ก่อน, PDPA)</span><div class="rv-ans"><ul><li>ตรวจว่าชื่อตารางและคอลัมน์ในคำสั่งมีอยู่จริง และเงื่อนไขตรงกับโจทย์ (เช่น ใช้ NOT EXISTS หรือ LEFT JOIN … IS NULL ถูกต้อง ไม่ใช่ NOT IN ที่พังเมื่อเจอ NULL)</li><li>เปลี่ยน DELETE เป็น SELECT ด้วยเงื่อนไขเดียวกัน ดูว่าได้นิสิตกี่คน ตรงตามที่คาดไหม แล้วจึงรันใน START TRANSACTION เพื่อ ROLLBACK ได้ถ้าผิด (บทที่ 4, 9)</li><li>ทดสอบกับฐานข้อมูลทดสอบก่อนฐานข้อมูลจริง และคำนึงถึงผลต่อเนื่อง เช่น ON DELETE CASCADE</li><li><b>ไม่ควรส่ง</b>ข้อมูลส่วนบุคคลจริง (ชื่อ เลขบัตรประชาชน เกรด ที่อยู่) ให้ AI สาธารณะ — ส่งเพียงโครงสร้างตาราง (CREATE TABLE) และคำอธิบายโจทย์ก็เพียงพอ</li></ul><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT s.stdid, s.name
+FROM   student s
+WHERE  NOT EXISTS (SELECT 1 FROM enroll e WHERE e.stdid = s.stdid);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th></tr><tr><td>60014</td><td>Light</td></tr><tr><td>60015</td><td>Near</td></tr><tr><td>60016</td><td>Mello</td></tr><tr><td>70035</td><td>Nami</td></tr></table></div></div></li>
 </ol></div>
 
 <div class="pager"><a class="pg" href="index.html">← 🏠 · หน้าแรก / ภาพรวม</a><a class="pg next" href="02-er-model.html">02 · แบบจำลอง ER →</a></div>

@@ -48,7 +48,7 @@
   <img src="icon/worker5.png" alt="" class="sidebar-img">
 </aside>
 <main class="content">
-<div class="page-head"><span class="kicker">CHAPTER 10 · สัปดาห์ที่ 14</span><h1>บทที่ 10 · ความปลอดภัยของฐานข้อมูล</h1><p class="sub">บัญชีผู้ใช้ การกำหนดและยกเลิกสิทธิ์ (GRANT / REVOKE) บทบาท (Role) วิวเพื่อควบคุมการเข้าถึง SQL Injection และแนวปฏิบัติด้านความปลอดภัย</p></div>
+<div class="page-head"><span class="kicker">CHAPTER 10 · สัปดาห์ที่ 11</span><h1>บทที่ 10 · ความปลอดภัยของฐานข้อมูล</h1><p class="sub">บัญชีผู้ใช้ การกำหนดและยกเลิกสิทธิ์ (GRANT / REVOKE) บทบาท (Role) วิวเพื่อควบคุมการเข้าถึง SQL Injection และแนวปฏิบัติด้านความปลอดภัย</p></div>
 
 
 <div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
@@ -147,6 +147,19 @@ SET DEFAULT ROLE ALL TO &#x27;teacher&#x27;@&#x27;192.168.1.%&#x27;;</pre></div>
     FROM      student;
 
 GRANT SELECT ON std_66011200.v_student_public TO &#x27;guest&#x27;@&#x27;localhost&#x27;;</pre></div>
+<h3>วิวที่ “เห็นเฉพาะแถวของตัวเอง” (จำลอง Row-Level Security)</h3>
+<p>MySQL ไม่มีการกำหนดสิทธิ์รายแถวโดยตรง แต่ทำได้ด้วยวิวที่กรองด้วยชื่อผู้ใช้ที่กำลังเชื่อมต่อ — สมมติบัญชีนิสิตตั้งชื่อเป็น <code>s</code> + รหัสนิสิต (เช่น <code>s60001</code>) ตามแบบเซิร์ฟเวอร์ของวิชา</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>วิว v_my_enroll — นิสิตแต่ละคนเห็นเฉพาะผลการเรียนของตนเอง</span></div><pre class="sql">CREATE OR REPLACE VIEW v_my_enroll AS
+    SELECT    sec.term, sub.subid, sub.name, sub.credit, e.grade
+    FROM      enroll e
+              INNER JOIN section sec ON e.secid   = sec.secid
+              INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE     CONCAT(&#x27;s&#x27;, e.stdid) = SUBSTRING_INDEX(USER(), &#x27;@&#x27;, 1);</pre></div>
+<div class="code"><div class="code-head"><span>ให้นิสิตทุกคนอ่านได้เฉพาะวิวนี้ (ผ่าน Role)</span></div><pre class="sql">CREATE ROLE 'role_student';
+GRANT SELECT ON std_66011200.v_my_enroll TO 'role_student';
+GRANT 'role_student' TO 's60001'@'%';
+-- เมื่อ s60001 สั่ง SELECT * FROM v_my_enroll; จะเห็นเฉพาะแถวของ 60001</pre></div>
+<div class="box warn"><div class="box-t">⚠️ USER() ไม่ใช่ CURRENT_USER()</div><p>วิวใน MySQL ทำงานด้วยสิทธิ์ของ<b>ผู้สร้าง</b>เป็นค่าปริยาย (<code>SQL SECURITY DEFINER</code>) — ภายในวิว <code>CURRENT_USER()</code> จะคืนชื่อผู้สร้างวิว (เช่น root) ทุกครั้ง ต้องใช้ <code>USER()</code> ซึ่งคืนชื่อบัญชีที่<b>เข้าสู่ระบบจริง</b> และเพราะวิวเป็น DEFINER นิสิตจึงอ่านวิวได้โดยไม่ต้องมีสิทธิ์บนตาราง enroll เลย</p></div>
 
 <div class="ex" id="ex10.2"><div class="ex-head"><span class="ex-badge">ฝึก 10.2</span><span class="ex-title">ออกแบบ Role ห้องสมุด</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>ระบบห้องสมุดมีตาราง book, member, borrow ผู้ใช้ 3 กลุ่ม: สมาชิก (ดูหนังสือ), บรรณารักษ์ (จัดการการยืม-คืน ดูสมาชิก), ผู้ดูแลระบบ จงเขียนคำสั่งสร้าง Role และกำหนดสิทธิ์</p>
 <button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE ROLE &#x27;role_member&#x27;, &#x27;role_librarian&#x27;, &#x27;role_admin&#x27;;

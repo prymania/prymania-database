@@ -48,7 +48,7 @@
   <img src="icon/drink2.png" alt="" class="sidebar-img">
 </aside>
 <main class="content">
-<div class="page-head"><span class="kicker">CHAPTER 06 · สัปดาห์ที่ 9–12</span><h1>บทที่ 6 · การแสดงข้อมูลจากหลายตาราง (JOIN)</h1><p class="sub">INNER JOIN, LEFT/RIGHT JOIN, Self Join, CROSS JOIN, UNION/INTERSECT/EXCEPT, Subquery และการใช้ผลลัพธ์ไปจัดการข้อมูล (INSERT…SELECT, UPDATE/DELETE ที่อ้างอิงตารางอื่น, UPDATE + CASE)</p></div>
+<div class="page-head"><span class="kicker">CHAPTER 06 · สัปดาห์ที่ 7–8</span><h1>บทที่ 6 · การแสดงข้อมูลจากหลายตาราง (JOIN)</h1><p class="sub">INNER JOIN, LEFT/RIGHT JOIN, Self Join, CROSS JOIN, UNION/INTERSECT/EXCEPT, Subquery และการใช้ผลลัพธ์ไปจัดการข้อมูล (INSERT…SELECT, UPDATE/DELETE ที่อ้างอิงตารางอื่น, UPDATE + CASE)</p></div>
 
 
 <div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
@@ -444,7 +444,7 @@ SELECT stdid, name, major, gpa, CURDATE()
 FROM   student
 WHERE  gpa &gt;= 3.50;</pre></div>
 <div class="run-msg">✔ Query OK · 7 row(s) affected</div>
-<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>moved_date</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2026-10-04</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2026-10-04</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>2026-10-04</td></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>3.98</td><td>2026-10-04</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>3.98</td><td>2026-10-04</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td><td>4.00</td><td>2026-10-04</td></tr><tr><td>70033</td><td>Zoro</td><td class="null">NULL</td><td>3.98</td><td>2026-10-04</td></tr></table></div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>moved_date</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2026-10-23</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2026-10-23</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>2026-10-23</td></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>3.98</td><td>2026-10-23</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>3.98</td><td>2026-10-23</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td><td>4.00</td><td>2026-10-23</td></tr><tr><td>70033</td><td>Zoro</td><td class="null">NULL</td><td>3.98</td><td>2026-10-23</td></tr></table></div>
 <p><code>CREATE TABLE … AS SELECT</code> สร้างตาราง + คัดลอกข้อมูลในคำสั่งเดียว แต่<b>ไม่คัดลอกคีย์หลักและข้อกำหนดบังคับ</b></p>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>สร้างตารางสำรอง</span></div><pre class="sql">CREATE TABLE enroll_backup AS
 SELECT * FROM enroll;</pre></div>
@@ -991,15 +991,16 @@ WHERE  grade IS NULL
         FROM   section
         WHERE  term = &#x27;2025-3&#x27;);</pre></div>
 <div class="run-msg">✔ Query OK · 2 row(s) affected</div></div></li>
-<li>เพิ่มคอลัมน์ status ใน student แล้วกำหนดค่า “พ้นสภาพ” (gpa &lt; 1.60) “รอพินิจ” (1.60–1.99) “ปกติ” (อื่น ๆ) <span class="hint">(ALTER + UPDATE CASE)</span><div class="rv-ans"><p>นิสิตที่ไม่มี gpa จะได้ “ปกติ” ตาม ELSE</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">ALTER TABLE student ADD COLUMN status VARCHAR(20);
+<li>เพิ่มคอลัมน์ status ใน student แล้วกำหนดค่า “พ้นสภาพ” (gpa &lt; 1.60) “รอพินิจ” (1.60–1.99) “ปกติ” (อื่น ๆ) <span class="hint">(ALTER + UPDATE CASE)</span><div class="rv-ans"><p>ระวังนิสิตที่ gpa เป็น NULL — ถ้าไม่มีเงื่อนไขแยก จะตกไปที่ ELSE ได้ “ปกติ” ทั้งที่ยังไม่มีผลการเรียน จึงควรเพิ่ม <code>WHEN gpa IS NULL</code> ไว้เป็นข้อแรก (แบบเดียวกับแบบฝึกหัด 6.15)</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">ALTER TABLE student ADD COLUMN status VARCHAR(20);
 UPDATE student
 SET    status = CASE
+                    WHEN gpa IS NULL THEN &#x27;ยังไม่มีผล&#x27;
                     WHEN gpa &lt; 1.60 THEN &#x27;พ้นสภาพ&#x27;
                     WHEN gpa &lt; 2.00 THEN &#x27;รอพินิจ&#x27;
                     ELSE &#x27;ปกติ&#x27;
                 END;</pre></div>
 <div class="run-msg">✔ Query OK · 22 row(s) affected</div>
-<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (แสดง 8 จาก 22 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>gpa</th><th>status</th></tr><tr><td>60002</td><td>Sakuragi</td><td class="null">NULL</td><td>ปกติ</td></tr><tr><td>70022</td><td class="null">NULL</td><td class="null">NULL</td><td>ปกติ</td></tr><tr><td>70037</td><td>Chopper</td><td class="null">NULL</td><td>ปกติ</td></tr><tr><td>60006</td><td>Nobita</td><td>1.55</td><td>พ้นสภาพ</td></tr><tr><td>60010</td><td>Gon</td><td>1.55</td><td>พ้นสภาพ</td></tr><tr><td>60016</td><td>Mello</td><td>1.55</td><td>พ้นสภาพ</td></tr><tr><td>70034</td><td>Luffy</td><td>1.55</td><td>พ้นสภาพ</td></tr><tr><td>60003</td><td>Mitsui</td><td>2.00</td><td>ปกติ</td></tr></table></div></div></li>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (แสดง 8 จาก 22 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>gpa</th><th>status</th></tr><tr><td>60002</td><td>Sakuragi</td><td class="null">NULL</td><td>ยังไม่มีผล</td></tr><tr><td>70022</td><td class="null">NULL</td><td class="null">NULL</td><td>ยังไม่มีผล</td></tr><tr><td>70037</td><td>Chopper</td><td class="null">NULL</td><td>ยังไม่มีผล</td></tr><tr><td>60006</td><td>Nobita</td><td>1.55</td><td>พ้นสภาพ</td></tr><tr><td>60010</td><td>Gon</td><td>1.55</td><td>พ้นสภาพ</td></tr><tr><td>60016</td><td>Mello</td><td>1.55</td><td>พ้นสภาพ</td></tr><tr><td>70034</td><td>Luffy</td><td>1.55</td><td>พ้นสภาพ</td></tr><tr><td>60003</td><td>Mitsui</td><td>2.00</td><td>ปกติ</td></tr></table></div></div></li>
 <li>เมื่อแก้ข้อมูลใน lab เสร็จ ทำอย่างไรให้ตารางกลับมาเหมือนเดิมทุกตาราง อธิบายขั้นตอน <span class="hint">(DROP ตามลำดับ แล้วรันสคริปต์ใหม่)</span><div class="rv-ans"><p>(1) ลบตารางที่สร้างเพิ่ม (fail_log, student_backup) (2) ลบตารางกรณีศึกษาตามลำดับลูก → แม่: enroll, section, subject, lecturer, student (3) รันสคริปต์ prymania_DBLabScript.sql ทั้งไฟล์ใหม่ (ภาคผนวก ก) ซึ่งสร้างตารางและเพิ่มข้อมูลกลับมา — สคริปต์มีคำสั่ง DROP TABLE IF EXISTS อยู่ต้นไฟล์แล้ว จึงรันซ้ำได้ทันที</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DROP TABLE IF EXISTS fail_log, student_backup;
 DROP TABLE IF EXISTS enroll, section, subject, lecturer, student;
 -- แล้วเปิด prymania_DBLabScript.sql ใน DBeaver กด Execute Script (Alt+X)</pre></div></div></li>

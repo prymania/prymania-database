@@ -1,4 +1,4 @@
-<!--meta {"title":"บทที่ 6 · การแสดงข้อมูลจากหลายตาราง (JOIN)","kicker":"CHAPTER 06 · สัปดาห์ที่ 9–12","sub":"INNER JOIN, LEFT/RIGHT JOIN, Self Join, CROSS JOIN, UNION/INTERSECT/EXCEPT, Subquery และการใช้ผลลัพธ์ไปจัดการข้อมูล (INSERT…SELECT, UPDATE/DELETE ที่อ้างอิงตารางอื่น, UPDATE + CASE)","img":"drink2.png"} -->
+<!--meta {"title":"บทที่ 6 · การแสดงข้อมูลจากหลายตาราง (JOIN)","kicker":"CHAPTER 06 · สัปดาห์ที่ 7–8","sub":"INNER JOIN, LEFT/RIGHT JOIN, Self Join, CROSS JOIN, UNION/INTERSECT/EXCEPT, Subquery และการใช้ผลลัพธ์ไปจัดการข้อมูล (INSERT…SELECT, UPDATE/DELETE ที่อ้างอิงตารางอื่น, UPDATE + CASE)","img":"drink2.png"} -->
 
 <div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
 <li>อธิบายหลักการเชื่อมตารางและเงื่อนไขการเชื่อมได้</li>
@@ -847,9 +847,10 @@ WHERE  grade IS NULL
        (SELECT secid
         FROM   section
         WHERE  term = '2025-3');</sql></div></li>
-<li>เพิ่มคอลัมน์ status ใน student แล้วกำหนดค่า “พ้นสภาพ” (gpa &lt; 1.60) “รอพินิจ” (1.60–1.99) “ปกติ” (อื่น ๆ) <span class="hint">(ALTER + UPDATE CASE)</span><div class="rv-ans"><p>นิสิตที่ไม่มี gpa จะได้ “ปกติ” ตาม ELSE</p><sql title="เฉลย" run show="SELECT stdid, name, gpa, status FROM student ORDER BY gpa" max="8">ALTER TABLE student ADD COLUMN status VARCHAR(20);
+<li>เพิ่มคอลัมน์ status ใน student แล้วกำหนดค่า “พ้นสภาพ” (gpa &lt; 1.60) “รอพินิจ” (1.60–1.99) “ปกติ” (อื่น ๆ) <span class="hint">(ALTER + UPDATE CASE)</span><div class="rv-ans"><p>ระวังนิสิตที่ gpa เป็น NULL — ถ้าไม่มีเงื่อนไขแยก จะตกไปที่ ELSE ได้ “ปกติ” ทั้งที่ยังไม่มีผลการเรียน จึงควรเพิ่ม <code>WHEN gpa IS NULL</code> ไว้เป็นข้อแรก (แบบเดียวกับแบบฝึกหัด 6.15)</p><sql title="เฉลย" run show="SELECT stdid, name, gpa, status FROM student ORDER BY gpa" max="8">ALTER TABLE student ADD COLUMN status VARCHAR(20);
 UPDATE student
 SET    status = CASE
+                    WHEN gpa IS NULL THEN 'ยังไม่มีผล'
                     WHEN gpa < 1.60 THEN 'พ้นสภาพ'
                     WHEN gpa < 2.00 THEN 'รอพินิจ'
                     ELSE 'ปกติ'

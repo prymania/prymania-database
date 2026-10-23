@@ -28,7 +28,7 @@
 </div>
 <div class="navgroup"><div class="navgroup-t">ส่วนที่ 3 · ขั้นสูง</div>
 <a href="07-view.html" class="active"><span class="no">07</span>วิว (View)</a>
-<div class="subnav"><a href="#s1"><span class="sno">7.1</span>แนวคิดของวิว</a><a href="#s2"><span class="sno">7.2</span>ประโยชน์ของวิว</a><a href="#s3"><span class="sno">7.3</span>การสร้างและจัดการวิว</a><a href="#s4"><span class="sno">7.4</span>วิวจากตารางเดียว</a><a href="#s5"><span class="sno">7.5</span>วิวจากการเชื่อมหลายตาราง</a><a href="#s6"><span class="sno">7.6</span>วิวสรุปข้อมูล (Aggregate View)</a><a href="#s7"><span class="sno">7.7</span>ใช้วิวแก้โจทย์ที่ซับซ้อน</a><a href="#s8"><span class="sno">7.8</span>วิวกับความปลอดภัยของข้อมูล</a><a href="#s9"><span class="sno">7.9</span>การปรับปรุงข้อมูลผ่านวิว</a><a href="#s10"><span class="sno">7.10</span>ข้อควรระวัง และการเปรียบเทียบ</a><a href="#review"><span class="sno">✎</span>คำถามท้ายบท</a></div>
+<div class="subnav"><a href="#s1"><span class="sno">7.1</span>แนวคิดของวิว</a><a href="#s2"><span class="sno">7.2</span>ประโยชน์ของวิว</a><a href="#s3"><span class="sno">7.3</span>การสร้างและจัดการวิว</a><a href="#s4"><span class="sno">7.4</span>วิวจากตารางเดียว</a><a href="#s5"><span class="sno">7.5</span>วิวจากการเชื่อมหลายตาราง</a><a href="#s6"><span class="sno">7.6</span>วิวสรุปข้อมูล (Aggregate View)</a><a href="#s7"><span class="sno">7.7</span>ใช้วิวแก้โจทย์ที่ซับซ้อน</a><a href="#s8"><span class="sno">7.8</span>วิวกับความปลอดภัยของข้อมูล</a><a href="#s9"><span class="sno">7.9</span>การปรับปรุงข้อมูลผ่านวิว</a><a href="#s10"><span class="sno">7.10</span>ข้อควรระวัง และการเปรียบเทียบ</a><a href="#s11"><span class="sno">7.11</span>CTE และ Window Function — เครื่องมือสมัยใหม่สำหรับโจทย์สรุปข้อมูล</a><a href="#review"><span class="sno">✎</span>คำถามท้ายบท</a></div>
 <a href="08-index.html"><span class="no">08</span>ดัชนี (Index)</a>
 <a href="09-transaction.html"><span class="no">09</span>ทรานแซกชัน (Transaction)</a>
 </div>
@@ -48,7 +48,7 @@
   <img src="icon/awesome.png" alt="" class="sidebar-img">
 </aside>
 <main class="content">
-<div class="page-head"><span class="kicker">CHAPTER 07 · สัปดาห์ที่ 13</span><h1>บทที่ 7 · วิว (View)</h1><p class="sub">แนวคิดของวิว การสร้างและจัดการวิว วิวจากหลายตาราง วิวสรุปข้อมูล วิวซ้อนวิว การใช้วิวแก้โจทย์ที่ซับซ้อน การปรับปรุงข้อมูลผ่านวิว และข้อควรระวัง</p></div>
+<div class="page-head"><span class="kicker">CHAPTER 07 · สัปดาห์ที่ 9</span><h1>บทที่ 7 · วิว (View)</h1><p class="sub">แนวคิดของวิว การสร้างและจัดการวิว วิวจากหลายตาราง วิวสรุปข้อมูล วิวซ้อนวิว การใช้วิวแก้โจทย์ที่ซับซ้อน การปรับปรุงข้อมูลผ่านวิว ข้อควรระวัง และ CTE / Recursive CTE / Window Function</p></div>
 
 
 <div class="objectives"><div class="box-t">🎯 เมื่อเรียนจบบทนี้ นิสิตจะสามารถ</div><ol>
@@ -58,9 +58,10 @@
 <li>แตกโจทย์ที่ซับซ้อนออกเป็นวิวทีละชั้น แล้วใช้วิวตอบคำถามได้</li>
 <li>ระบุได้ว่าวิวใดปรับปรุงข้อมูลผ่านได้ และใช้ WITH CHECK OPTION ได้</li>
 <li>อธิบายข้อควรระวังของวิว และเปรียบเทียบวิวกับตาราง Derived Table และ CTE ได้</li>
+<li>ใช้ CTE, Recursive CTE และ Window Function (RANK, LAG, SUM … OVER) แก้โจทย์อันดับ สูงสุดต่อกลุ่ม และข้อมูลลำดับชั้นได้</li>
 </ol></div>
 
-<div class="pagetoc"><div class="pagetoc-t">📑 ในบทนี้</div><ul><li><a href="#s1">7.1  แนวคิดของวิว</a></li><li><a href="#s2">7.2  ประโยชน์ของวิว</a></li><li><a href="#s3">7.3  การสร้างและจัดการวิว</a></li><li><a href="#s4">7.4  วิวจากตารางเดียว</a></li><li><a href="#s5">7.5  วิวจากการเชื่อมหลายตาราง</a></li><li><a href="#s6">7.6  วิวสรุปข้อมูล (Aggregate View)</a></li><li><a href="#s7">7.7  ใช้วิวแก้โจทย์ที่ซับซ้อน</a></li><li><a href="#s8">7.8  วิวกับความปลอดภัยของข้อมูล</a></li><li><a href="#s9">7.9  การปรับปรุงข้อมูลผ่านวิว</a></li><li><a href="#s10">7.10  ข้อควรระวัง และการเปรียบเทียบ</a></li></ul></div>
+<div class="pagetoc"><div class="pagetoc-t">📑 ในบทนี้</div><ul><li><a href="#s1">7.1  แนวคิดของวิว</a></li><li><a href="#s2">7.2  ประโยชน์ของวิว</a></li><li><a href="#s3">7.3  การสร้างและจัดการวิว</a></li><li><a href="#s4">7.4  วิวจากตารางเดียว</a></li><li><a href="#s5">7.5  วิวจากการเชื่อมหลายตาราง</a></li><li><a href="#s6">7.6  วิวสรุปข้อมูล (Aggregate View)</a></li><li><a href="#s7">7.7  ใช้วิวแก้โจทย์ที่ซับซ้อน</a></li><li><a href="#s8">7.8  วิวกับความปลอดภัยของข้อมูล</a></li><li><a href="#s9">7.9  การปรับปรุงข้อมูลผ่านวิว</a></li><li><a href="#s10">7.10  ข้อควรระวัง และการเปรียบเทียบ</a></li><li><a href="#s11">7.11  CTE และ Window Function — เครื่องมือสมัยใหม่สำหรับโจทย์สรุปข้อมูล</a></li></ul></div>
 
 <h2 id="s1"><span class="sec">7.1</span> แนวคิดของวิว</h2>
 <p><span class="term">วิว (View)</span> คือ <b>ตารางเสมือน (Virtual Table)</b> ที่นิยามด้วยคำสั่ง SELECT — DBMS เก็บไว้เพียง “คำสั่ง” ไม่ได้เก็บ “ข้อมูล” ทุกครั้งที่เรียกใช้วิว ระบบจะนำคำสั่งนั้นไปประมวลผลกับ<b>ตารางจริง (Base Table)</b> ในขณะนั้น ผลลัพธ์จึงเป็นข้อมูลล่าสุดเสมอ</p>
@@ -769,6 +770,172 @@ ORDER  BY pct_A DESC, secid;</pre></div>
 <div class="ex" id="ex7.13"><div class="ex-head"><span class="ex-badge">ฝึก 7.13</span><span class="ex-title">สร้างหรือไม่สร้างวิว</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>สถานการณ์ต่อไปนี้ควรใช้ วิว, CTE, หรือตารางจริง พร้อมเหตุผล<br>(ก) รายงานทรานสคริปต์ที่หน้าเว็บเรียกวันละหลายพันครั้ง<br>(ข) คำถามวิเคราะห์ครั้งเดียวของผู้บริหาร<br>(ค) ให้ฝ่ายประชาสัมพันธ์เห็นเฉพาะชื่อและสาขานิสิต<br>(ง) เก็บผลการเรียนย้อนหลังที่ต้องไม่เปลี่ยนแม้ข้อมูลต้นทางเปลี่ยน</p>
 <button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>วิว</b> — ใช้ซ้ำบ่อย ตรรกะเดียวกันทุกที่<br>(ข) <b>CTE</b> — ใช้ครั้งเดียว ไม่ต้องสร้างของถาวร<br>(ค) <b>วิว</b> + GRANT เฉพาะวิว<br>(ง) <b>ตารางจริง</b> (snapshot ด้วย INSERT … SELECT / CREATE TABLE … AS SELECT) — เพราะวิวแสดงข้อมูลล่าสุดเสมอ ไม่เก็บค่าในอดีต</p></div></div></div>
 
+<h2 id="s11"><span class="sec">7.11</span> CTE และ Window Function — เครื่องมือสมัยใหม่สำหรับโจทย์สรุปข้อมูล</h2>
+<p>ตั้งแต่ MySQL 8.0 รองรับเครื่องมือตามมาตรฐาน SQL อีก 2 อย่างที่ DBMS สมัยใหม่ทุกตัวมี (PostgreSQL, SQL Server, Oracle, SQLite) และพบบ่อยมากในงานวิเคราะห์ข้อมูลจริง — ทำโจทย์ในหัวข้อ 7.7 ได้สั้นลงโดย<b>ไม่ต้องสร้างวิวถาวร</b></p>
+<div class="vs">
+<div><h4>🧱 CTE (WITH)</h4><p>ตั้งชื่อให้ผลลัพธ์ของ SELECT ชั่วคราว แล้วใช้ต่อในคำสั่งเดียวกัน — เหมือน “วิวที่มีอายุแค่คำสั่งเดียว” และเขียนแบบ<b>เรียกตัวเองซ้ำ (Recursive)</b> ได้</p></div>
+<div><h4>🪟 Window Function (OVER)</h4><p>คำนวณค่าสรุป (อันดับ ค่าเฉลี่ย ผลรวมสะสม ค่าของแถวก่อนหน้า) <b>โดยไม่ยุบแถว</b> — ต่างจาก GROUP BY ที่รวมหลายแถวเหลือแถวเดียว</p></div>
+</div>
+
+<h3>7.11.1 CTE หลายชั้น</h3>
+<p>โจทย์ที่ 1 (สาขาที่มีนิสิตมากที่สุด) เขียนด้วย CTE ได้ในคำสั่งเดียว — <code>major_count</code> ถูกใช้ 2 ครั้ง (ชั้นนอกและใน Subquery) โดยเขียนนิยามครั้งเดียว</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>โจทย์ที่ 1 ด้วย CTE</span></div><pre class="sql">WITH major_count AS (
+    SELECT major, COUNT(*) AS n_student
+    FROM   student
+    WHERE  major IS NOT NULL
+    GROUP  BY major
+)
+SELECT major, n_student
+FROM   major_count
+WHERE  n_student =
+       (SELECT MAX(n_student)
+        FROM   major_count);</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_student</th></tr><tr><td>CS</td><td>7</td></tr></table></div>
+<p>CTE หลายตัวคั่นด้วยจุลภาค และตัวหลัง<b>อ้างถึงตัวก่อนหน้าได้</b> — จึงแตกโจทย์เป็นขั้นได้เหมือนวิวซ้อนวิว แต่ทุกขั้นอยู่ในคำสั่งเดียว อ่านจากบนลงล่างได้ทันที</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>CTE 2 ชั้น — เกรดเฉลี่ยรายภาคของนิสิตแต่ละคน คำนวณจากตารางจริง</span></div><pre class="sql">WITH graded AS (                         -- ชั้นที่ 1: แปลงเกรดเป็นแต้ม
+    SELECT e.stdid, sec.term, sub.credit,
+           CASE e.grade WHEN &#x27;A&#x27; THEN 4 WHEN &#x27;B&#x27; THEN 3 WHEN &#x27;C&#x27; THEN 2
+                        WHEN &#x27;D&#x27; THEN 1 ELSE 0 END AS point
+    FROM   enroll e
+           INNER JOIN section sec ON e.secid   = sec.secid
+           INNER JOIN subject sub ON sec.subid = sub.subid
+    WHERE  e.grade IS NOT NULL
+),
+term_gpa AS (                            -- ชั้นที่ 2: สรุปจากชั้นที่ 1
+    SELECT stdid, term,
+           ROUND(SUM(credit * point) / SUM(credit), 2) AS term_gpa
+    FROM   graded
+    GROUP  BY stdid, term
+)
+SELECT * FROM term_gpa ORDER BY stdid, term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 63 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>term</th><th>term_gpa</th></tr><tr><td>60001</td><td>2023-1</td><td>3.00</td></tr><tr><td>60001</td><td>2023-2</td><td>3.00</td></tr><tr><td>60001</td><td>2023-3</td><td>4.00</td></tr><tr><td>60001</td><td>2024-2</td><td>3.43</td></tr><tr><td>60001</td><td>2024-3</td><td>4.00</td></tr><tr><td>60001</td><td>2025-3</td><td>3.00</td></tr><tr><td>60002</td><td>2023-1</td><td>3.50</td></tr><tr><td>60002</td><td>2023-2</td><td>0.00</td></tr></table></div>
+
+<h3>7.11.2 Recursive CTE — ไล่ตามความสัมพันธ์แบบวกกลับ</h3>
+<p>คอลัมน์ <code>subject.pre</code> เป็นความสัมพันธ์วกกลับ (บทที่ 2) — Self Join หนึ่งครั้งเห็นวิชาบังคับก่อนได้แค่ 1 ชั้น แต่ถ้าถามว่า “จะลง Project (CS009) ต้องผ่านวิชาอะไรมาก่อน<b>ทั้งหมด</b>” ต้องไล่ต่อไปเรื่อย ๆ จนสุดสาย ซึ่ง Recursive CTE ทำได้</p>
+<div class="flow">
+<div class="st">① ส่วนเริ่มต้น (Anchor)<small>แถวแรก: CS009</small></div><span class="ar">→ UNION ALL →</span>
+<div class="st">② ส่วนเรียกซ้ำ (Recursive)<small>JOIN กับผลรอบก่อน หา pre ของแถวที่เพิ่งได้</small></div><span class="ar">→</span>
+<div class="st">③ หยุดเมื่อ<small>รอบใดไม่ได้แถวใหม่ (pre เป็น NULL)</small></div>
+</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>วิชาบังคับก่อนทุกชั้นของ CS009 (Project)</span></div><pre class="sql">WITH RECURSIVE chain AS (
+    SELECT subid, name, pre, 0 AS level          -- ① Anchor
+    FROM   subject
+    WHERE  subid = &#x27;CS009&#x27;
+    UNION ALL
+    SELECT p.subid, p.name, p.pre, c.level + 1   -- ② ไปหาวิชา pre ของแถวรอบก่อน
+    FROM   subject p
+           INNER JOIN chain c ON p.subid = c.pre
+)
+SELECT level, subid, name FROM chain ORDER BY level;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>level</th><th>subid</th><th>name</th></tr><tr><td>0</td><td>CS009</td><td>Project</td></tr><tr><td>1</td><td>CS004</td><td>Database</td></tr><tr><td>2</td><td>CS001</td><td>Programming</td></tr></table></div>
+<p>กลับทิศทางได้ด้วย — เริ่มจากวิชาที่ไม่มี pre แล้วไล่ลงไปหาวิชาที่ต่อยอด ได้ “แผนผังหลักสูตร” ทั้งหมดพร้อมเส้นทาง</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>แผนผังวิชาต่อเนื่องทั้งหมด</span></div><pre class="sql">WITH RECURSIVE tree AS (
+    SELECT subid, name, 0 AS depth,
+           CAST(subid AS CHAR(100)) AS path      -- ต้อง CAST ให้ยาวพอ
+    FROM   subject
+    WHERE  pre IS NULL
+    UNION ALL
+    SELECT s.subid, s.name, t.depth + 1,
+           CONCAT(t.path, &#x27; → &#x27;, s.subid)
+    FROM   subject s
+           INNER JOIN tree t ON s.pre = t.subid
+)
+SELECT path, name, depth FROM tree ORDER BY path;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (20 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>path</th><th>name</th><th>depth</th></tr><tr><td>CS001</td><td>Programming</td><td>0</td></tr><tr><td>CS001 → CS002</td><td>Java</td><td>1</td></tr><tr><td>CS001 → CS002 → CS005</td><td>Graphics</td><td>2</td></tr><tr><td>CS001 → CS002 → CS006</td><td>Mobile Apps</td><td>2</td></tr><tr><td>CS001 → CS002 → CS007</td><td>Robotics</td><td>2</td></tr><tr><td>CS001 → CS002 → CS008</td><td>AI</td><td>2</td></tr><tr><td>CS001 → CS003</td><td>Web Design</td><td>1</td></tr><tr><td>CS001 → CS004</td><td>Database</td><td>1</td></tr><tr><td>CS001 → CS004 → CS009</td><td>Project</td><td>2</td></tr><tr><td>CS001 → CS004 → CS010</td><td>Security</td><td>2</td></tr><tr><td>EN001</td><td>English</td><td>0</td></tr><tr><td>EN001 → EN002</td><td>Reading</td><td>1</td></tr><tr><td>EN001 → EN002 → EN004</td><td>Writing</td><td>2</td></tr><tr><td>EN001 → EN003</td><td>Conversation</td><td>1</td></tr><tr><td>MA001</td><td>Mathematics</td><td>0</td></tr><tr><td>MA001 → MA002</td><td>Discrete Math</td><td>1</td></tr><tr><td>MA001 → MA002 → MA003</td><td>Statistics</td><td>2</td></tr><tr><td>PH001</td><td>Physics</td><td>0</td></tr><tr><td>TH001</td><td>Thai</td><td>0</td></tr><tr><td>TH001 → TH002</td><td>Thai Writing</td><td>1</td></tr></table></div>
+<div class="box warn"><div class="box-t">⚠️ ข้อควรระวังของ Recursive CTE</div><ul>
+<li>ชนิดและความยาวของคอลัมน์ถูกกำหนดจาก<b>ส่วน Anchor</b> — path ที่ยาวขึ้นทุกรอบจึงต้อง <code>CAST(… AS CHAR(100))</code> ไว้ตั้งแต่ต้น ไม่เช่นนั้นได้ Error “Data too long”</li>
+<li>ถ้าข้อมูลวนเป็นวง (A ต้องผ่าน B และ B ต้องผ่าน A) จะเรียกซ้ำไม่จบ — MySQL หยุดที่ <code>cte_max_recursion_depth</code> (ค่าปริยาย 1000 รอบ) แล้วแจ้ง error</li>
+<li>บทที่ 8 ใช้ Recursive CTE อีกแบบ คือสร้างลำดับตัวเลข 1 … 50,000 เพื่อสร้างข้อมูลทดสอบ</li>
+</ul></div>
+
+<h3>7.11.3 Window Function — สรุปโดยไม่ยุบแถว</h3>
+<p>รูปแบบ: <code>ฟังก์ชัน() OVER (PARTITION BY แบ่งกลุ่ม ORDER BY เรียงภายในกลุ่ม)</code> — <b>PARTITION BY</b> คล้าย GROUP BY แต่ทุกแถวยังอยู่ครบ แต่ละแถวได้ค่าสรุปของกลุ่มตัวเองมาแปะไว้</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>gpa ของนิสิตเทียบกับค่าเฉลี่ยของสาขาตัวเอง — ทุกแถวยังอยู่</span></div><pre class="sql">SELECT stdid, name, major, gpa,
+       ROUND(AVG(gpa) OVER (PARTITION BY major), 2)       AS major_avg,
+       ROUND(gpa - AVG(gpa) OVER (PARTITION BY major), 2) AS diff
+FROM   student
+WHERE  major IS NOT NULL AND gpa IS NOT NULL
+ORDER  BY major, gpa DESC;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (16 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>major_avg</th><th>diff</th></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>3.52</td><td>0.47</td></tr><tr><td>60008</td><td>Kira</td><td>Art</td><td>3.05</td><td>3.52</td><td>-0.47</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2.88</td><td>1.10</td></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2.88</td><td>0.87</td></tr><tr><td>60013</td><td>Gon</td><td>CS</td><td>2.78</td><td>2.88</td><td>-0.10</td></tr><tr><td>70036</td><td>Sanji</td><td>CS</td><td>2.78</td><td>2.88</td><td>-0.10</td></tr><tr><td>60003</td><td>Mitsui</td><td>CS</td><td>2.00</td><td>2.88</td><td>-0.88</td></tr><tr><td>60012</td><td>Hisoka</td><td>CS</td><td>2.00</td><td>2.88</td><td>-0.88</td></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>3.98</td><td>3.17</td><td>0.81</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>3.98</td><td>3.17</td><td>0.81</td></tr><tr><td>60010</td><td>Gon</td><td>English</td><td>1.55</td><td>3.17</td><td>-1.62</td></tr><tr><td>60005</td><td class="null">NULL</td><td>Math</td><td>2.78</td><td>2.17</td><td>0.62</td></tr><tr><td>60006</td><td>Nobita</td><td>Math</td><td>1.55</td><td>2.17</td><td>-0.62</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td><td>4.00</td><td>2.70</td><td>1.30</td></tr><tr><td>60014</td><td>Light</td><td>Physics</td><td>2.55</td><td>2.70</td><td>-0.15</td></tr><tr><td>60016</td><td>Mello</td><td>Physics</td><td>1.55</td><td>2.70</td><td>-1.15</td></tr></table></div>
+<p>เทียบกับแบบฝึกหัด 6.10 ที่ต้องเขียน Correlated Subquery คำนวณค่าเฉลี่ยของสาขาทีละแถว — Window Function ได้ทั้งค่าของแถวและค่าของกลุ่มในคำสั่งเดียว</p>
+<h4>ฟังก์ชันจัดอันดับ: ROW_NUMBER · RANK · DENSE_RANK</h4>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>จัดอันดับเงินเดือนอาจารย์ — สังเกตแถวที่เงินเดือนเท่ากัน</span></div><pre class="sql">SELECT lecid, name, salary,
+       ROW_NUMBER() OVER (ORDER BY salary DESC, lecid) AS row_no,
+       RANK()       OVER (ORDER BY salary DESC)        AS rnk,
+       DENSE_RANK() OVER (ORDER BY salary DESC)        AS dense_rnk
+FROM   lecturer
+WHERE  salary IS NOT NULL
+ORDER  BY salary DESC, lecid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (13 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th><th>row_no</th><th>rnk</th><th>dense_rnk</th></tr><tr><td>t03</td><td>Yoda</td><td>80000</td><td>1</td><td>1</td><td>1</td></tr><tr><td>t14</td><td>Yoda</td><td>80000</td><td>2</td><td>1</td><td>1</td></tr><tr><td>t08</td><td>Cell</td><td>70000</td><td>3</td><td>3</td><td>2</td></tr><tr><td>t05</td><td>IronMan</td><td>65000</td><td>4</td><td>4</td><td>3</td></tr><tr><td>t09</td><td>Frieza</td><td>60000</td><td>5</td><td>5</td><td>4</td></tr><tr><td>t13</td><td>Thor</td><td>60000</td><td>6</td><td>5</td><td>4</td></tr><tr><td>t02</td><td>Steve Roger</td><td>50000</td><td>7</td><td>7</td><td>5</td></tr><tr><td>t04</td><td>Post Malone</td><td>47000</td><td>8</td><td>8</td><td>6</td></tr><tr><td>t01</td><td>Peter Parker</td><td>40000</td><td>9</td><td>9</td><td>7</td></tr><tr><td>t07</td><td>Vegeta</td><td>25000</td><td>10</td><td>10</td><td>8</td></tr><tr><td>t06</td><td>Goku</td><td>20000</td><td>11</td><td>11</td><td>9</td></tr><tr><td>t15</td><td>Gohan</td><td>20000</td><td>12</td><td>11</td><td>9</td></tr><tr><td>t10</td><td>Piccolo</td><td>15000</td><td>13</td><td>13</td><td>10</td></tr></table></div>
+<table class="tbl"><tr><th>ฟังก์ชัน</th><th>ค่าที่เท่ากัน</th><th>ลำดับถัดไป</th><th>ใช้เมื่อ</th></tr>
+<tr><td><code>ROW_NUMBER()</code></td><td>ได้เลขต่างกัน (1, 2)</td><td>3</td><td>ต้องการแถวเดียวต่อกลุ่ม / แบ่งหน้า</td></tr>
+<tr><td><code>RANK()</code></td><td>ได้อันดับเดียวกัน (1, 1)</td><td>3 (ข้าม)</td><td>อันดับแบบการแข่งขัน</td></tr>
+<tr><td><code>DENSE_RANK()</code></td><td>ได้อันดับเดียวกัน (1, 1)</td><td>2 (ไม่ข้าม)</td><td>“3 อันดับเงินเดือนแรก” โดยนับค่าที่ต่างกัน</td></tr>
+</table>
+<p>นี่คือคำตอบของปัญหา “LIMIT 1 ได้คนเดียวทั้งที่ Yoda สองคนเงินเดือนเท่ากัน” ในบทที่ 5 — เลือก <code>rnk = 1</code> จะได้ทุกคนที่เท่ากัน</p>
+<h4>Top-N ต่อกลุ่ม — ต้องครอบด้วย CTE</h4>
+<p>Window Function คำนวณในขั้น SELECT ซึ่งทำงาน<b>หลัง</b> WHERE (หัวข้อ 5.2) จึงกรองด้วย WHERE ในคำสั่งเดียวกันไม่ได้</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ใช้ Window Function ใน WHERE → Error</span></div><pre class="sql">SELECT student_major, student_name, gpa_calc
+FROM   v_student_gpa
+WHERE  RANK() OVER (PARTITION BY student_major ORDER BY gpa_calc DESC) = 1;</pre></div>
+<div class="run-err"><b>✖ Error Code: 3593.</b> You cannot use the window function &#x27;rank&#x27; in this context.&#x27;</div>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>โจทย์ที่ 3 (หัวข้อ 7.7) — นิสิตที่ gpa_calc สูงสุดในแต่ละสาขา ด้วย RANK + CTE</span></div><pre class="sql">WITH ranked AS (
+    SELECT student_major, student_id, student_name, gpa_calc,
+           RANK() OVER (PARTITION BY student_major ORDER BY gpa_calc DESC) AS rnk
+    FROM   v_student_gpa
+    WHERE  student_major IS NOT NULL
+)
+SELECT student_major, student_id, student_name, gpa_calc
+FROM   ranked
+WHERE  rnk = 1
+ORDER  BY student_major;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_major</th><th>student_id</th><th>student_name</th><th>gpa_calc</th></tr><tr><td>Art</td><td>60007</td><td>L</td><td>3.44</td></tr><tr><td>CS</td><td>60012</td><td>Hisoka</td><td>3.50</td></tr><tr><td>English</td><td>60011</td><td>Kurapika</td><td>3.20</td></tr><tr><td>Math</td><td>60005</td><td class="null">NULL</td><td>2.96</td></tr></table></div>
+<p>ได้ผลเท่ากับโจทย์ที่ 3 ที่ใช้ Correlated Subquery — และเปลี่ยนเป็น “3 อันดับแรกของแต่ละสาขา” ได้ง่าย ๆ โดยแก้เป็น <code>rnk &lt;= 3</code></p>
+<h4>LAG และผลรวมสะสม — เทียบกับแถวก่อนหน้า</h4>
+<p><code>LAG(คอลัมน์)</code> ดึงค่าของแถว<b>ก่อนหน้า</b>ในกลุ่ม (<code>LEAD</code> = แถวถัดไป) ส่วน <code>SUM() OVER (… ORDER BY …)</code> ให้ผลรวมสะสม — ตั้งชื่อหน้าต่างที่ใช้ซ้ำด้วย <code>WINDOW</code> ได้</p>
+<div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เกรดเฉลี่ยแต่ละภาคเทียบภาคก่อน และหน่วยกิตสะสม</span></div><pre class="sql">SELECT student_id, student_name, term, term_gpa,
+       LAG(term_gpa)          OVER w            AS prev_gpa,
+       term_gpa - LAG(term_gpa) OVER w          AS change_gpa,
+       SUM(term_credit)       OVER w            AS cum_credit
+FROM   v_student_term_gpa
+WINDOW w AS (PARTITION BY student_id ORDER BY term)
+ORDER  BY student_id, term;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 63 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_id</th><th>student_name</th><th>term</th><th>term_gpa</th><th>prev_gpa</th><th>change_gpa</th><th>cum_credit</th></tr><tr><td>60001</td><td>Rukawa</td><td>2023-1</td><td>3.00</td><td class="null">NULL</td><td class="null">NULL</td><td>6</td></tr><tr><td>60001</td><td>Rukawa</td><td>2023-2</td><td>3.00</td><td>3.00</td><td>0.00</td><td>9</td></tr><tr><td>60001</td><td>Rukawa</td><td>2023-3</td><td>4.00</td><td>3.00</td><td>1.00</td><td>15</td></tr><tr><td>60001</td><td>Rukawa</td><td>2024-2</td><td>3.43</td><td>4.00</td><td>-0.57</td><td>22</td></tr><tr><td>60001</td><td>Rukawa</td><td>2024-3</td><td>4.00</td><td>3.43</td><td>0.57</td><td>28</td></tr><tr><td>60001</td><td>Rukawa</td><td>2025-3</td><td>3.00</td><td>4.00</td><td>-1.00</td><td>31</td></tr><tr><td>60002</td><td>Sakuragi</td><td>2023-1</td><td>3.50</td><td class="null">NULL</td><td class="null">NULL</td><td>6</td></tr><tr><td>60002</td><td>Sakuragi</td><td>2023-2</td><td>0.00</td><td>3.50</td><td>-3.50</td><td>9</td></tr><tr><td>60002</td><td>Sakuragi</td><td>2024-1</td><td>4.00</td><td>0.00</td><td>4.00</td><td>12</td></tr><tr><td>60002</td><td>Sakuragi</td><td>2024-2</td><td>3.00</td><td>4.00</td><td>-1.00</td><td>16</td></tr></table></div>
+<table class="tbl"><tr><th>กลุ่ม</th><th>ฟังก์ชัน</th><th>ตัวอย่างโจทย์</th></tr>
+<tr><td>จัดอันดับ</td><td>ROW_NUMBER, RANK, DENSE_RANK, NTILE(n)</td><td>อันดับ gpa ในสาขา, แบ่งนิสิตเป็น 4 กลุ่มเท่า ๆ กัน</td></tr>
+<tr><td>สรุปต่อกลุ่ม</td><td>SUM, AVG, COUNT, MIN, MAX + OVER</td><td>ส่วนต่างจากค่าเฉลี่ยของสาขา, ร้อยละของทั้งหมด</td></tr>
+<tr><td>สะสม</td><td>SUM / COUNT + OVER (… ORDER BY …)</td><td>หน่วยกิตสะสม, ยอดขายสะสมรายเดือน</td></tr>
+<tr><td>แถวข้างเคียง</td><td>LAG, LEAD, FIRST_VALUE, LAST_VALUE</td><td>เกรดดีขึ้นหรือแย่ลงจากภาคก่อน</td></tr>
+</table>
+<div class="box idea"><div class="box-t">💡 เลือกเครื่องมือไหนดี</div><p><b>วิว</b> — ตรรกะที่ใช้ซ้ำหลายคำสั่ง/หลายโปรแกรม หรือต้องให้สิทธิ์ · <b>CTE</b> — แตกโจทย์เป็นขั้นในคำสั่งเดียว และงานไล่ลำดับชั้น (Recursive) · <b>Window Function</b> — โจทย์ “อันดับ / สูงสุดต่อกลุ่ม / เทียบกับกลุ่ม / สะสม / เทียบแถวก่อน” ซึ่งเคยต้องใช้ Correlated Subquery — ใช้ร่วมกันได้ เช่น Window Function บนวิว แล้วครอบด้วย CTE อย่างตัวอย่างข้างบน</p></div>
+
+<div class="ex" id="ex7.14"><div class="ex-head"><span class="ex-badge">ฝึก 7.14</span><span class="ex-title">วิชายอดนิยมของแต่ละภาค ด้วย DENSE_RANK</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>เขียนโจทย์ที่ 4 (หัวข้อ 7.7) ใหม่โดยใช้วิว <code>v_term_subject</code> + <code>DENSE_RANK()</code> + CTE แสดงวิชาที่มีผู้ลงทะเบียนมากที่สุดของแต่ละภาค (ถ้าเท่ากันแสดงทุกวิชา)</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">WITH r AS (
+    SELECT term, subject_name, n_student,
+           DENSE_RANK() OVER (PARTITION BY term ORDER BY n_student DESC) AS rnk
+    FROM   v_term_subject
+    WHERE  n_student &gt; 0
+)
+SELECT term, subject_name, n_student
+FROM   r
+WHERE  rnk = 1
+ORDER  BY term, subject_name;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (11 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>term</th><th>subject_name</th><th>n_student</th></tr><tr><td>2023-1</td><td>Programming</td><td>5</td></tr><tr><td>2023-2</td><td>Java</td><td>4</td></tr><tr><td>2023-3</td><td>AI</td><td>3</td></tr><tr><td>2024-1</td><td>Database</td><td>4</td></tr><tr><td>2024-2</td><td>Discrete Math</td><td>5</td></tr><tr><td>2024-3</td><td>Database</td><td>5</td></tr><tr><td>2025-1</td><td>English</td><td>6</td></tr><tr><td>2025-2</td><td>Conversation</td><td>3</td></tr><tr><td>2025-3</td><td>Security</td><td>3</td></tr><tr><td>2025-3</td><td>Thai</td><td>3</td></tr><tr><td>2026-1</td><td>Database</td><td>2</td></tr></table></div>
+<p>ได้ผลเท่ากับโจทย์ที่ 4 — ถ้าเปลี่ยนเป็น <code>rnk &lt;= 2</code> จะได้ 2 อันดับแรกของทุกภาคทันที ซึ่งแบบ Subquery + MAX ทำได้ยาก</p></div></div></div>
+<div class="ex" id="ex7.15"><div class="ex-head"><span class="ex-badge">ฝึก 7.15</span><span class="ex-title">วิชาที่ต่อยอดจาก Programming ทุกชั้น</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>ใช้ Recursive CTE แสดงรหัส ชื่อ และระดับ (1 = ต่อจาก CS001 โดยตรง, 2 = ต่อจากวิชาระดับ 1, …) ของทุกวิชาที่ต้องผ่าน CS001 มาก่อนไม่ว่าทางตรงหรือทางอ้อม</p>
+<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">WITH RECURSIVE next_sub AS (
+    SELECT subid, name, 1 AS level
+    FROM   subject
+    WHERE  pre = &#x27;CS001&#x27;
+    UNION ALL
+    SELECT s.subid, s.name, n.level + 1
+    FROM   subject s
+           INNER JOIN next_sub n ON s.pre = n.subid
+)
+SELECT level, subid, name FROM next_sub ORDER BY level, subid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (9 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>level</th><th>subid</th><th>name</th></tr><tr><td>1</td><td>CS002</td><td>Java</td></tr><tr><td>1</td><td>CS003</td><td>Web Design</td></tr><tr><td>1</td><td>CS004</td><td>Database</td></tr><tr><td>2</td><td>CS005</td><td>Graphics</td></tr><tr><td>2</td><td>CS006</td><td>Mobile Apps</td></tr><tr><td>2</td><td>CS007</td><td>Robotics</td></tr><tr><td>2</td><td>CS008</td><td>AI</td></tr><tr><td>2</td><td>CS009</td><td>Project</td></tr><tr><td>2</td><td>CS010</td><td>Security</td></tr></table></div>
+<p>ทิศทางตรงข้ามกับตัวอย่าง CS009: ตัวอย่างนั้น JOIN ด้วย <code>p.subid = c.pre</code> (ขึ้นไปหาวิชาบังคับก่อน) ข้อนี้ JOIN ด้วย <code>s.pre = n.subid</code> (ลงไปหาวิชาที่ต่อยอด)</p></div></div></div>
+
 <div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
 <li class="part">แนวคิดของวิว</li>
 <li>จงอธิบายความแตกต่างระหว่างวิวกับตารางจริง ในแง่สิ่งที่เก็บ การสร้าง ข้อกำหนดบังคับ และการปรับปรุงข้อมูล <span class="hint">(หัวข้อ 7.1)</span><div class="rv-ans"><ul><li><b>สิ่งที่เก็บ</b> — ตารางเก็บข้อมูลจริง วิวเก็บเพียงคำสั่ง SELECT</li><li><b>การสร้าง</b> — ตารางใช้ CREATE TABLE วิวใช้ CREATE VIEW … AS SELECT</li><li><b>ข้อกำหนดบังคับ</b> — ตารางมี PK / FK / CHECK ของตัวเอง วิวไม่มี (อาศัยของตารางจริง และเพิ่มได้เพียง WITH CHECK OPTION)</li><li><b>การปรับปรุงข้อมูล</b> — ตาราง INSERT/UPDATE/DELETE ได้เสมอ วิวทำได้บางกรณี (แต่ละแถวต้องชี้กลับไปยังแถวเดียวในตารางจริงได้) และการเปลี่ยนแปลงเกิดที่ตารางจริง</li></ul></div></li>
@@ -1059,6 +1226,56 @@ WHERE  TABLE_SCHEMA = DATABASE()
 WITH CHECK OPTION;</pre></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">UPDATE v_senior_lecturer SET salary = 30000 WHERE lecid = &#x27;t01&#x27;;</pre></div>
 <div class="run-err"><b>✖ Error Code: 1369.</b> CHECK OPTION failed &#x27;std_66011200.v_senior_lecturer&#x27;</div><p>ถูกปฏิเสธด้วย Error 1369 เช่นกัน — CHECK OPTION ตรวจเงื่อนไขใน WHERE ของวิวทุกรูปแบบ ไม่ใช่เฉพาะเงื่อนไขเท่ากับ ส่วนการขึ้นเงินเดือนผ่านวิวยังทำได้ตามปกติ</p></div></li>
 <li>อธิบายข้อเสียของการใช้ <code>SELECT *</code> ในวิว และผลที่เกิดเมื่อลบตารางหรือคอลัมน์ที่วิวอ้างถึง <span class="hint">(หัวข้อ 7.10)</span><div class="rv-ans"><p>MySQL ขยาย <code>*</code> เป็นรายชื่อคอลัมน์<b>ตอนสร้างวิว</b> — คอลัมน์ที่เพิ่มในตารางภายหลังจะไม่ปรากฏในวิว ต้องสร้างวิวใหม่ และอ่านนิยามวิวแล้วไม่รู้ว่ามีคอลัมน์อะไรบ้าง</p><p>ถ้าลบตารางหรือลบ/เปลี่ยนชื่อคอลัมน์ที่วิวอ้างถึง วิวยังอยู่แต่<b>ใช้งานไม่ได้</b> SELECT จากวิวจะเกิด Error 1356 (View references invalid table(s) or column(s)) จนกว่าจะแก้นิยามวิวหรือลบวิวทิ้ง</p></div></li>
+<li class="part">CTE และ Window Function</li>
+<li>จงอธิบายความแตกต่างระหว่าง <code>GROUP BY major</code> กับ <code>AVG(gpa) OVER (PARTITION BY major)</code> ในแง่จำนวนแถวของผลลัพธ์ และยกตัวอย่างโจทย์ที่เหมาะกับแต่ละแบบ <span class="hint">(ยุบแถว vs ไม่ยุบแถว)</span><div class="rv-ans"><p><b>GROUP BY</b> ยุบนิสิตทุกคนในสาขาเหลือ <b>1 แถวต่อสาขา</b> จึงแสดงคอลัมน์รายคน (เช่น name) ไม่ได้ — เหมาะกับรายงานสรุป เช่น “จำนวนนิสิตและ gpa เฉลี่ยของแต่ละสาขา”</p><p><b>OVER (PARTITION BY …)</b> คำนวณค่าเฉลี่ยของกลุ่มแล้ว<b>แปะไว้ทุกแถว</b> จำนวนแถวเท่าเดิม — เหมาะกับโจทย์ที่ต้องเห็นทั้งรายคนและค่าของกลุ่ม เช่น “นิสิตแต่ละคนสูงหรือต่ำกว่าค่าเฉลี่ยสาขาเท่าไร”</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT major, COUNT(*) AS n_row_group_by FROM student WHERE gpa IS NOT NULL GROUP BY major;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_row_group_by</th></tr><tr><td>CS</td><td>6</td></tr><tr><td>Math</td><td>2</td></tr><tr><td>Art</td><td>2</td></tr><tr><td>English</td><td>3</td></tr><tr><td>Physics</td><td>3</td></tr><tr><td class="null">NULL</td><td>3</td></tr></table></div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, major, gpa,
+       ROUND(AVG(gpa) OVER (PARTITION BY major), 2) AS major_avg
+FROM   student
+WHERE  gpa IS NOT NULL
+ORDER  BY major, stdid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (แสดง 6 จาก 19 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>major_avg</th></tr><tr><td>70033</td><td>Zoro</td><td class="null">NULL</td><td>3.98</td><td>2.79</td></tr><tr><td>70034</td><td>Luffy</td><td class="null">NULL</td><td>1.55</td><td>2.79</td></tr><tr><td>70035</td><td>Nami</td><td class="null">NULL</td><td>2.85</td><td>2.79</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>3.52</td></tr><tr><td>60008</td><td>Kira</td><td>Art</td><td>3.05</td><td>3.52</td></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2.88</td></tr></table></div></div></li>
+<li>แสดงอาจารย์ที่เงินเดือนสูงสุด 2 อันดับแรกในแต่ละสาขา (ถ้าเงินเดือนเท่ากันให้นับเป็นอันดับเดียวกัน) <span class="hint">(DENSE_RANK() OVER (PARTITION BY major …) + CTE)</span><div class="rv-ans"><p>ใช้ <code>DENSE_RANK</code> เพราะต้องการ “2 ระดับเงินเดือน” — ถ้าใช้ ROW_NUMBER คนที่เงินเดือนเท่ากันจะถูกตัดทิ้งแบบสุ่ม และต้องกรองในชั้นนอก (CTE) เพราะ Window Function ใช้ใน WHERE ไม่ได้</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">WITH r AS (
+    SELECT lecid, name, major, salary,
+           DENSE_RANK() OVER (PARTITION BY major ORDER BY salary DESC) AS rnk
+    FROM   lecturer
+    WHERE  salary IS NOT NULL
+)
+SELECT major, rnk, lecid, name, salary
+FROM   r
+WHERE  rnk &lt;= 2
+ORDER  BY major, rnk, lecid;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (10 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>rnk</th><th>lecid</th><th>name</th><th>salary</th></tr><tr><td>Art</td><td>1</td><td>t10</td><td>Piccolo</td><td>15000</td></tr><tr><td>CS</td><td>1</td><td>t14</td><td>Yoda</td><td>80000</td></tr><tr><td>CS</td><td>2</td><td>t02</td><td>Steve Roger</td><td>50000</td></tr><tr><td>DC</td><td>1</td><td>t13</td><td>Thor</td><td>60000</td></tr><tr><td>English</td><td>1</td><td>t08</td><td>Cell</td><td>70000</td></tr><tr><td>English</td><td>2</td><td>t09</td><td>Frieza</td><td>60000</td></tr><tr><td>Math</td><td>1</td><td>t03</td><td>Yoda</td><td>80000</td></tr><tr><td>Math</td><td>2</td><td>t15</td><td>Gohan</td><td>20000</td></tr><tr><td>Thai</td><td>1</td><td>t05</td><td>IronMan</td><td>65000</td></tr><tr><td>Thai</td><td>2</td><td>t04</td><td>Post Malone</td><td>47000</td></tr></table></div></div></li>
+<li>แสดงจำนวนนิสิตในแต่ละสาขา พร้อมร้อยละเทียบกับนิสิตทั้งหมด ในคำสั่งเดียว <span class="hint">(COUNT(*) * 100 / SUM(COUNT(*)) OVER ())</span><div class="rv-ans"><p><code>OVER ()</code> ที่ว่างเปล่า = หน้าต่างเดียวครอบทุกแถว จึงได้ผลรวมทั้งหมดมาแปะทุกแถว — Window Function ทำงานหลัง GROUP BY จึงซ้อนกับฟังก์ชันรวมได้ (<code>SUM(COUNT(*))</code>)</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT IFNULL(major, &#x27;Undeclared&#x27;) AS major,
+       COUNT(*)                                        AS n_student,
+       ROUND(COUNT(*) * 100 / SUM(COUNT(*)) OVER (), 1) AS pct
+FROM   student
+GROUP  BY major
+ORDER  BY n_student DESC, major;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_student</th><th>pct</th></tr><tr><td>CS</td><td>7</td><td>31.8</td></tr><tr><td>English</td><td>4</td><td>18.2</td></tr><tr><td>Undeclared</td><td>4</td><td>18.2</td></tr><tr><td>Physics</td><td>3</td><td>13.6</td></tr><tr><td>Art</td><td>2</td><td>9.1</td></tr><tr><td>Math</td><td>2</td><td>9.1</td></tr></table></div></div></li>
+<li>เขียนข้อท้าทาย “นิสิตที่เกรดเฉลี่ยรายภาคไม่เคยลดลง” ใหม่ด้วย <code>LAG()</code> แล้วเปรียบเทียบกับวิธี Self Join + NOT EXISTS <span class="hint">(LAG(term_gpa) OVER (PARTITION BY student_id ORDER BY term))</span><div class="rv-ans"><p>ชั้นที่ 1 ใช้ LAG ดึงเกรดของภาคก่อนมาไว้แถวเดียวกัน ชั้นที่ 2 นับว่ามีภาคที่ลดลงหรือไม่ — อ่านตรงกับโจทย์กว่า และอ่านวิวเพียงครั้งเดียว (วิธี Self Join อ่าน 3 ครั้ง)</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">WITH t AS (
+    SELECT student_id, student_name, term, term_gpa,
+           LAG(term_gpa) OVER (PARTITION BY student_id ORDER BY term) AS prev_gpa
+    FROM   v_student_term_gpa
+)
+SELECT student_id, student_name,
+       COUNT(*)                                             AS n_term,
+       GROUP_CONCAT(term_gpa ORDER BY term SEPARATOR &#x27; → &#x27;) AS gpa_by_term
+FROM   t
+GROUP  BY student_id, student_name
+HAVING COUNT(*) &gt;= 2
+   AND SUM(term_gpa &lt; prev_gpa) = 0;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>student_id</th><th>student_name</th><th>n_term</th><th>gpa_by_term</th></tr><tr><td>60004</td><td>Sendoh</td><td>6</td><td>1.50 → 2.00 → 4.00 → 4.00 → 4.00 → 4.00</td></tr><tr><td>60005</td><td class="null">NULL</td><td>5</td><td>1.63 → 3.00 → 3.00 → 4.00 → 4.00</td></tr><tr><td>70034</td><td>Luffy</td><td>4</td><td>0.00 → 0.00 → 1.00 → 2.00</td></tr></table></div><p><code>term_gpa &lt; prev_gpa</code> ให้ 1 เมื่อลดลง และ NULL ในภาคแรก (ไม่มีภาคก่อน) ซึ่ง SUM ข้ามไป — ผลลัพธ์ต้องเท่ากับวิธี Self Join</p></div></li>
+<li>ใช้ Recursive CTE แสดงทุกวิชาที่ต้องผ่านมาก่อน (ทุกชั้น) จึงจะลงวิชา EN004 Writing ได้ พร้อมระดับ <span class="hint">(anchor = EN004, JOIN ด้วย p.subid = c.pre)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">WITH RECURSIVE chain AS (
+    SELECT subid, name, pre, 0 AS level
+    FROM   subject
+    WHERE  subid = &#x27;EN004&#x27;
+    UNION ALL
+    SELECT p.subid, p.name, p.pre, c.level + 1
+    FROM   subject p
+           INNER JOIN chain c ON p.subid = c.pre
+)
+SELECT level, subid, name FROM chain WHERE level &gt; 0 ORDER BY level;</pre></div>
+<div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>level</th><th>subid</th><th>name</th></tr><tr><td>1</td><td>EN002</td><td>Reading</td></tr><tr><td>2</td><td>EN001</td><td>English</td></tr></table></div><p>ได้ EN002 Reading (ระดับ 1) และ EN001 English (ระดับ 2) — ส่วน Self Join ครั้งเดียวจะเห็นแค่ EN002</p></div></li>
 </ol></div>
 
 <div class="pager"><a class="pg" href="06-join.html">← 06 · JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</a><a class="pg next" href="08-index.html">08 · ดัชนี (Index) →</a></div>
