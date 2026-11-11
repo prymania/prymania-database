@@ -9,6 +9,17 @@
   });
 })();
 
+// ---------- ซ่อน/แสดงเมนูซ้าย (จอกว้าง): ปุ่ม « ซ่อนเมนู / ☰ เมนู แสดงกลับ (จำค่าไว้ทุกหน้า) ----------
+(function () {
+  function side(collapsed) {
+    document.documentElement.classList.toggle("side-collapsed", collapsed);
+    try { localStorage.setItem("side-collapsed", collapsed ? "1" : "0"); } catch (e) {}
+  }
+  var hideBtn = document.querySelector(".side-hide"), showBtn = document.querySelector(".side-show");
+  if (hideBtn) hideBtn.addEventListener("click", function () { side(true); });
+  if (showBtn) showBtn.addEventListener("click", function () { side(false); });
+})();
+
 // ---------- ไฮไลต์ SQL อัตโนมัติ (<pre class="sql">) + ปุ่มคัดลอก ----------
 // เรียกซ้ำได้กับเนื้อหาที่เพิ่งใส่ลงหน้า (เช่น เฉลยที่เพิ่งถอดรหัส): window.dbEnhance(element)
 window.dbEnhance = function (root) { highlightSql(root); addCopyButtons(root); };
@@ -76,15 +87,55 @@ function addCopyButtons(root) {
 }
 window.dbEnhance(document);
 
-// ---------- ปุ่มดูเฉลย / ซ่อนเฉลย ----------
+// ---------- ปุ่มดูเฉลย / ซ่อนเฉลย (แบบฝึกหัดระหว่างเรียน — ต้องใส่รหัสผ่านจาก assets/password.js) ----------
 (function () {
+  var m = location.pathname.match(/(?:^|\/)(\d+)-[^\/]*$/);       // 05-select.html → e5
+  var CH = m ? "e" + parseInt(m[1], 10) : null;                    // หน้าที่ไม่ใช่บทเรียน: ไม่ล็อก
+  var KEY = "dbExamplesUnlocked-" + CH;
+  function ok() { if (!CH) return true; try { return sessionStorage.getItem(KEY) === "1"; } catch (e) { return false; } }
+  function remember() { try { sessionStorage.setItem(KEY, "1"); } catch (e) {} }
+  var forms = [];
+
+  function lockForm(btn, onOpen) {
+    var form = document.createElement("form");
+    form.className = "review-lock ans-lock";
+    form.hidden = true;
+    form.innerHTML = '<label>รหัสผ่านสำหรับดูเฉลยแบบฝึกหัด</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน">' +
+      '<button type="submit">ตกลง</button><span class="review-msg"></span>';
+    var input = form.querySelector("input"), msg = form.querySelector(".review-msg");
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var all = window.EXAMPLE_PASSWORDS;
+      if (!all) { msg.textContent = "ไม่พบไฟล์ assets/password.js"; return; }
+      var pw = all[CH];
+      if (pw === undefined) { msg.textContent = "ยังไม่ได้กำหนดรหัสผ่านของบทนี้ (" + CH + ") ใน password.js"; return; }
+      if (input.value === String(pw)) {
+        remember(); input.value = "";
+        forms.forEach(function (f) { f.hidden = true; });   // ปลดล็อกทั้งบทแล้ว ซ่อนฟอร์มอื่นที่เปิดค้างไว้ด้วย
+        onOpen();
+      } else { msg.textContent = "รหัสผ่านไม่ถูกต้อง"; input.select(); }
+    });
+    btn.insertAdjacentElement("afterend", form);
+    forms.push(form);
+    return form;
+  }
+
   document.querySelectorAll(".ans-btn").forEach(function (btn) {
     var ans = btn.nextElementSibling;
     if (!ans || !ans.classList.contains("answer")) return;
-    btn.addEventListener("click", function () {
-      var open = ans.classList.toggle("show");
+    function set(open) {
+      ans.classList.toggle("show", open);
       btn.classList.toggle("open", open);
       btn.textContent = open ? "🙈 ซ่อนเฉลย" : "👀 ดูเฉลย";
+    }
+    var form = null;
+    btn.addEventListener("click", function () {
+      if (ans.classList.contains("show")) { set(false); return; }
+      if (ok()) { set(true); return; }
+      form = form || lockForm(btn, function () { set(true); });
+      form.hidden = !form.hidden;
+      form.querySelector(".review-msg").textContent = "";
+      if (!form.hidden) form.querySelector("input").focus();
     });
   });
 })();
@@ -172,4 +223,11 @@ window.dbEnhance(document);
     });
   }, { rootMargin: "0px 0px -75% 0px" });
   Object.keys(map).forEach(function (id) { var el = document.getElementById(id); if (el) obs.observe(el); });
+})();
+
+// ---------- เปิดเว็บได้แม้ไม่มีเน็ต (service worker: docs/sw.js สร้างโดย build.py) ----------
+(function () {
+  if (!("serviceWorker" in navigator) || location.protocol === "file:") return;
+  if (!/(^|\/)[^\/]*\.html$|\/$/.test(location.pathname) || /\/(assets|library_tutorial_site)\//.test(location.pathname)) return;
+  addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
 })();

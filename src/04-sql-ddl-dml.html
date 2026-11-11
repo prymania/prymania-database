@@ -7,7 +7,7 @@
 <li>เขียน INSERT, UPDATE, DELETE ได้อย่างถูกต้องและปลอดภัย</li>
 </ol></div>
 
-<div class="box tip"><div class="box-t">✅ ก่อนเริ่ม</div><p>สร้างตารางและข้อมูลกรณีศึกษาให้พร้อมก่อน โดยรันสคริปต์ใน <a href="appendix-a-script.html">ภาคผนวก ก</a> (หรือดาวน์โหลด <a href="prymania_DBLabScript.sql" download>prymania_DBLabScript.sql</a>) — ทุกตัวอย่างในบทนี้รันบนข้อมูลชุดนั้น <b>ผลลัพธ์ที่แสดงเป็นผลจริงจาก MySQL 8.4</b></p></div>
+<div class="box tip"><div class="box-t">✅ ก่อนเริ่ม</div><p>สร้างตารางและข้อมูลกรณีศึกษาให้พร้อมก่อน โดยรันสคริปต์ใน <a href="appendix-a-script.html">ภาคผนวก A</a> (หรือดาวน์โหลด <a href="prymania_DBLabScript.sql" download>prymania_DBLabScript.sql</a>) — ทุกตัวอย่างในบทนี้รันบนข้อมูลชุดนั้น <b>ผลลัพธ์ที่แสดงเป็นผลจริงจาก MySQL 8.4</b></p></div>
 
 <toc/>
 
@@ -152,7 +152,7 @@ DROP TABLE category;</sql></answer>
 <h2 id="s5"><span class="sec">4.5</span> สคริปต์สร้างตารางของกรณีศึกษา</h2>
 <fig n="2-28" w="1090">แผนภาพ ER ของกรณีศึกษาระบบลงทะเบียนเรียน</fig>
 <fig n="4-4" w="640">โครงสร้างตารางเชิงสัมพันธ์ที่ได้จากการแปลง</fig>
-<p>สคริปต์ฉบับเต็มทั้ง CREATE และ INSERT อยู่ที่ <a href="appendix-a-script.html">ภาคผนวก ก</a> — ถ้าต้องการเริ่มใหม่ทั้งหมด ให้ลบตารางเดิมก่อนตามลำดับนี้</p>
+<p>สคริปต์ฉบับเต็มทั้ง CREATE และ INSERT อยู่ที่ <a href="appendix-a-script.html">ภาคผนวก A</a> — ถ้าต้องการเริ่มใหม่ทั้งหมด ให้ลบตารางเดิมก่อนตามลำดับนี้</p>
 <sql title="ลบตารางทั้งหมด (ลำดับย้อนกลับ)">drop table if exists enroll;
 drop table if exists section;
 drop table if exists subject;

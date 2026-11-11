@@ -7,10 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
 </head>
 <body>
 <button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
+  <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <nav>
 <div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
@@ -38,13 +41,16 @@
 <a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
 </div>
 <div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
-<a href="appendix-a-script.html"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
-<a href="appendix-b-cheatsheet.html"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
-<a href="appendix-c-dbeaver.html"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
-<a href="appendix-d-university-web.html"><span class="no">ง</span>ตัวอย่าง Website University</a>
-<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+<a href="appendix-a-script.html"><span class="no">A</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">B</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">C</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">D</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">E</span>Library Tutorial ↗</a>
+<a href="appendix-f-course.html"><span class="no">F</span>เกณฑ์คะแนน</a>
+<a href="appendix-g-pen.html"><span class="no">G</span>วิธีใช้ปากกาเขียนบนหน้าเว็บ</a>
 </div>
   </nav>
+  <figure class="side-photo"><img src="icon/prymania.jpg" alt="อ. พรทิวา ปะวะระ (อ. พราย)" width="360" height="480" loading="lazy"><figcaption>อ. พรทิวา ปะวะระ (อ. พราย)</figcaption></figure>
   <img src="icon/awesome.png" alt="" class="sidebar-img">
 </aside>
 <main class="content">
@@ -72,7 +78,7 @@
 </div>
 <div class="box idea"><div class="box-t">💡 เปรียบเทียบให้เห็นภาพ</div><p>ตารางจริงเหมือน <b>ห้องเก็บของ</b> ส่วนวิวเหมือน <b>หน้าต่าง</b> ที่มองเข้าไปในห้อง — หน้าต่างแต่ละบานมองเห็นของคนละมุม (บางคอลัมน์ บางแถว) แต่ของในห้องมีชุดเดียว ถ้าของในห้องเปลี่ยน มองผ่านหน้าต่างก็เห็นการเปลี่ยนแปลงทันที</p></div>
 <h3>7.1.1 เห็นภาพการสร้างวิวทีละขั้น</h3>
-<p>ใช้ข้อมูลจริงจากตาราง <code>student</code> ในสคริปต์กรณีศึกษา (ภาคผนวก ก) สร้างวิว <code>v_cs_honor</code> ที่แสดง “นิสิตสาขา CS ที่มีเกรดเฉลี่ยตั้งแต่ 3.00 ขึ้นไป” แล้วดูว่าคำสั่งของวิวไปเลือกส่วนใดของตาราง</p>
+<p>ใช้ข้อมูลจริงจากตาราง <code>student</code> ในสคริปต์กรณีศึกษา (ภาคผนวก A) สร้างวิว <code>v_cs_honor</code> ที่แสดง “นิสิตสาขา CS ที่มีเกรดเฉลี่ยตั้งแต่ 3.00 ขึ้นไป” แล้วดูว่าคำสั่งของวิวไปเลือกส่วนใดของตาราง</p>
 
 <div class="vstep"><div class="vstep-t"><span class="n">1</span>เริ่มจากตารางจริง student (22 แถว 5 คอลัมน์)</div>
 <p>เรียงข้อมูลตามสาขา แล้วตามเกรดเฉลี่ยจากมากไปน้อย เพื่อให้แถวที่เกี่ยวข้องอยู่ติดกัน: <span class="legend-chip row">แถวสีส้ม</span> = แถวที่ผ่านเงื่อนไข <code>major = 'CS'</code> · <span class="legend-chip frame">กรอบสีแดง</span> = แถวที่ผ่านทั้ง <code>major = 'CS'</code> <b>และ</b> <code>gpa &gt;= 3.00</code> คือข้อมูลที่วิวจะ “มองเห็น” (ทุกคอลัมน์ เพราะใช้ <code>SELECT *</code>)</p>
@@ -936,7 +942,7 @@ SELECT level, subid, name FROM next_sub ORDER BY level, subid;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (9 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>level</th><th>subid</th><th>name</th></tr><tr><td>1</td><td>CS002</td><td>Java</td></tr><tr><td>1</td><td>CS003</td><td>Web Design</td></tr><tr><td>1</td><td>CS004</td><td>Database</td></tr><tr><td>2</td><td>CS005</td><td>Graphics</td></tr><tr><td>2</td><td>CS006</td><td>Mobile Apps</td></tr><tr><td>2</td><td>CS007</td><td>Robotics</td></tr><tr><td>2</td><td>CS008</td><td>AI</td></tr><tr><td>2</td><td>CS009</td><td>Project</td></tr><tr><td>2</td><td>CS010</td><td>Security</td></tr></table></div>
 <p>ทิศทางตรงข้ามกับตัวอย่าง CS009: ตัวอย่างนั้น JOIN ด้วย <code>p.subid = c.pre</code> (ขึ้นไปหาวิชาบังคับก่อน) ข้อนี้ JOIN ด้วย <code>s.pre = n.subid</code> (ลงไปหาวิชาที่ต่อยอด)</p></div></div></div>
 
-<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
+<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท <span class="rv-tag">แบบฝึก ไม่มีคะแนน</span></h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
 <li class="part">แนวคิดของวิว</li>
 <li>จงอธิบายความแตกต่างระหว่างวิวกับตารางจริง ในแง่สิ่งที่เก็บ การสร้าง ข้อกำหนดบังคับ และการปรับปรุงข้อมูล <span class="hint">(หัวข้อ 7.1)</span><div class="rv-ans"><ul><li><b>สิ่งที่เก็บ</b> — ตารางเก็บข้อมูลจริง วิวเก็บเพียงคำสั่ง SELECT</li><li><b>การสร้าง</b> — ตารางใช้ CREATE TABLE วิวใช้ CREATE VIEW … AS SELECT</li><li><b>ข้อกำหนดบังคับ</b> — ตารางมี PK / FK / CHECK ของตัวเอง วิวไม่มี (อาศัยของตารางจริง และเพิ่มได้เพียง WITH CHECK OPTION)</li><li><b>การปรับปรุงข้อมูล</b> — ตาราง INSERT/UPDATE/DELETE ได้เสมอ วิวทำได้บางกรณี (แต่ละแถวต้องชี้กลับไปยังแถวเดียวในตารางจริงได้) และการเปลี่ยนแปลงเกิดที่ตารางจริง</li></ul></div></li>
 <li>ถ้าแก้ข้อมูลในตาราง student หลังจากสร้างวิว v_cs_student แล้ว ผลลัพธ์ของ <code>SELECT * FROM v_cs_student</code> จะเปลี่ยนตามหรือไม่ เพราะเหตุใด <span class="hint">(วิวเก็บคำสั่ง ไม่ใช่ข้อมูล)</span><div class="rv-ans"><p><b>เปลี่ยนตาม</b> — วิวไม่ได้เก็บข้อมูล ทุกครั้งที่ SELECT จากวิว DBMS จะรันคำสั่งของวิวกับตาราง student ณ ขณะนั้น (ดูขั้นที่ 5 ของหัวข้อ 7.1.1)</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">UPDATE student SET gpa = 4.00 WHERE stdid = &#x27;60003&#x27;;
@@ -1213,7 +1219,7 @@ WHERE  n_lecturer =
 FROM   information_schema.VIEWS
 WHERE  TABLE_SCHEMA = DATABASE()
   AND  TABLE_NAME IN (&#x27;v_cs_student&#x27;, &#x27;v_section_summary&#x27;, &#x27;v_passed&#x27;, &#x27;v_people&#x27;, &#x27;v_section_detail&#x27;);</pre></div>
-<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>TABLE_NAME</th><th>IS_UPDATABLE</th></tr><tr><td>v_cs_student</td><td>YES</td></tr><tr><td>v_passed</td><td>NO</td></tr><tr><td>v_people</td><td>NO</td></tr><tr><td>v_section_detail</td><td>YES</td></tr><tr><td>v_section_summary</td><td>NO</td></tr></table></div></div></li>
+<div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>TABLE_NAME</th><th>IS_UPDATABLE</th></tr><tr><td>v_cs_student</td><td>YES</td></tr><tr><td>v_section_detail</td><td>YES</td></tr><tr><td>v_section_summary</td><td>NO</td></tr><tr><td>v_passed</td><td>NO</td></tr><tr><td>v_people</td><td>NO</td></tr></table></div></div></li>
 <li>INSERT นิสิตใหม่ผ่านวิว v_student_public แล้วตรวจว่าคอลัมน์ gpa และ birthday ในตารางจริงมีค่าอะไร <span class="hint">(NULL)</span><div class="rv-ans"><p>คอลัมน์ที่ไม่อยู่ในวิวได้ค่าปริยายของตาราง ซึ่งในที่นี้คือ <b>NULL</b></p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">INSERT INTO v_student_public (stdid, name, major) VALUES (&#x27;80010&#x27;, &#x27;Armin&#x27;, &#x27;Math&#x27;);</pre></div>
 <div class="run-msg">✔ Query OK · 1 row(s) affected</div>
 <div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>birthday</th></tr><tr><td>80010</td><td>Armin</td><td>Math</td><td class="null">NULL</td><td class="null">NULL</td></tr></table></div></div></li>
@@ -1283,5 +1289,6 @@ SELECT level, subid, name FROM chain WHERE level &gt; 0 ORDER BY level;</pre></d
 </main>
 <script src="assets/password.js"></script>
 <script src="assets/nav.js"></script>
+<script defer src="assets/ink.js"></script>
 </body>
 </html>

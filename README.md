@@ -39,13 +39,20 @@ python apply_reviews.py && python build.py
 - รายละเอียดรูปแบบอยู่ต้นไฟล์ `apply_reviews.py`
 
 เฉลยซ่อนอยู่หลังปุ่ม **🔑 ดูเฉลย** — รหัสผ่านแยกตามบทอยู่ที่ `docs/assets/password.js` ใน `window.EXERCISE_PASSWORDS` (คีย์ `c1`–`c12` ตรงกับเลขหน้าของไฟล์ เช่น 07-view.html = c7) แก้ได้โดยไม่ต้อง build ใหม่
+เฉลย **แบบฝึกหัดระหว่างเรียน** (ปุ่ม 👀 ดูเฉลย) ล็อกด้วย `window.EXAMPLE_PASSWORDS` (คีย์ `e1`–`e12`) ในไฟล์เดียวกัน ใส่รหัสครั้งเดียวเปิดได้ทั้งบทจนปิดแท็บ (หน้าแรกและภาคผนวกไม่ล็อก)
 ข้อควรรู้: เป็นการล็อกฝั่งเบราว์เซอร์ เนื้อหาเฉลยยังอยู่ใน HTML และรหัสผ่านทุกบทอ่านได้จาก password.js — กันการเปิดดูโดยไม่ตั้งใจได้ แต่ไม่ใช่ความปลอดภัยจริง
 
-## ภาคผนวก ง · Library Tutorial
+## ภาคผนวก E · Library Tutorial
 
 `build.py` คัดลอกโฟลเดอร์ `library_tutorial_site/` (ยกเว้น `.git*` และ README) ไปไว้ที่ `site/library_tutorial_site/`
 และเพิ่มลิงก์ “กลับ Lecture Note” ในเมนูของทุกหน้า — แก้เนื้อหา tutorial ที่ `library_tutorial_site/` แล้วรัน `python build.py` ใหม่
-ภาคผนวก ง ไม่มีหน้าของตัวเอง — เมนูและการ์ดหน้าแรกลิงก์ไป `library_tutorial_site/index.html` (เปิดแท็บใหม่)
+ภาคผนวก E ไม่มีหน้าของตัวเอง — เมนูและการ์ดหน้าแรกลิงก์ไป `library_tutorial_site/index.html` (เปิดแท็บใหม่)
 
 หมายเหตุ: `src/07-view-transaction.html` และ `src/08-security-procedure-trigger.html` เป็นฉบับเก่า (ไม่อยู่ใน PAGES แล้ว)
  
+
+## ฟีเจอร์ที่ย้ายมาจากเว็บ Calculus
+- ✏️ ปากกาเขียนทับหน้าเว็บ + 📒 กระดานทด + A+ โหมดฉายจอ: `docs/assets/ink.js` (วิธีใช้ = ภาคผนวก G) · หมึกเก็บใน localStorage ของเครื่องที่เขียน
+- ภาคผนวก F เกณฑ์คะแนน (`src/appendix-f-course.html`) — แก้คะแนนเต็มและ `cuts` ในสคริปต์ท้ายไฟล์ · ตาราง "การวัดผล" ในหน้าแรกต้องตรงกัน
+- « ซ่อนเมนูซ้าย (จอกว้าง) · รูปอาจารย์ท้ายเมนู · ลิงก์ Facebook/Discord ในหน้าแรก
+- เปิดได้แม้ไม่มีเน็ต: `build.py` สร้าง `docs/sw.js` ทุกครั้งที่ build (เลขเวอร์ชันเปลี่ยนเองเมื่อไฟล์เปลี่ยน — ถ้าแก้ css/js ใน `docs/assets` ให้ build ใหม่ด้วย)

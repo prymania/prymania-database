@@ -40,11 +40,13 @@ PAGES = [  # (file, nav-no, nav title, group)
     ("10-security.html", "10", "ความปลอดภัยของฐานข้อมูล", "ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม"),
     ("11-stored-procedure.html", "11", "Stored Procedure &amp; Function", "ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม"),
     ("12-trigger.html", "12", "ทริกเกอร์ (Trigger)", "ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม"),
-    ("appendix-a-script.html", "ก", "สคริปต์ฐานข้อมูลกรณีศึกษา", "ภาคผนวก"),
-    ("appendix-b-cheatsheet.html", "ข", "สรุปคำสั่ง SQL (Cheat Sheet)", "ภาคผนวก"),
-    ("appendix-c-dbeaver.html", "ค", "เชื่อมต่อฐานข้อมูลด้วย DBeaver", "ภาคผนวก"),
-    ("appendix-d-university-web.html", "ง", "ตัวอย่าง Website University", "ภาคผนวก"),
-    ("library_tutorial_site/index.html", "จ", "Library Tutorial ↗", "ภาคผนวก"),  # ลิงก์ภายนอก เปิดแท็บใหม่ (ไม่มีหน้า src)
+    ("appendix-a-script.html", "A", "สคริปต์ฐานข้อมูลกรณีศึกษา", "ภาคผนวก"),
+    ("appendix-b-cheatsheet.html", "B", "สรุปคำสั่ง SQL (Cheat Sheet)", "ภาคผนวก"),
+    ("appendix-c-dbeaver.html", "C", "เชื่อมต่อฐานข้อมูลด้วย DBeaver", "ภาคผนวก"),
+    ("appendix-d-university-web.html", "D", "ตัวอย่าง Website University", "ภาคผนวก"),
+    ("library_tutorial_site/index.html", "E", "Library Tutorial ↗", "ภาคผนวก"),  # ลิงก์ภายนอก เปิดแท็บใหม่ (ไม่มีหน้า src)
+    ("appendix-f-course.html", "F", "เกณฑ์คะแนน", "ภาคผนวก"),
+    ("appendix-g-pen.html", "G", "วิธีใช้ปากกาเขียนบนหน้าเว็บ", "ภาคผนวก"),
 ]
 LIB_SRC = ROOT / "library_tutorial_site"   # คัดลอกไปไว้ที่ docs/library_tutorial_site/ (ภาคผนวก จ เปิดแท็บใหม่)
 LIB_OUT = OUT / "library_tutorial_site"
@@ -242,7 +244,7 @@ def render_ex(m):
 
 def render_review(m):
     return (f'<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt="">'
-            f'<h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button>'
+            f'<h2>คำถามท้ายบท <span class="rv-tag">แบบฝึก ไม่มีคะแนน</span></h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button>'
             f'<button type="button" class="review-key">🔑 ดูเฉลย</button></div>'
             f'<form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label>'
             f'<input type="password" autocomplete="off" placeholder="รหัสผ่าน">'
@@ -251,7 +253,7 @@ def render_review(m):
 
 def render_fig(m):
     n, w, no, cap = m.group(1), m.group(2), m.group(3), m.group(4)
-    style = f' style="max-width:{w}px"' if w else ""
+    style = f' style="max-width:min({w}px,100%)"' if w else ""
     no = no or n.replace("-", ".")
     ext = "svg" if (OUT / "image" / f"fig{n}.svg").exists() else "jpg"   # มีภาพ SVG ที่วาดใหม่ให้ใช้ก่อน
     return (f'<figure class="shot"><img src="image/fig{n}.{ext}" alt="ภาพที่ {no}" loading="lazy"{style}>'
@@ -313,14 +315,18 @@ def layout(fname, meta, body):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
+<script>document.documentElement.classList.add("js");try{{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}}catch(e){{}}</script>
 </head>
 <body>
 <button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
+  <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <nav>
 {sidebar(fname, sub_items(body))}
   </nav>
+  <figure class="side-photo"><img src="icon/prymania.jpg" alt="อ. พรทิวา ปะวะระ (อ. พราย)" width="360" height="480" loading="lazy"><figcaption>อ. พรทิวา ปะวะระ (อ. พราย)</figcaption></figure>
   <img src="icon/{meta.get("img","me_cat.png")}" alt="" class="sidebar-img">
 </aside>
 <main class="content">
@@ -331,6 +337,7 @@ def layout(fname, meta, body):
 </main>
 <script src="assets/password.js"></script>
 <script src="assets/nav.js"></script>
+<script defer src="assets/ink.js"></script>
 </body>
 </html>
 """
@@ -356,6 +363,48 @@ def build(only=None):
     runner.cur.execute(f"DROP DATABASE IF EXISTS {DBNAME}")
     copy_library()
     zip_university()
+    write_service_worker()
+
+SW = """// สร้างโดย build.py — อย่าแก้ไฟล์นี้ตรง ๆ
+// เปิดเว็บได้แม้ไม่มีเน็ต: มีเน็ต = โหลดของใหม่เสมอ (แล้วเก็บสำเนา) · ไม่มีเน็ต = ใช้สำเนาในเครื่อง
+var CACHE = "db-{version}";
+var CORE = {core};
+self.addEventListener("install", function (e) {{
+  e.waitUntil(caches.open(CACHE).then(function (c) {{ return c.addAll(CORE); }}).then(function () {{ return self.skipWaiting(); }}));
+}});
+self.addEventListener("activate", function (e) {{
+  e.waitUntil(caches.keys().then(function (ks) {{
+    return Promise.all(ks.filter(function (k) {{ return k !== CACHE; }}).map(function (k) {{ return caches.delete(k); }}));
+  }}).then(function () {{ return self.clients.claim(); }}));
+}});
+self.addEventListener("fetch", function (e) {{
+  if (e.request.method !== "GET") return;
+  e.respondWith(fetch(e.request).then(function (res) {{
+    if (res && (res.ok || res.type === "opaque")) {{
+      var copy = res.clone();
+      caches.open(CACHE).then(function (c) {{ c.put(e.request, copy); }});
+    }}
+    return res;
+  }}).catch(function () {{
+    return caches.match(e.request, {{ ignoreSearch: true }}).then(function (hit) {{
+      return hit || (e.request.mode === "navigate" ? caches.match("index.html") : undefined);
+    }});
+  }}));
+}});
+"""
+
+def write_service_worker():
+    """docs/sw.js — เลขเวอร์ชันมาจากเนื้อหาทุกไฟล์ที่ cache เมื่อแก้อะไร สำเนาเก่าในเครื่องนิสิตจะถูกแทนที่เอง
+    เก็บล่วงหน้าเฉพาะหน้าเว็บ + assets + icon (รูปใน image/ ถูกเก็บเองเมื่อเปิดหน้านั้นตอนมีเน็ต)"""
+    import hashlib
+    core = ["./"] + [f for f, *_ in PAGES if not is_external(f)] + [
+        "assets/style.css", "assets/nav.js", "assets/password.js", "assets/ink.js"]
+    core += ["icon/" + f.name for f in sorted((OUT / "icon").iterdir()) if f.suffix.lower() in (".png", ".jpg", ".jpeg", ".svg", ".webp")]
+    h = hashlib.sha1()
+    for f in core[1:]:
+        h.update((OUT / f).read_bytes())
+    (OUT / "sw.js").write_text(SW.format(version=h.hexdigest()[:10], core=json.dumps(core, ensure_ascii=False)), encoding="utf-8", newline="\n")
+    print(f"sw.js (offline) files={len(core)}")
 
 def zip_university():
     """บีบอัด university_schema_site -> docs/university_schema_site.zip (ภาคผนวก ง ให้ดาวน์โหลด)"""

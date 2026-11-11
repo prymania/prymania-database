@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ภาคผนวก G · วิธีใช้ปากกาเขียนบนหน้าเว็บ — Database Lecture Note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
+</head>
+<body>
+<button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
+<aside class="sidebar" id="sidebar">
+  <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
+  <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
+  <nav>
+<div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
+<a href="index.html"><span class="no">🏠</span>หน้าแรก / ภาพรวม</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 1 · ออกแบบฐานข้อมูล</div>
+<a href="01-intro.html"><span class="no">01</span>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</a>
+<a href="02-er-model.html"><span class="no">02</span>แบบจำลอง ER</a>
+<a href="03-relational-normalization.html"><span class="no">03</span>แปลง ER เป็นตาราง &amp; Normalization</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 2 · ภาษา SQL</div>
+<a href="04-sql-ddl-dml.html"><span class="no">04</span>สร้างตาราง &amp; INSERT/UPDATE/DELETE</a>
+<a href="05-select.html"><span class="no">05</span>การแสดงข้อมูลด้วยคำสั่ง SELECT</a>
+<a href="06-join.html"><span class="no">06</span>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 3 · ขั้นสูง</div>
+<a href="07-view.html"><span class="no">07</span>วิว (View)</a>
+<a href="08-index.html"><span class="no">08</span>ดัชนี (Index)</a>
+<a href="09-transaction.html"><span class="no">09</span>ทรานแซกชัน (Transaction)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม</div>
+<a href="10-security.html"><span class="no">10</span>ความปลอดภัยของฐานข้อมูล</a>
+<a href="11-stored-procedure.html"><span class="no">11</span>Stored Procedure &amp; Function</a>
+<a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
+<a href="appendix-a-script.html"><span class="no">A</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">B</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">C</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">D</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">E</span>Library Tutorial ↗</a>
+<a href="appendix-f-course.html"><span class="no">F</span>เกณฑ์คะแนน</a>
+<a href="appendix-g-pen.html" class="active"><span class="no">G</span>วิธีใช้ปากกาเขียนบนหน้าเว็บ</a>
+<div class="subnav"><a href="#g1"><span class="sno">1</span>เปิดใช้ปากกา</a><a href="#g2"><span class="sno">2</span>ปุ่มในแถบเครื่องมือ</a><a href="#g3"><span class="sno">3</span>กระดานทด (กระดาษเปล่า)</a><a href="#g4"><span class="sno">4</span>การบันทึกและสำรองหมึก</a><a href="#g5"><span class="sno">5</span>ข้อควรรู้</a></div>
+</div>
+  </nav>
+  <figure class="side-photo"><img src="icon/prymania.jpg" alt="อ. พรทิวา ปะวะระ (อ. พราย)" width="360" height="480" loading="lazy"><figcaption>อ. พรทิวา ปะวะระ (อ. พราย)</figcaption></figure>
+  <img src="icon/electricity.png" alt="" class="sidebar-img">
+</aside>
+<main class="content">
+<div class="page-head"><span class="kicker">APPENDIX G · HOW TO</span><h1>ภาคผนวก G · วิธีใช้ปากกาเขียนบนหน้าเว็บ</h1><p class="sub">เขียน ไฮไลต์ และจดโน้ตทับบทเรียนด้วย Apple Pencil หรือเมาส์ พร้อมวิธีบันทึกและสำรองหมึก</p></div>
+
+<div class="box idea"><div class="box-t">✏️ ลองได้เลยบนหน้านี้</div>
+<p>กดปุ่ม <b>✏️</b> มุมขวาบนของจอ (จอแคบอยู่มุมขวาล่าง) แล้วลองเขียนทับหน้านี้ได้ทันที</p>
+<p>บน iPad ใช้ Apple Pencil เขียน ส่วนนิ้วเลื่อนและซูมหน้าได้ตามปกติ บนคอมใช้เมาส์ลากเพื่อเขียน</p></div>
+
+<h2 id="g1"><span class="sec">1</span> เปิดใช้ปากกา</h2>
+<div class="pen-steps">
+  <div class="pen-step"><b>1</b><div><h4>กด ✏️</h4><p>ปุ่มอยู่มุมขวาบน (มือถือและแท็บเล็ตแนวตั้งอยู่มุมขวาล่าง)<br>แถบเครื่องมือจะเปิดออกมา</p></div></div>
+  <div class="pen-step"><b>2</b><div><h4>เลือกสี แล้วเขียน</h4><p>Apple Pencil หรือเมาส์ = เขียน<br>นิ้ว = เลื่อนหน้า ซูม และแตะปุ่มในหน้า</p></div></div>
+  <div class="pen-step"><b>3</b><div><h4>กด ✕ เมื่อเขียนเสร็จ</h4><p>หมึกยังแสดงอยู่และบันทึกไว้แล้ว<br>หน้าเว็บกลับมาใช้งานได้ตามปกติ</p></div></div>
+</div>
+
+<h2 id="g2"><span class="sec">2</span> ปุ่มในแถบเครื่องมือ</h2>
+<div class="pen-demo" aria-hidden="true">
+  <span class="pd-pen" style="background:#17202d"></span><span class="pd-pen" style="background:#e0533f"></span><span class="pd-pen" style="background:#2f80ed"></span><span class="pd-pen" style="background:#14a08e"></span>
+  <span class="pd-hl" style="background:#FFD6EE"></span><span class="pd-hl" style="background:#CED1F8"></span><span class="pd-hl" style="background:#EAFF4F"></span>
+  <span class="pd-ico">🧽</span><span class="pd-ico">↶</span><span class="pd-ico">📒</span><span class="pd-ico">🗑</span><span class="pd-ico">⬇️</span><span class="pd-ico">⬆️</span><span class="pd-ico pd-x">✕</span>
+</div>
+<table class="tbl">
+<tr><th>ปุ่ม</th><th>ใช้ทำอะไร</th></tr>
+<tr><td>⚫ 🔴 🔵 🟢</td><td>ปากกา 4 สี แตะครั้งเดียวเพื่อเลือก สีที่เลือกอยู่จะมีวงรอบ</td></tr>
+<tr><td>ไฮไลต์ ชมพู · ม่วง · เหลือง</td><td>ปากกาเส้นหนาสีอ่อน ใช้ระบายทับข้อความ ตัวหนังสือข้างใต้ยังอ่านชัด</td></tr>
+<tr><td>🧽 ยางลบ</td><td>แตะหรือลากผ่านเส้นไหน เส้นนั้นหายทั้งเส้น<br>แตะ 🧽 อีกครั้ง หรือแตะสี เพื่อกลับไปเขียน</td></tr>
+<tr><td>↶ ย้อนกลับ</td><td>ลบเส้นล่าสุดทีละเส้น</td></tr>
+<tr><td>📒 กระดานทด</td><td>เปิดกระดาษเปล่าเต็มจอทับบทเรียน (ดูหัวข้อถัดไป) แตะอีกครั้งเพื่อกลับไปบทเรียน</td></tr>
+<tr><td>🗑 ล้างหน้า</td><td>ลบหมึกทั้งหมดของหน้านี้ ต้องแตะ <b>2 ครั้ง</b> กันกดพลาด</td></tr>
+<tr><td>⬇️ สำรอง</td><td>บันทึกหมึกของ<b>ทุกหน้า</b>เป็นไฟล์ .json (ดูหัวข้อถัดไป)</td></tr>
+<tr><td>⬆️ นำกลับ</td><td>โหลดหมึกจากไฟล์สำรองกลับเข้ามา</td></tr>
+<tr><td>✕</td><td>ปิดโหมดปากกา (หมึกยังแสดงอยู่)</td></tr>
+</table>
+
+<div class="box tip"><div class="box-t">🔍 โหมดฉายจอ (ปุ่ม A+ ข้าง ✏️)</div>
+<p>แตะ <b>A+</b> เพื่อขยายตัวหนังสือ โค้ด SQL และตารางผลลัพธ์ทั้งหน้า 125% ให้นิสิตหลังห้องอ่านออก แตะ <b>A−</b> เพื่อกลับขนาดปกติ</p>
+<p>หมึกขยายตามเนื้อหา เขียนในโหมดไหนก็ตรงตำแหน่งทั้งสองโหมด · เบราว์เซอร์จำค่าไว้ทุกหน้า</p></div>
+
+<div class="box tip"><div class="box-t">💡 ซ่อนเมนูซ้ายให้มีที่เขียนมากขึ้น</div>
+<p>บนคอมและ iPad แนวนอน กด <b>«</b> ข้างโลโก้เพื่อซ่อนเมนูซ้าย และกด <b>☰ เมนู</b> มุมซ้ายบนเพื่อแสดงกลับ</p>
+<p>ซ่อนหรือแสดงเมนูแล้ว หมึกยังอยู่ตรงตำแหน่งเดิมบนเนื้อหา</p></div>
+
+<h2 id="g3"><span class="sec">3</span> กระดานทด (กระดาษเปล่า)</h2>
+<p>ใช้เมื่อต้องการพื้นที่เขียนเยอะ เช่น แก้โจทย์ยาว หรือวาดกราฟ โดยไม่ต้องเขียนทับเนื้อหา</p>
+<div class="pen-demo" aria-hidden="true"><span class="pd-ico">≡</span><span class="pd-ico">‹</span><span class="pd-ico" style="width:auto;padding:0 6px;font:600 13px var(--f-mono)">2/3</span><span class="pd-ico">›</span><span class="pd-ico">＋</span></div>
+<table class="tbl">
+<tr><th>ปุ่ม (ขึ้นเฉพาะตอนเปิดกระดาน)</th><th>ใช้ทำอะไร</th></tr>
+<tr><td>≡ ▦ ▢ ชนิดกระดาษ</td><td>แตะเพื่อสลับ เส้นบรรทัด → ตาราง (เหมาะกับวาดกราฟ) → กระดาษว่าง</td></tr>
+<tr><td>‹ 2/3 ›</td><td>เปลี่ยนหน้า ตัวเลขบอกหน้าปัจจุบัน/จำนวนหน้าทั้งหมด</td></tr>
+<tr><td>＋ เพิ่มหน้า</td><td>เพิ่มหน้าใหม่ต่อจากหน้าที่เปิดอยู่</td></tr>
+<tr><td>🗑 บนกระดาน</td><td>หน้ามีหมึก → ล้างหน้านั้น · หน้าว่าง → <b>ลบหน้าทิ้ง</b> (แตะ 2 ครั้งทั้งสองกรณี)</td></tr>
+</table>
+<div class="kv">
+<span>แยกตามบท</span><span>กระดานของแต่ละบทแยกกัน เปิดกระดานในบทที่ 4 จะเห็นเฉพาะหน้าที่เขียนในบทที่ 4</span>
+<span>บันทึกอัตโนมัติ</span><span>เหมือนหมึกบนบทเรียน และ ⬇️ สำรองกระดานไปด้วย</span>
+<span>เลื่อนกระดาษ</span><span>ใช้นิ้วเลื่อนขึ้นลง กระดาษแต่ละหน้ายาวพอเขียนได้หลายจอ</span>
+<span>ปิดปากกา (✕)</span><span>ออกจากกระดานกลับไปบทเรียนด้วย</span>
+</div>
+
+<h2 id="g4"><span class="sec">4</span> การบันทึกและสำรองหมึก</h2>
+<p>หมึก<b>บันทึกอัตโนมัติ</b>ทุกเส้น แยกตามหน้า ปิดแล้วเปิดหน้าเดิมอีกครั้งหมึกยังอยู่</p>
+<p>แต่หมึกเก็บอยู่ใน<b>เบราว์เซอร์ของเครื่องที่เขียน</b>เท่านั้น ไม่ได้ขึ้นเว็บ คนอื่นจึงไม่เห็น และอาจหายได้ถ้าล้างข้อมูลเบราว์เซอร์</p>
+
+<div class="cards">
+<div class="pen-card save"><h4>⬇️ สำรองเป็นไฟล์</h4><ol>
+<li>เปิดโหมดปากกา แล้วแตะ ⬇️ (กดจากหน้าไหนก็ได้)</li>
+<li>iPad: Safari ถามว่าจะดาวน์โหลดไหม → กด <b>ดาวน์โหลด</b></li>
+<li>ไฟล์ชื่อ <code>database-ink-ปี-เดือน-วัน.json</code> อยู่ในแอป <b>ไฟล์ (Files) → ดาวน์โหลด</b></li>
+<li>แนะนำให้ย้ายไปเก็บใน iCloud Drive หรือ Google Drive</li>
+</ol></div>
+<div class="pen-card load"><h4>⬆️ นำหมึกกลับ</h4><ol>
+<li>เปิดโหมดปากกา แล้วแตะ ⬆️</li>
+<li>เลือกไฟล์ <code>.json</code> ที่สำรองไว้</li>
+<li>หมึกทุกหน้าในไฟล์จะกลับมา</li>
+<li><b>หมึกในไฟล์จะแทนที่</b>หมึกของหน้าเดียวกันที่มีอยู่ในเครื่อง</li>
+</ol></div>
+</div>
+
+<div class="box note"><div class="box-t">📌 ควรสำรองเมื่อไร</div>
+<div class="kv">
+<span>กันหมึกหาย</span><span>กด ⬇️ หลังสอนเสร็จทุกคาบ เพราะ Safari อาจล้างข้อมูลของเว็บที่ไม่ได้เปิดนานหลายวัน</span>
+<span>ย้ายเครื่อง</span><span>เขียนเตรียมบนคอม → ⬇️ → ส่งไฟล์ไป iPad → ⬆️ บน iPad</span>
+<span>ใช้ซ้ำเทอมหน้า</span><span>เก็บไฟล์ไว้ เทอมหน้ากด ⬆️ หมึกกลับมาครบ</span>
+</div></div>
+
+<h2 id="g5"><span class="sec">5</span> ข้อควรรู้</h2>
+<div class="box warn"><div class="box-t">⚠️ ก่อนใช้สอนจริง</div><ul>
+<li><b>ตำแหน่งหมึกผูกกับการจัดหน้าตอนเขียน</b>: ถ้าหมุนจอ หรือเปิด/ปิดเฉลยที่อยู่<b>เหนือ</b>จุดที่เขียน หมึกจะเลื่อนไม่ตรงเนื้อหา ถ้าเปิดหน้าตอนจอกว้างต่างจากตอนเขียน จะมีข้อความเตือน</li>
+<li><b>นำกลับ = แทนที่</b>: ถ้าในเครื่องมีหมึกใหม่ที่ยังไม่ได้สำรอง ให้กด ⬇️ ก่อน แล้วค่อยกด ⬆️</li>
+<li><b>พิมพ์เป็น PDF ได้</b>: หมึกจะติดไปด้วย แต่แถบเครื่องมือไม่ติด</li>
+<li>ถ้าปุ่มหรือการเขียนทำงานแปลก ๆ หลังเว็บอัปเดต ให้รีเฟรชหน้า (คอม: Ctrl+F5)</li>
+</ul></div>
+
+<div class="pager"><a class="pg" href="appendix-f-course.html">← F · เกณฑ์คะแนน</a></div>
+<footer>Lecture Note · 1204202 การออกแบบและการจัดการฐานข้อมูล · อ.ดร.พรทิวา ปะวะระ · ภาควิชาวิทยาการคอมพิวเตอร์ คณะวิทยาการสารสนเทศ มหาวิทยาลัยมหาสารคาม</footer>
+</main>
+<script src="assets/password.js"></script>
+<script src="assets/nav.js"></script>
+<script defer src="assets/ink.js"></script>
+</body>
+</html>

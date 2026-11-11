@@ -855,7 +855,7 @@ SET    status = CASE
                     WHEN gpa < 2.00 THEN 'รอพินิจ'
                     ELSE 'ปกติ'
                 END;</sql></div></li>
-<li>เมื่อแก้ข้อมูลใน lab เสร็จ ทำอย่างไรให้ตารางกลับมาเหมือนเดิมทุกตาราง อธิบายขั้นตอน <span class="hint">(DROP ตามลำดับ แล้วรันสคริปต์ใหม่)</span><div class="rv-ans"><p>(1) ลบตารางที่สร้างเพิ่ม (fail_log, student_backup) (2) ลบตารางกรณีศึกษาตามลำดับลูก → แม่: enroll, section, subject, lecturer, student (3) รันสคริปต์ prymania_DBLabScript.sql ทั้งไฟล์ใหม่ (ภาคผนวก ก) ซึ่งสร้างตารางและเพิ่มข้อมูลกลับมา — สคริปต์มีคำสั่ง DROP TABLE IF EXISTS อยู่ต้นไฟล์แล้ว จึงรันซ้ำได้ทันที</p><sql title="เฉลย" >DROP TABLE IF EXISTS fail_log, student_backup;
+<li>เมื่อแก้ข้อมูลใน lab เสร็จ ทำอย่างไรให้ตารางกลับมาเหมือนเดิมทุกตาราง อธิบายขั้นตอน <span class="hint">(DROP ตามลำดับ แล้วรันสคริปต์ใหม่)</span><div class="rv-ans"><p>(1) ลบตารางที่สร้างเพิ่ม (fail_log, student_backup) (2) ลบตารางกรณีศึกษาตามลำดับลูก → แม่: enroll, section, subject, lecturer, student (3) รันสคริปต์ prymania_DBLabScript.sql ทั้งไฟล์ใหม่ (ภาคผนวก A) ซึ่งสร้างตารางและเพิ่มข้อมูลกลับมา — สคริปต์มีคำสั่ง DROP TABLE IF EXISTS อยู่ต้นไฟล์แล้ว จึงรันซ้ำได้ทันที</p><sql title="เฉลย" >DROP TABLE IF EXISTS fail_log, student_backup;
 DROP TABLE IF EXISTS enroll, section, subject, lecturer, student;
 -- แล้วเปิด prymania_DBLabScript.sql ใน DBeaver กด Execute Script (Alt+X)</sql></div></li>
 </review>

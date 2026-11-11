@@ -7,10 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
 </head>
 <body>
 <button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
+  <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <nav>
 <div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
@@ -38,13 +41,16 @@
 <a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
 </div>
 <div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
-<a href="appendix-a-script.html"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
-<a href="appendix-b-cheatsheet.html"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
-<a href="appendix-c-dbeaver.html"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
-<a href="appendix-d-university-web.html"><span class="no">ง</span>ตัวอย่าง Website University</a>
-<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+<a href="appendix-a-script.html"><span class="no">A</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">B</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">C</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">D</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">E</span>Library Tutorial ↗</a>
+<a href="appendix-f-course.html"><span class="no">F</span>เกณฑ์คะแนน</a>
+<a href="appendix-g-pen.html"><span class="no">G</span>วิธีใช้ปากกาเขียนบนหน้าเว็บ</a>
 </div>
   </nav>
+  <figure class="side-photo"><img src="icon/prymania.jpg" alt="อ. พรทิวา ปะวะระ (อ. พราย)" width="360" height="480" loading="lazy"><figcaption>อ. พรทิวา ปะวะระ (อ. พราย)</figcaption></figure>
   <img src="icon/worker5.png" alt="" class="sidebar-img">
 </aside>
 <main class="content">
@@ -117,33 +123,33 @@
 <h2 id="s4"><span class="sec">3.4</span> กฎการแปลงแผนภาพ ER เป็นตาราง</h2>
 <h3>3.4.1 เอนทิตีปกติ + แอตทริบิวต์อย่างง่าย</h3>
 <p>1 เอนทิตี → 1 ตาราง, แอตทริบิวต์ → คอลัมน์, แอตทริบิวต์คีย์ → PK</p>
-<figure class="shot"><img src="image/fig3-1.jpg" alt="ภาพที่ 3.1" loading="lazy" style="max-width:620px"><figcaption><b>ภาพที่ 3.1</b> การแปลงเอนทิตีและแอตทริบิวต์อย่างง่ายเป็นตาราง</figcaption></figure>
+<figure class="shot"><img src="image/fig3-1.jpg" alt="ภาพที่ 3.1" loading="lazy" style="max-width:min(620px,100%)"><figcaption><b>ภาพที่ 3.1</b> การแปลงเอนทิตีและแอตทริบิวต์อย่างง่ายเป็นตาราง</figcaption></figure>
 <h3>3.4.2 แอตทริบิวต์ประกอบ และ 3.4.3 แอตทริบิวต์พหุค่า</h3>
-<figure class="shot"><img src="image/fig3-2.jpg" alt="ภาพที่ 3.2" loading="lazy" style="max-width:480px"><figcaption><b>ภาพที่ 3.2</b> เอนทิตีพนักงานที่มีทั้งแอตทริบิวต์ประกอบและพหุค่า</figcaption></figure>
+<figure class="shot"><img src="image/fig3-2.jpg" alt="ภาพที่ 3.2" loading="lazy" style="max-width:min(480px,100%)"><figcaption><b>ภาพที่ 3.2</b> เอนทิตีพนักงานที่มีทั้งแอตทริบิวต์ประกอบและพหุค่า</figcaption></figure>
 <div class="code"><div class="code-head"><span>ผลการแปลง</span></div><pre>employee     ( <u>empid</u>, name, house_id, road, province, postcode )   -- แตกแอตทริบิวต์ประกอบ
 emp_phone    ( <u>empid</u>, <u>phone</u> )                                     -- พหุค่า → ตารางใหม่
 emp_language ( <u>empid</u>, <u>language</u> )</pre></div>
 <h3>3.4.4 เอนทิตีอ่อนแอ</h3>
 <p>PK = PK ของเจ้าของ + Partial Key</p>
-<figure class="shot"><img src="image/fig3-3.jpg" alt="ภาพที่ 3.3" loading="lazy" style="max-width:620px"><figcaption><b>ภาพที่ 3.3</b> การแปลงเอนทิตีอ่อนแอ ที่นั่งในโรงภาพยนตร์</figcaption></figure>
+<figure class="shot"><img src="image/fig3-3.jpg" alt="ภาพที่ 3.3" loading="lazy" style="max-width:min(620px,100%)"><figcaption><b>ภาพที่ 3.3</b> การแปลงเอนทิตีอ่อนแอ ที่นั่งในโรงภาพยนตร์</figcaption></figure>
 <div class="code"><div class="code-head"><span>ผลการแปลง</span></div><pre>theater ( <u>title</u>, width, length, size, screen_size, seat_amount )
 seat    ( <u>title</u>, <u>number</u>, price )      -- title เป็น FK อ้างอิง theater</pre></div>
 <h3>3.4.5 ความสัมพันธ์ 1:1</h3>
 <p>นำ PK ฝั่งใดฝั่งหนึ่งไปเป็น FK อีกฝั่ง (นิยมฝั่งที่มีส่วนร่วมแบบสมบูรณ์ เพื่อลด NULL)</p>
-<figure class="shot"><img src="image/fig3-4.jpg" alt="ภาพที่ 3.4" loading="lazy" style="max-width:620px"><figcaption><b>ภาพที่ 3.4</b> ความสัมพันธ์ 1:1 ระหว่างนิสิตกับบัญชีผู้ใช้</figcaption></figure>
+<figure class="shot"><img src="image/fig3-4.jpg" alt="ภาพที่ 3.4" loading="lazy" style="max-width:min(620px,100%)"><figcaption><b>ภาพที่ 3.4</b> ความสัมพันธ์ 1:1 ระหว่างนิสิตกับบัญชีผู้ใช้</figcaption></figure>
 <h3>3.4.6 ความสัมพันธ์ 1:M</h3>
 <p>ใส่ FK ไว้ฝั่ง <b>“M (กลุ่ม)”</b> เสมอ</p>
-<figure class="shot"><img src="image/fig3-5.jpg" alt="ภาพที่ 3.5" loading="lazy" style="max-width:560px"><figcaption><b>ภาพที่ 3.5</b> ความสัมพันธ์ 1:M ระหว่างอาจารย์กับนิสิต</figcaption></figure>
+<figure class="shot"><img src="image/fig3-5.jpg" alt="ภาพที่ 3.5" loading="lazy" style="max-width:min(560px,100%)"><figcaption><b>ภาพที่ 3.5</b> ความสัมพันธ์ 1:M ระหว่างอาจารย์กับนิสิต</figcaption></figure>
 <div class="box idea"><div class="box-t">💡 ทำไมต้องฝั่ง “กลุ่ม”</div><p>นิสิต 1 คนมีที่ปรึกษาคนเดียว → เก็บ <code>lecid</code> ใน student ได้ 1 ค่า แต่ถ้าเอา <code>stdid</code> ไปไว้ใน lecturer อาจารย์ที่ดูแล 20 คนต้องเก็บ 20 ค่าในช่องเดียว ซึ่งผิดหลัก atomic</p></div>
 <h3>3.4.7 ความสัมพันธ์ M:N</h3>
 <p>สร้าง<b>ตารางเชื่อม (Junction Table)</b> ใหม่เสมอ PK = PK ทั้งสองฝั่งรวมกัน + แอตทริบิวต์ของความสัมพันธ์เป็นคอลัมน์เพิ่ม</p>
-<figure class="shot"><img src="image/fig3-7.jpg" alt="ภาพที่ 3.7" loading="lazy" style="max-width:560px"><figcaption><b>ภาพที่ 3.7</b> ความสัมพันธ์ M:N ที่มีแอตทริบิวต์ term</figcaption></figure>
+<figure class="shot"><img src="image/fig3-7.jpg" alt="ภาพที่ 3.7" loading="lazy" style="max-width:min(560px,100%)"><figcaption><b>ภาพที่ 3.7</b> ความสัมพันธ์ M:N ที่มีแอตทริบิวต์ term</figcaption></figure>
 <div class="code"><div class="code-head"><span>ผลการแปลง</span></div><pre>lecturer ( <u>lecid</u>, name, major )
 subject  ( <u>subid</u>, name, credit )
 teach    ( <u>lid</u>, <u>sid</u>, term )      -- term เป็นแอตทริบิวต์ของความสัมพันธ์</pre></div>
 <h3>3.4.8 ความสัมพันธ์วกกลับ</h3>
 <p>1:M → เพิ่ม FK อ้างอิงตารางเดิม โดยตั้งชื่อคอลัมน์ใหม่ เช่น <code>supervisor_id</code> หรือ <code>pre</code></p>
-<figure class="shot"><img src="image/fig3-8.jpg" alt="ภาพที่ 3.8" loading="lazy" style="max-width:340px"><figcaption><b>ภาพที่ 3.8</b> ความสัมพันธ์แบบวกกลับของเอนทิตีพนักงาน</figcaption></figure>
+<figure class="shot"><img src="image/fig3-8.jpg" alt="ภาพที่ 3.8" loading="lazy" style="max-width:min(340px,100%)"><figcaption><b>ภาพที่ 3.8</b> ความสัมพันธ์แบบวกกลับของเอนทิตีพนักงาน</figcaption></figure>
 <table class="tbl"><tr><th>องค์ประกอบใน ER</th><th>ผลหลังแปลง</th></tr>
 <tr><td>เอนทิตีปกติ</td><td>ตารางใหม่ 1 ตาราง</td></tr><tr><td>แอตทริบิวต์อย่างง่าย</td><td>1 คอลัมน์</td></tr>
 <tr><td>แอตทริบิวต์ประกอบ</td><td>แตกเป็นหลายคอลัมน์</td></tr><tr><td>แอตทริบิวต์พหุค่า</td><td>ตารางใหม่ PK ผสม</td></tr>
@@ -153,7 +159,7 @@ teach    ( <u>lid</u>, <u>sid</u>, term )      -- term เป็นแอตท�
 </table>
 
 <div class="ex" id="ex3.4"><div class="ex-head"><span class="ex-badge">ฝึก 3.4</span><span class="ex-title">แปลง ER ระบบข้อมูลบุคลากร</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแปลงแผนภาพ ER ต่อไปนี้ (จากบทที่ 2) เป็นตาราง ระบุ PK (ขีดเส้นใต้) และ FK (*)</p>
-<figure class="shot"><img src="image/fig2-27.svg" alt="ภาพที่ 2.27" loading="lazy" style="max-width:790px"><figcaption><b>ภาพที่ 2.27</b> ER ระบบข้อมูลบุคลากร</figcaption></figure>
+<figure class="shot"><img src="image/fig2-27.svg" alt="ภาพที่ 2.27" loading="lazy" style="max-width:min(790px,100%)"><figcaption><b>ภาพที่ 2.27</b> ER ระบบข้อมูลบุคลากร</figcaption></figure>
 <button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span>เฉลย</span></div><pre>department ( <u>DID</u>, Name, Room, head_eid* )      -- head of (1:1) → FK อ้างอิง employee
 employee   ( <u>EID</u>, Name, Salary, Birthday, DID* ) -- work at (1:M) → FK ฝั่งพนักงาน
 emp_phone  ( <u>EID</u>*, <u>Phone</u> )                    -- ถ้า Phone เป็นพหุค่า
@@ -204,7 +210,7 @@ ORDER  BY TABLE_NAME;</pre></div>
 </ul>
 <h3>ฟังก์ชันการขึ้นต่อกัน (Functional Dependency: FD)</h3>
 <p><code>X → Y</code> หมายถึง รู้ค่า X แล้วระบุค่า Y ได้เพียงค่าเดียวเสมอ (X เรียกว่า Determinant) เช่น <code>stdid → name</code></p>
-<figure class="shot"><img src="image/fig3-11.jpg" alt="ภาพที่ 3.11" loading="lazy" style="max-width:560px"><figcaption><b>ภาพที่ 3.11</b> ตัวอย่างฟังก์ชันการขึ้นต่อกัน</figcaption></figure>
+<figure class="shot"><img src="image/fig3-11.jpg" alt="ภาพที่ 3.11" loading="lazy" style="max-width:min(560px,100%)"><figcaption><b>ภาพที่ 3.11</b> ตัวอย่างฟังก์ชันการขึ้นต่อกัน</figcaption></figure>
 <ul>
 <li><b>Full FD</b> — Y ขึ้นกับ X ทั้งชุด เช่น <code>(secid, stdid) → grade</code></li>
 <li><b>Partial FD</b> — Y ขึ้นกับบางส่วนของคีย์ผสม เช่น <code>(stdid, subid) → stdname</code> แต่จริง ๆ แค่ <code>stdid → stdname</code></li>
@@ -253,7 +259,7 @@ orders     ( <u>order_id</u>, customer_id*, order_date )
 order_item ( <u>order_id</u>*, <u>product_id</u>*, qty )</pre></div>
 <p>ขั้น 2NF จะได้ product, orders(order_id, customer_id, customer_name, order_date), order_item — แล้วขั้น 3NF แยก customer ออกจาก orders</p></div></div></div>
 
-<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
+<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท <span class="rv-tag">แบบฝึก ไม่มีคะแนน</span></h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
 <li class="part">คีย์และกฎความคงสภาพ</li>
 <li>จงอธิบายความแตกต่างระหว่าง Super Key, Candidate Key, Primary Key และ Alternate Key พร้อมตัวอย่างจากตาราง student <span class="hint">(ตัดคอลัมน์ออกได้อีกไหม)</span><div class="rv-ans"><ul><li><b>Super Key</b> — กลุ่มคอลัมน์ใดก็ได้ที่ระบุแถวได้ไม่ซ้ำ เช่น (stdid), (stdid, name), (stdid, major, gpa)</li><li><b>Candidate Key</b> — Super Key ที่เล็กที่สุด ตัดคอลัมน์ใดออกแล้วจะไม่เป็นคีย์ เช่น (stdid) ถ้ามีเลขบัตรประชาชน (citizen_id) ก็เป็น Candidate Key อีกตัว</li><li><b>Primary Key</b> — Candidate Key ที่เลือกมาใช้หลัก คือ stdid</li><li><b>Alternate Key</b> — Candidate Key ที่ไม่ได้ถูกเลือก เช่น citizen_id (ควรกำหนด UNIQUE)</li></ul><p>หมายเหตุ: name ไม่ใช่ Candidate Key เพราะชื่อซ้ำได้ (ในข้อมูลมี Gon 2 คน)</p></div></li>
 <li>ตาราง section มีกฎ <code>UNIQUE (subid, lecid, term)</code> จงระบุ Candidate Key ทั้งหมดของตารางนี้ <span class="hint">(secid, (subid, lecid, term))</span><div class="rv-ans"><p>Candidate Key มี 2 ชุด คือ <b>secid</b> (เลือกเป็น PK) และ <b>(subid, lecid, term)</b> (Alternate Key ที่บังคับด้วย UNIQUE)</p></div></li>
@@ -304,5 +310,6 @@ ORDER  BY s.stdid;</pre></div>
 </main>
 <script src="assets/password.js"></script>
 <script src="assets/nav.js"></script>
+<script defer src="assets/ink.js"></script>
 </body>
 </html>

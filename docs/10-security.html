@@ -7,10 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
 </head>
 <body>
 <button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
+  <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <nav>
 <div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
@@ -38,13 +41,16 @@
 <a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
 </div>
 <div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
-<a href="appendix-a-script.html"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
-<a href="appendix-b-cheatsheet.html"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
-<a href="appendix-c-dbeaver.html"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
-<a href="appendix-d-university-web.html"><span class="no">ง</span>ตัวอย่าง Website University</a>
-<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+<a href="appendix-a-script.html"><span class="no">A</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">B</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">C</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">D</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">E</span>Library Tutorial ↗</a>
+<a href="appendix-f-course.html"><span class="no">F</span>เกณฑ์คะแนน</a>
+<a href="appendix-g-pen.html"><span class="no">G</span>วิธีใช้ปากกาเขียนบนหน้าเว็บ</a>
 </div>
   </nav>
+  <figure class="side-photo"><img src="icon/prymania.jpg" alt="อ. พรทิวา ปะวะระ (อ. พราย)" width="360" height="480" loading="lazy"><figcaption>อ. พรทิวา ปะวะระ (อ. พราย)</figcaption></figure>
   <img src="icon/worker5.png" alt="" class="sidebar-img">
 </aside>
 <main class="content">
@@ -209,7 +215,7 @@ mysql     -u root -p std_66011200 < backup_20261001.sql</pre></div>
 <button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>คำสั่งจริงกลายเป็น <code>SELECT * FROM users WHERE username='admin' -- ' AND password='...'</code> — ส่วนหลัง <code>--</code> กลายเป็นคอมเมนต์ จึง<b>เข้าระบบเป็น admin ได้โดยไม่ต้องรู้รหัสผ่าน</b></p>
 <p>แก้โดยใช้ Prepared Statement: <code>cur.execute("SELECT * FROM users WHERE username=%s", (u,))</code> แล้วตรวจรหัสผ่านด้วยการเทียบค่าแฮช (ไม่เก็บรหัสผ่านจริง)</p></div></div></div>
 
-<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
+<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท <span class="rv-tag">แบบฝึก ไม่มีคะแนน</span></h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
 <li class="part">ผู้ใช้และสิทธิ์</li>
 <li>สร้างบัญชี advisor ที่เชื่อมต่อได้จากเครื่องเดียวกันเท่านั้น ให้สิทธิ์อ่าน student และ enroll และแก้ไขได้เฉพาะคอลัมน์ grade <span class="hint">(GRANT UPDATE (grade))</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE USER &#x27;advisor&#x27;@&#x27;localhost&#x27; IDENTIFIED BY &#x27;Adv#2026&#x27;;
 
@@ -265,5 +271,6 @@ mysql -u root -p std_66011200 &lt; backup_2026-10-02.sql</pre></div><p>การ
 </main>
 <script src="assets/password.js"></script>
 <script src="assets/nav.js"></script>
+<script defer src="assets/ink.js"></script>
 </body>
 </html>

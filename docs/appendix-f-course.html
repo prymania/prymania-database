@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ภาคผนวก F · เกณฑ์คะแนน — Database Lecture Note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
+</head>
+<body>
+<button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
+<aside class="sidebar" id="sidebar">
+  <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
+  <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
+  <nav>
+<div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
+<a href="index.html"><span class="no">🏠</span>หน้าแรก / ภาพรวม</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 1 · ออกแบบฐานข้อมูล</div>
+<a href="01-intro.html"><span class="no">01</span>ความรู้เบื้องต้นเกี่ยวกับระบบฐานข้อมูล</a>
+<a href="02-er-model.html"><span class="no">02</span>แบบจำลอง ER</a>
+<a href="03-relational-normalization.html"><span class="no">03</span>แปลง ER เป็นตาราง &amp; Normalization</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 2 · ภาษา SQL</div>
+<a href="04-sql-ddl-dml.html"><span class="no">04</span>สร้างตาราง &amp; INSERT/UPDATE/DELETE</a>
+<a href="05-select.html"><span class="no">05</span>การแสดงข้อมูลด้วยคำสั่ง SELECT</a>
+<a href="06-join.html"><span class="no">06</span>JOIN, Subquery &amp; จัดการข้อมูลขั้นสูง</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 3 · ขั้นสูง</div>
+<a href="07-view.html"><span class="no">07</span>วิว (View)</a>
+<a href="08-index.html"><span class="no">08</span>ดัชนี (Index)</a>
+<a href="09-transaction.html"><span class="no">09</span>ทรานแซกชัน (Transaction)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ส่วนที่ 4 · ความปลอดภัย &amp; การเขียนโปรแกรม</div>
+<a href="10-security.html"><span class="no">10</span>ความปลอดภัยของฐานข้อมูล</a>
+<a href="11-stored-procedure.html"><span class="no">11</span>Stored Procedure &amp; Function</a>
+<a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
+</div>
+<div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
+<a href="appendix-a-script.html"><span class="no">A</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">B</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">C</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">D</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">E</span>Library Tutorial ↗</a>
+<a href="appendix-f-course.html" class="active"><span class="no">F</span>เกณฑ์คะแนน</a>
+<div class="subnav"><a href="#f1"><span class="sno">1</span>คะแนนมาจากไหน</a><a href="#f2"><span class="sno">2</span>เกณฑ์การตัดเกรด</a><a href="#f3"><span class="sno">3</span>ข้อตกลงในชั้นเรียน</a><a href="#f4"><span class="sno">4</span>เรียนอย่างไรให้รอด</a></div>
+<a href="appendix-g-pen.html"><span class="no">G</span>วิธีใช้ปากกาเขียนบนหน้าเว็บ</a>
+</div>
+  </nav>
+  <figure class="side-photo"><img src="icon/prymania.jpg" alt="อ. พรทิวา ปะวะระ (อ. พราย)" width="360" height="480" loading="lazy"><figcaption>อ. พรทิวา ปะวะระ (อ. พราย)</figcaption></figure>
+  <img src="icon/awesome.png" alt="" class="sidebar-img">
+</aside>
+<main class="content">
+<div class="page-head"><span class="kicker">APPENDIX F · COURSE GUIDE</span><h1>ภาคผนวก F · เกณฑ์คะแนน</h1><p class="sub">คะแนนมาจากไหน ตัดเกรดอย่างไร และข้อตกลงที่เราใช้ร่วมกันตลอดเทอม</p></div>
+
+<div class="course">
+<div class="box idea"><div class="box-t">👋 อ่านหน้านี้ก่อนเริ่มเรียน</div>
+<p>หน้านี้รวมทุกอย่างที่ต้องรู้เรื่องการเรียนวิชานี้: คะแนนมาจากไหน ได้เกรดอะไรที่กี่คะแนน และข้อตกลงที่เราใช้ร่วมกันตลอดเทอม</p></div>
+
+<h2 id="f1"><span class="sec">1</span> คะแนนมาจากไหน</h2>
+<div class="score-bar" role="img" aria-label="Quiz ท้ายคาบ 60 คะแนน สอบปลายภาค 40 คะแนน และโบนัสเพิ่มอีก 10 คะแนน">
+  <div class="sb-quiz"><b>60</b><span>Quiz ท้ายคาบ</span></div>
+  <div class="sb-final"><b>40</b><span>สอบปลายภาค</span></div>
+  <div class="sb-bonus"><b>+10</b><span>โบนัส</span></div>
+</div>
+<div class="score-cards">
+  <div class="score-card quiz">
+    <div class="sc-num">60<small>คะแนน</small></div>
+    <h4>📝 Quiz ท้ายคาบ</h4>
+    <ul><li>ทำท้ายคาบ lecture และ lab</li><li>ทำใน Google Form</li><li><b>ผู้สอนโพสต์ลิงก์หลังเช็คชื่อ มาเรียนจึงได้ทำ</b></li></ul>
+  </div>
+  <div class="score-card final">
+    <div class="sc-num">40<small>คะแนน</small></div>
+    <h4>🎓 สอบปลายภาค</h4>
+    <ul><li>สอบตามตารางสอบของมหาวิทยาลัย</li></ul>
+  </div>
+  <div class="score-card bonus">
+    <div class="sc-num">+10<small>คะแนน</small></div>
+    <h4>⭐ โบนัสในห้องเรียน</h4>
+    <ul><li>เพิ่มให้ ไม่หักถ้าไม่ได้</li><li>มาจากการร่วมตอบในห้อง</li><li>รวมทั้งเทอมไม่เกิน 10 คะแนน</li></ul>
+  </div>
+</div>
+<div class="box warn"><div class="box-t">⚠️ Quiz ท้ายคาบผูกกับการเข้าเรียน</div>
+<p>ลิงก์ Google Form ของ Quiz โพสต์<b>หลังเช็คชื่อ</b>ในคาบนั้น ถ้าไม่ได้เช็คชื่อ คะแนน Quiz ครั้งนั้นจะเป็น 0</p></div>
+<div class="box note"><div class="box-t">📘 Quiz ท้ายคาบ ≠ คำถามท้ายบทในเว็บ</div>
+<div class="kv">
+<span>Quiz ท้ายคาบ</span><span><b>มีคะแนน</b> · Google Form ที่ผู้สอนโพสต์ท้ายคาบ lecture/lab ทำได้ครั้งเดียว</span>
+<span>คำถามท้ายบท</span><span><b>แบบฝึก ไม่มีคะแนน</b> · อยู่ท้ายทุกบทในเว็บนี้ ฝึกทำก่อน Quiz ได้ไม่จำกัด</span>
+</div></div>
+
+<h2 id="f2"><span class="sec">2</span> เกณฑ์การตัดเกรด</h2>
+<p>ใช้คะแนนรวม (Quiz ท้ายคาบ + ปลายภาค + โบนัส) ตัดเกรดตามช่วงนี้</p>
+<div class="grade-scale">
+  <div class="gs gs-f"><b>F</b><span>0–39</span></div>
+  <div class="gs gs-d"><b>D</b><span>40–54</span></div>
+  <div class="gs gs-d2"><b>D+</b><span>55–59</span></div>
+  <div class="gs gs-c"><b>C</b><span>60–64</span></div>
+  <div class="gs gs-c2"><b>C+</b><span>65–69</span></div>
+  <div class="gs gs-b"><b>B</b><span>70–74</span></div>
+  <div class="gs gs-b2"><b>B+</b><span>75–79</span></div>
+  <div class="gs gs-a"><b>A</b><span>80 ขึ้นไป</span></div>
+</div>
+
+<div class="grade-calc">
+  <div class="gc-t">🧮 ต้องสอบปลายภาคได้กี่คะแนน?</div>
+  <div class="gc-form">
+    <label for="gc-quiz">คะแนน Quiz ท้ายคาบ</label><span><input type="number" id="gc-quiz" min="0" max="60" step="1" value="50"> / 60</span>
+    <label for="gc-bonus">คะแนนโบนัส</label><span><input type="number" id="gc-bonus" min="0" max="10" step="1" value="3"> / 10</span>
+  </div>
+  <div class="gc-head"><span>เกรด</span><span>ต้องสอบปลายภาคได้ (เต็ม 40)</span></div>
+  <div class="gc-out" id="gc-out"></div>
+  <p class="gc-note">คะแนนรวม = Quiz ท้ายคาบ + ปลายภาค + โบนัส · ใช้ประมาณการเท่านั้น</p>
+</div>
+
+<h2 id="f3"><span class="sec">3</span> ข้อตกลงในชั้นเรียน</h2>
+<div class="rules">
+  <div class="rule"><div class="rule-i">🕘</div><div><h4>เข้าเรียนและเช็คชื่อ</h4><p>เช็คชื่อทุกคาบ<br>เช็คชื่อแทนเพื่อน = ได้ 0 คะแนนบทนั้นทั้งสองคน</p></div></div>
+  <div class="rule"><div class="rule-i">🤒</div><div><h4>ลาป่วย / ลากิจ</h4><p>แจ้งอาจารย์ทาง Discord หรือ Facebook <br>(ลากิจ)ล่วงหน้า 3-7 วัน, <br>(ลาป่วย)ภายในเช้าวันที่มีเรียน ก่อนเริ่ม Quiz ท้ายคาบ <br>ทักหาอาจารย์ต้องได้รับการ confirm จากอาจารย์ก่อนจึงจะให้สอบ Quiz ท้ายคาบย้อนหลังได้</p></div></div>
+  <div class="rule"><div class="rule-i">🤝</div><div><h4>ทำงานด้วยตัวเอง</h4><p>ปรึกษาเพื่อนได้ แต่คำตอบต้องเขียนเอง<br>ลอกคำตอบหรือทำแทนกัน = 0 คะแนนข้อนั้น</p></div></div>
+  <div class="rule"><div class="rule-i">🤖</div><div><h4>ใช้ AI อย่างฉลาด</h4><p>ใช้ AI ช่วยอธิบายตอนทบทวนได้<br>ห้ามใช้ ระหว่างทำ Quiz ท้ายคาบและสอบ </p></div></div>
+  <div class="rule"><div class="rule-i">📱</div><div><h4>ติดตามประกาศ</h4><p>ประกาศ เลื่อนคาบ และถามการบ้าน ทาง Discord หรือ classroom <br></p></div></div>
+  <div class="rule"><div class="rule-i">🎓</div><div><h4>ขาดสอบปลายภาค</h4><p>ขาดสอบโดยไม่แจ้งเหตุจำเป็น = 0 คะแนนส่วนนี้<br>มีเหตุจำเป็น ให้ติดต่ออาจารย์ก่อนวันสอบ</p></div></div>
+</div>
+
+<h2 id="f4"><span class="sec">4</span> เรียนอย่างไรให้รอด</h2>
+<div class="box tip"><div class="box-t">✅ สูตรลับได้ A</div><ol>
+<li><b>มาเรียนทุกคาบ</b> เก็บ Quiz ท้ายคาบครบ 60 คะแนน Quiz ท้ายคาบปรึกษาเพื่อนได้ ถามอาจารย์ได้ แค่นี้ปลายภาคต้องการอีกแค่ 20</li>
+<li>เปิดเว็บนี้อ่านบทก่อนเข้าคาบ ลองทำแบบฝึกหัดระหว่างเรียนเองก่อนกดดูเฉลย และรัน SQL จริงใน DBeaver ทุกตัวอย่าง</li>
+<li>ถึงช่วงตอบเอาโบนัส ยกมือตอบเลย เก็บคะแนนโบนัสจุก ๆ</li>
+<li>ก่อนสอบ ทวน <a href="appendix-b-cheatsheet.html">สรุปคำสั่ง SQL</a> และทำคำถามท้ายบทให้ครบทุกบท</li>
+<li>ไม่เข้าใจตรงไหน รีบทบทวน หรือถามอาจารย์ในชั่วโมงนั้นเลย อธิบายซ้ำได้ แต่ก็ต้องฝึกคิดด้วย อย่าเก็บไว้จนถึงวันสอบ</li>
+</ol></div>
+</div>
+
+<script>
+(function () {
+  var QMAX = 60, FMAX = 40, BMAX = 10;
+  var cuts = [["A", 80], ["B+", 75], ["B", 70], ["C+", 65], ["C", 60], ["D+", 55], ["D", 40]];
+  var q = document.getElementById("gc-quiz"), b = document.getElementById("gc-bonus"), out = document.getElementById("gc-out");
+  function clamp(v, hi) { v = parseFloat(v); return isNaN(v) ? 0 : Math.min(Math.max(v, 0), hi); }
+  function fmt(v) { return (Math.round(v * 100) / 100).toString(); }
+  function draw() {
+    var have = clamp(q.value, QMAX) + clamp(b.value, BMAX);
+    out.innerHTML = cuts.map(function (c) {
+      var need = c[1] - have, cls, txt;
+      if (need <= 0) { cls = "ok"; txt = "ได้แล้ว ✓"; }
+      else if (need > FMAX) { cls = "no"; txt = "ไม่ทันแล้ว (ต้องได้ " + fmt(need) + ")"; }
+      else { cls = ""; txt = "อย่างน้อย <b>" + fmt(need) + "</b> คะแนน"; }
+      return '<div class="gc-row ' + cls + '"><span class="g">' + c[0] + '</span><span>' + txt + '</span></div>';
+    }).join("");
+  }
+  q.addEventListener("input", draw); b.addEventListener("input", draw); draw();
+})();
+</script>
+
+<div class="pager"><a class="pg" href="appendix-d-university-web.html">← D · ตัวอย่าง Website University</a><a class="pg next" href="appendix-g-pen.html">G · วิธีใช้ปากกาเขียนบนหน้าเว็บ →</a></div>
+<footer>Lecture Note · 1204202 การออกแบบและการจัดการฐานข้อมูล · อ.ดร.พรทิวา ปะวะระ · ภาควิชาวิทยาการคอมพิวเตอร์ คณะวิทยาการสารสนเทศ มหาวิทยาลัยมหาสารคาม</footer>
+</main>
+<script src="assets/password.js"></script>
+<script src="assets/nav.js"></script>
+<script defer src="assets/ink.js"></script>
+</body>
+</html>

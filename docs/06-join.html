@@ -7,10 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
 </head>
 <body>
 <button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
+  <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <nav>
 <div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
@@ -38,13 +41,16 @@
 <a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
 </div>
 <div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
-<a href="appendix-a-script.html"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
-<a href="appendix-b-cheatsheet.html"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
-<a href="appendix-c-dbeaver.html"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
-<a href="appendix-d-university-web.html"><span class="no">ง</span>ตัวอย่าง Website University</a>
-<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+<a href="appendix-a-script.html"><span class="no">A</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">B</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">C</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">D</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">E</span>Library Tutorial ↗</a>
+<a href="appendix-f-course.html"><span class="no">F</span>เกณฑ์คะแนน</a>
+<a href="appendix-g-pen.html"><span class="no">G</span>วิธีใช้ปากกาเขียนบนหน้าเว็บ</a>
 </div>
   </nav>
+  <figure class="side-photo"><img src="icon/prymania.jpg" alt="อ. พรทิวา ปะวะระ (อ. พราย)" width="360" height="480" loading="lazy"><figcaption>อ. พรทิวา ปะวะระ (อ. พราย)</figcaption></figure>
   <img src="icon/drink2.png" alt="" class="sidebar-img">
 </aside>
 <main class="content">
@@ -444,7 +450,7 @@ SELECT stdid, name, major, gpa, CURDATE()
 FROM   student
 WHERE  gpa &gt;= 3.50;</pre></div>
 <div class="run-msg">✔ Query OK · 7 row(s) affected</div>
-<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>moved_date</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2026-10-23</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2026-10-23</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>2026-10-23</td></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>3.98</td><td>2026-10-23</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>3.98</td><td>2026-10-23</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td><td>4.00</td><td>2026-10-23</td></tr><tr><td>70033</td><td>Zoro</td><td class="null">NULL</td><td>3.98</td><td>2026-10-23</td></tr></table></div>
+<div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th><th>moved_date</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td><td>2026-11-11</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td><td>2026-11-11</td></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td><td>2026-11-11</td></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>3.98</td><td>2026-11-11</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>3.98</td><td>2026-11-11</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td><td>4.00</td><td>2026-11-11</td></tr><tr><td>70033</td><td>Zoro</td><td class="null">NULL</td><td>3.98</td><td>2026-11-11</td></tr></table></div>
 <p><code>CREATE TABLE … AS SELECT</code> สร้างตาราง + คัดลอกข้อมูลในคำสั่งเดียว แต่<b>ไม่คัดลอกคีย์หลักและข้อกำหนดบังคับ</b></p>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>สร้างตารางสำรอง</span></div><pre class="sql">CREATE TABLE enroll_backup AS
 SELECT * FROM enroll;</pre></div>
@@ -575,7 +581,7 @@ SET    status = CASE
 <tr><td>NOT IN กับ Subquery ที่มี NULL</td><td>ไม่คืนแถวใดเลย</td><td>กรอง NULL หรือใช้ NOT EXISTS</td></tr>
 </table>
 
-<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
+<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท <span class="rv-tag">แบบฝึก ไม่มีคะแนน</span></h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
 <li class="part">INNER JOIN (Lab 5.1)</li>
 <li>แสดงรหัสและชื่อนิสิตที่เคยเรียนวิชา CS001 โดยไม่ซ้ำ <span class="hint">(enroll ⋈ section ⋈ student, DISTINCT)</span><div class="rv-ans"><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT DISTINCT s.stdid, s.name
 FROM   enroll e
@@ -1001,7 +1007,7 @@ SET    status = CASE
                 END;</pre></div>
 <div class="run-msg">✔ Query OK · 22 row(s) affected</div>
 <div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (แสดง 8 จาก 22 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>gpa</th><th>status</th></tr><tr><td>60002</td><td>Sakuragi</td><td class="null">NULL</td><td>ยังไม่มีผล</td></tr><tr><td>70022</td><td class="null">NULL</td><td class="null">NULL</td><td>ยังไม่มีผล</td></tr><tr><td>70037</td><td>Chopper</td><td class="null">NULL</td><td>ยังไม่มีผล</td></tr><tr><td>60006</td><td>Nobita</td><td>1.55</td><td>พ้นสภาพ</td></tr><tr><td>60010</td><td>Gon</td><td>1.55</td><td>พ้นสภาพ</td></tr><tr><td>60016</td><td>Mello</td><td>1.55</td><td>พ้นสภาพ</td></tr><tr><td>70034</td><td>Luffy</td><td>1.55</td><td>พ้นสภาพ</td></tr><tr><td>60003</td><td>Mitsui</td><td>2.00</td><td>ปกติ</td></tr></table></div></div></li>
-<li>เมื่อแก้ข้อมูลใน lab เสร็จ ทำอย่างไรให้ตารางกลับมาเหมือนเดิมทุกตาราง อธิบายขั้นตอน <span class="hint">(DROP ตามลำดับ แล้วรันสคริปต์ใหม่)</span><div class="rv-ans"><p>(1) ลบตารางที่สร้างเพิ่ม (fail_log, student_backup) (2) ลบตารางกรณีศึกษาตามลำดับลูก → แม่: enroll, section, subject, lecturer, student (3) รันสคริปต์ prymania_DBLabScript.sql ทั้งไฟล์ใหม่ (ภาคผนวก ก) ซึ่งสร้างตารางและเพิ่มข้อมูลกลับมา — สคริปต์มีคำสั่ง DROP TABLE IF EXISTS อยู่ต้นไฟล์แล้ว จึงรันซ้ำได้ทันที</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DROP TABLE IF EXISTS fail_log, student_backup;
+<li>เมื่อแก้ข้อมูลใน lab เสร็จ ทำอย่างไรให้ตารางกลับมาเหมือนเดิมทุกตาราง อธิบายขั้นตอน <span class="hint">(DROP ตามลำดับ แล้วรันสคริปต์ใหม่)</span><div class="rv-ans"><p>(1) ลบตารางที่สร้างเพิ่ม (fail_log, student_backup) (2) ลบตารางกรณีศึกษาตามลำดับลูก → แม่: enroll, section, subject, lecturer, student (3) รันสคริปต์ prymania_DBLabScript.sql ทั้งไฟล์ใหม่ (ภาคผนวก A) ซึ่งสร้างตารางและเพิ่มข้อมูลกลับมา — สคริปต์มีคำสั่ง DROP TABLE IF EXISTS อยู่ต้นไฟล์แล้ว จึงรันซ้ำได้ทันที</p><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DROP TABLE IF EXISTS fail_log, student_backup;
 DROP TABLE IF EXISTS enroll, section, subject, lecturer, student;
 -- แล้วเปิด prymania_DBLabScript.sql ใน DBeaver กด Execute Script (Alt+X)</pre></div></div></li>
 </ol></div>
@@ -1011,5 +1017,6 @@ DROP TABLE IF EXISTS enroll, section, subject, lecturer, student;
 </main>
 <script src="assets/password.js"></script>
 <script src="assets/nav.js"></script>
+<script defer src="assets/ink.js"></script>
 </body>
 </html>

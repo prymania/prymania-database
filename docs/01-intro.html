@@ -7,10 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
 </head>
 <body>
 <button id="menuBtn" aria-label="menu">☰ เมนู</button>
+<button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
+  <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <nav>
 <div class="navgroup"><div class="navgroup-t">เริ่มต้นที่นี่</div>
@@ -38,13 +41,16 @@
 <a href="12-trigger.html"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
 </div>
 <div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
-<a href="appendix-a-script.html"><span class="no">ก</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
-<a href="appendix-b-cheatsheet.html"><span class="no">ข</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
-<a href="appendix-c-dbeaver.html"><span class="no">ค</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
-<a href="appendix-d-university-web.html"><span class="no">ง</span>ตัวอย่าง Website University</a>
-<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">จ</span>Library Tutorial ↗</a>
+<a href="appendix-a-script.html"><span class="no">A</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
+<a href="appendix-b-cheatsheet.html"><span class="no">B</span>สรุปคำสั่ง SQL (Cheat Sheet)</a>
+<a href="appendix-c-dbeaver.html"><span class="no">C</span>เชื่อมต่อฐานข้อมูลด้วย DBeaver</a>
+<a href="appendix-d-university-web.html"><span class="no">D</span>ตัวอย่าง Website University</a>
+<a href="library_tutorial_site/index.html" target="_blank" rel="noopener"><span class="no">E</span>Library Tutorial ↗</a>
+<a href="appendix-f-course.html"><span class="no">F</span>เกณฑ์คะแนน</a>
+<a href="appendix-g-pen.html"><span class="no">G</span>วิธีใช้ปากกาเขียนบนหน้าเว็บ</a>
 </div>
   </nav>
+  <figure class="side-photo"><img src="icon/prymania.jpg" alt="อ. พรทิวา ปะวะระ (อ. พราย)" width="360" height="480" loading="lazy"><figcaption>อ. พรทิวา ปะวะระ (อ. พราย)</figcaption></figure>
   <img src="icon/thinking.png" alt="" class="sidebar-img">
 </aside>
 <main class="content">
@@ -122,7 +128,7 @@
 <tr><td>SQLite</td><td>D. R. Hipp และคณะ</td><td>สาธารณสมบัติ</td><td>ขนาดเล็ก ฝังในแอป/มือถือ</td></tr>
 <tr><td>MongoDB</td><td>MongoDB Inc.</td><td>โอเพนซอร์ส / เชิงพาณิชย์</td><td>NoSQL แบบเอกสาร โครงสร้างยืดหยุ่น</td></tr>
 </table>
-<div class="box idea"><div class="box-t">💡 เครื่องมือในวิชานี้</div><p>ใช้ <b>MySQL 8.x</b> เป็น DBMS และ <b>DBeaver</b> เป็นโปรแกรมกราฟิกสำหรับเขียนคำสั่งและดูผลลัพธ์ (วิธีเชื่อมต่อดู <a href="appendix-c-dbeaver.html">ภาคผนวก ค</a>)</p></div>
+<div class="box idea"><div class="box-t">💡 เครื่องมือในวิชานี้</div><p>ใช้ <b>MySQL 8.x</b> เป็น DBMS และ <b>DBeaver</b> เป็นโปรแกรมกราฟิกสำหรับเขียนคำสั่งและดูผลลัพธ์ (วิธีเชื่อมต่อดู <a href="appendix-c-dbeaver.html">ภาคผนวก C</a>)</p></div>
 
 <div class="ex" id="ex1.3"><div class="ex-head"><span class="ex-badge">ฝึก 1.3</span><span class="ex-title">หน้าที่ไหนของ DBMS</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>เหตุการณ์ต่อไปนี้เป็นหน้าที่ใดของ DBMS</p>
 <ol type="a"><li>ไฟดับระหว่างบันทึกเกรด เปิดเครื่องใหม่ข้อมูลกลับมาครบ</li>
@@ -131,7 +137,7 @@
 <button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><ol type="a"><li>Backup &amp; Recovery (ใช้ Log File)</li><li>Integrity Control — ในสคริปต์ของเรามี <code>CHECK (grade IN ('A','B','C','D','F'))</code></li><li>Concurrency Control</li></ol></div></div></div>
 
 <h2 id="s4"><span class="sec">1.4</span> องค์ประกอบของระบบฐานข้อมูล</h2>
-<figure class="shot"><img src="image/fig1-2.jpg" alt="ภาพที่ 1.2" loading="lazy" style="max-width:560px"><figcaption><b>ภาพที่ 1.2</b> องค์ประกอบ 5 ส่วนของระบบฐานข้อมูล</figcaption></figure>
+<figure class="shot"><img src="image/fig1-2.jpg" alt="ภาพที่ 1.2" loading="lazy" style="max-width:min(560px,100%)"><figcaption><b>ภาพที่ 1.2</b> องค์ประกอบ 5 ส่วนของระบบฐานข้อมูล</figcaption></figure>
 <ol>
 <li><b>Hardware</b> — เครื่องแม่ข่าย ดิสก์ เครือข่าย เครื่องลูกข่าย</li>
 <li><b>Software</b> — DBMS, ระบบปฏิบัติการ, โปรแกรมประยุกต์</li>
@@ -152,7 +158,7 @@
 
 <h2 id="s5"><span class="sec">1.5</span> สถาปัตยกรรมของระบบฐานข้อมูล</h2>
 <h3>สถาปัตยกรรม 3 ระดับ (ANSI-SPARC)</h3>
-<figure class="shot"><img src="image/fig1-3.jpg" alt="ภาพที่ 1.3" loading="lazy" style="max-width:720px"><figcaption><b>ภาพที่ 1.3</b> สถาปัตยกรรมสามระดับตามมาตรฐาน ANSI-SPARC</figcaption></figure>
+<figure class="shot"><img src="image/fig1-3.jpg" alt="ภาพที่ 1.3" loading="lazy" style="max-width:min(720px,100%)"><figcaption><b>ภาพที่ 1.3</b> สถาปัตยกรรมสามระดับตามมาตรฐาน ANSI-SPARC</figcaption></figure>
 <ol>
 <li><b>External Level (ระดับภายนอก)</b> — มุมมองของผู้ใช้แต่ละกลุ่ม เห็นเฉพาะข้อมูลที่เกี่ยวกับตน (ในทางปฏิบัติคือ <b>View</b> — บทที่ 7)</li>
 <li><b>Conceptual Level (ระดับแนวคิด)</b> — มุมมองรวมทั้งองค์กร มีเอนทิตีใด แอตทริบิวต์ใด สัมพันธ์กันอย่างไร</li>
@@ -232,7 +238,7 @@
 <div class="ex" id="ex1.8"><div class="ex-head"><span class="ex-badge">ฝึก 1.8</span><span class="ex-title">เรียงลำดับให้ถูก</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>นิสิตกลุ่มหนึ่งทำโปรเจคระบบร้านกาแฟ จงเรียงลำดับงานต่อไปนี้ให้ถูกต้อง: (A) เขียน CREATE TABLE (B) สัมภาษณ์เจ้าของร้าน (C) วาด ER (D) ตรวจว่าตารางอยู่ใน 3NF (E) แปลง ER เป็นตาราง (F) เขียนรายงานยอดขายด้วย SELECT</p>
 <button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p><b>B → C → E → D → A → F</b></p></div></div></div>
 
-<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท</h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
+<div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท <span class="rv-tag">แบบฝึก ไม่มีคะแนน</span></h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
 <li class="part">ความหมายและแนวคิด</li>
 <li>จงอธิบายความแตกต่างระหว่าง ข้อมูล สารสนเทศ และความรู้ พร้อมยกตัวอย่างจากระบบลงทะเบียนเรียน <span class="hint">(Data → Information → Knowledge)</span><div class="rv-ans"><p><b>ข้อมูล (Data)</b> คือข้อเท็จจริงดิบที่ยังไม่ผ่านการประมวลผล เช่น แถว <code>(5, '60001', 'A')</code> ในตาราง enroll</p><p><b>สารสนเทศ (Information)</b> คือข้อมูลที่ผ่านการประมวลผลจนมีความหมายต่อผู้ใช้ เช่น “กลุ่มเรียน 5 มีนิสิตได้ A ร้อยละ 40” หรือเกรดเฉลี่ยของนิสิตแต่ละคน</p><p><b>ความรู้ (Knowledge)</b> คือข้อสรุปหรือรูปแบบที่ได้จากสารสนเทศและนำไปใช้ตัดสินใจได้ เช่น “นิสิตที่ได้ต่ำกว่า C ในวิชา Programming มักสอบตกวิชา Java จึงควรจัดสอนเสริม”</p></div></li>
 <li>ไฟล์ Excel ที่เก็บรายชื่อนิสิตหนึ่งแผ่นถือเป็นฐานข้อมูลหรือไม่ เพราะเหตุใด <span class="hint">(Schema + ความสัมพันธ์)</span><div class="rv-ans"><p>ไม่ถือเป็นฐานข้อมูลในความหมายของวิชานี้ เป็นเพียง<b>แฟ้มข้อมูล</b> เพราะไม่มีโครงสร้าง (schema) ที่บังคับชนิดข้อมูล ไม่มีกฎความคงสภาพ (เช่น รหัสซ้ำได้) ไม่มีความสัมพันธ์กับข้อมูลชุดอื่น และไม่มี DBMS คอยควบคุมการเข้าถึงพร้อมกัน สิทธิ์ และการกู้คืน</p></div></li>
@@ -281,5 +287,6 @@ WHERE  NOT EXISTS (SELECT 1 FROM enroll e WHERE e.stdid = s.stdid);</pre></div>
 </main>
 <script src="assets/password.js"></script>
 <script src="assets/nav.js"></script>
+<script defer src="assets/ink.js"></script>
 </body>
 </html>
