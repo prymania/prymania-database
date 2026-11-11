@@ -180,11 +180,22 @@ footer{margin-top:28px;padding-top:16px;border-top:2px dashed var(--line);color:
 .shot img{max-width:100%;border:1px solid var(--line);border-radius:12px;background:#fff}
 .shot figcaption{font-size:13px;color:var(--mute);margin-top:6px}
 
+/* แบบเดียวกับ Calculus: จอกว้างกว่า 700px (รวม iPad ทุกแนว) เมนูอยู่ข้างเนื้อหาเสมอ ไม่ทับ
+   จอ ≤ 700px (มือถือ) เมนูกลายเป็นแถบบนหัวหน้า กดปุ่ม ☰ เมนูบทเรียน เพื่อกางรายการบท */
+@media(max-width:1100px){.content{padding:32px 32px 56px}}
+@media(max-width:900px){:root{--side:235px}.brand{padding:0 16px 14px}.sidebar nav a{padding:7px 16px}}
+@media(max-width:700px){
+  .sidebar{position:static;width:auto;height:auto;overflow:visible;padding:12px 0 10px}
+  .brand{margin-bottom:0;border-bottom:0;padding-bottom:10px}
+  .brand .logo{width:34px;height:34px;margin-bottom:4px}
+  #menuBtn{position:static;display:flex;width:calc(100% - 32px);min-height:42px;align-items:center;margin:0 16px;
+    background:rgba(255,255,255,.08);border:1px solid #2a6870;color:#fff}
+  .sidebar.open #menuBtn{border-color:var(--tang)}
+  .js .sidebar:not(.open) nav,.js .sidebar:not(.open) .side-photo,.js .sidebar:not(.open) .sidebar-img{display:none}
+  .sidebar .side-photo,.sidebar .sidebar-img{display:none}
+  .content{margin-left:0;padding:18px 16px 50px;max-width:100%}
+}
 @media(max-width:860px){
-  .sidebar{transform:translateX(-100%);transition:.2s;z-index:40}
-  .sidebar.open{transform:translateX(0)}
-  .content{margin-left:0;padding:62px 16px 50px;max-width:100%}
-  #menuBtn{display:block}
   .cards,.legend{grid-template-columns:1fr}
   .pagetoc ul{columns:1}
   .hero{padding:24px 20px}.hero h1{font-size:25px}
@@ -461,7 +472,7 @@ table.tbl.demo tr + tr.fr:not(.fr-top) td{border-top:1px solid var(--line)}
 
 /* ---------- ซ่อน/แสดงเมนูซ้าย (จอกว้าง) ---------- */
 .side-hide, .side-show { display: none; }
-@media (min-width: 861px) {
+@media (min-width: 701px) {
   .brand { padding-right: 52px; }
   .side-hide { position: absolute; top: 18px; right: 10px; display: inline-flex; width: 34px; height: 34px; align-items: center; justify-content: center; border: 1px solid #2a6870; border-radius: 8px; background: transparent; color: #cfe5e3; font-size: 17px; cursor: pointer; }
   .side-hide:hover { border-color: var(--tang); color: #fff; }
@@ -471,10 +482,8 @@ table.tbl.demo tr + tr.fr:not(.fr-top) td{border-top:1px solid var(--line)}
   .side-collapsed .side-show:hover { background: var(--deep3); }
 }
 
-/* ---------- จอแคบ (เมนูซ้ายเป็นแบบเลื่อนออก ≤ 860px) ---------- */
-@media (max-width: 860px) {
-  .sidebar { z-index: 60; }
-  #menuBtn { z-index: 70; }
+/* ---------- จอมือถือ (≤ 700px): เมนูเป็นแถบบนหัวหน้า ---------- */
+@media (max-width: 700px) {
   .big-text .content { margin-left: 0; }
   .ink-bar { top: auto; bottom: 12px; } .ink-toast { top: auto; bottom: 52px; }
 }
