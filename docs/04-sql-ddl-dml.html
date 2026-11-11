@@ -7,12 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
-<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text");if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script>
 </head>
 <body>
 <button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
   <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
+  <button class="theme-btn" type="button" aria-label="สลับโหมดมืด / สว่าง" title="โหมดมืด / สว่าง"></button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <button id="menuBtn" type="button" aria-label="เปิดเมนูบทเรียน">☰ เมนูบทเรียน</button>
   <nav>
@@ -81,7 +82,7 @@
 <div class="box note"><div class="box-t">📝 ข้อสังเกต</div><p>คำสั่ง SQL ไม่สนตัวพิมพ์เล็ก/ใหญ่ แต่<b>ชื่อตารางบน MySQL ลินุกซ์แยกตัวพิมพ์</b> (<code>student</code> ≠ <code>STUDENT</code>) — เซิร์ฟเวอร์ของมหาวิทยาลัยเป็นลินุกซ์ จึงควรพิมพ์ชื่อตารางเป็นตัวเล็กตามที่สร้างไว้เสมอ</p></div>
 
 <div class="ex" id="ex4.1"><div class="ex-head"><span class="ex-badge">ฝึก 4.1</span><span class="ex-title">คำสั่งนี้อยู่กลุ่มไหน</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จัดกลุ่ม:<br>(ก) <code>TRUNCATE TABLE enroll</code><br>(ข) <code>DELETE FROM enroll</code><br>(ค) <code>GRANT SELECT ...</code><br>(ง) <code>ROLLBACK</code><br>(จ) <code>ALTER TABLE student ADD ...</code></p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) DDL<br>(ข) DML<br>(ค) DCL<br>(ง) TCL<br>(จ) DDL — สังเกตว่า TRUNCATE เป็น DDL แม้จะลบข้อมูลเหมือน DELETE</p></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) DDL<br>(ข) DML<br>(ค) DCL<br>(ง) TCL<br>(จ) DDL — สังเกตว่า TRUNCATE เป็น DDL แม้จะลบข้อมูลเหมือน DELETE</p></div></div></div>
 
 <h2 id="s2"><span class="sec">4.2</span> ชนิดข้อมูลใน MySQL</h2>
 <table class="tbl"><tr><th>กลุ่ม</th><th>ชนิด</th><th>คำอธิบาย</th><th>ตัวอย่างในกรณีศึกษา</th></tr>
@@ -102,7 +103,7 @@
 <div class="box warn"><div class="box-t">⚠️ ข้อควรระวัง</div><p>ใช้ <b>DECIMAL</b> แทน FLOAT สำหรับเกรดเฉลี่ยและจำนวนเงินเสมอ เพราะ FLOAT เก็บค่าโดยประมาณ ผลรวมอาจคลาดเคลื่อน</p></div>
 
 <div class="ex" id="ex4.2"><div class="ex-head"><span class="ex-badge">ฝึก 4.2</span><span class="ex-title">เลือกชนิดข้อมูล</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>เลือกชนิดข้อมูล<br>(ก) เลขบัตรประชาชน 13 หลัก<br>(ข) ราคาสินค้า<br>(ค) วันเวลาที่บันทึกรายการ<br>(ง) เพศ<br>(จ) รายละเอียดสินค้า</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <code>CHAR(13)</code> — ยาวคงที่ และไม่ใช้ตัวเลขเพราะไม่เอาไปคำนวณ และอาจขึ้นต้นด้วย 0<br>(ข) <code>DECIMAL(10,2)</code><br>(ค) <code>DATETIME</code> หรือ <code>TIMESTAMP</code><br>(ง) <code>ENUM('male','female','other')</code> หรือ <code>CHAR(1)</code> + CHECK<br>(จ) <code>TEXT</code></p></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <code>CHAR(13)</code> — ยาวคงที่ และไม่ใช้ตัวเลขเพราะไม่เอาไปคำนวณ และอาจขึ้นต้นด้วย 0<br>(ข) <code>DECIMAL(10,2)</code><br>(ค) <code>DATETIME</code> หรือ <code>TIMESTAMP</code><br>(ง) <code>ENUM('male','female','other')</code> หรือ <code>CHAR(1)</code> + CHECK<br>(จ) <code>TEXT</code></p></div></div></div>
 
 <h2 id="s3"><span class="sec">4.3</span> การสร้างฐานข้อมูลและตาราง</h2>
 <figure class="shot"><img src="image/fig4-2.jpg" alt="ภาพที่ 4.2" loading="lazy"><figcaption><b>ภาพที่ 4.2</b> ส่วนประกอบหลักของโปรแกรม DBeaver — Database Navigator (ซ้าย), SQL Editor (กลาง), Results/Statistics (ล่าง)</figcaption></figure>
@@ -133,7 +134,7 @@ constraint std_gpa  check (gpa between 0.0 and 4.0));</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>Field</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Extra</th></tr><tr><td>stdid</td><td>varchar(10)</td><td>NO</td><td>PRI</td><td class="null">NULL</td><td></td></tr><tr><td>name</td><td>varchar(50)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>major</td><td>varchar(20)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>gpa</td><td>decimal(3,2)</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr><tr><td>birthday</td><td>date</td><td>YES</td><td></td><td class="null">NULL</td><td></td></tr></table></div>
 
 <div class="ex" id="ex4.3"><div class="ex-head"><span class="ex-badge">ฝึก 4.3</span><span class="ex-title">อ่านผล DESCRIBE</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จากผล DESCRIBE ข้างบน<br>(ก) ทำไมคอลัมน์ <code>stdid</code> มี Null = NO ทั้งที่ไม่ได้เขียน NOT NULL<br>(ข) <code>gpa</code> แสดงเป็นชนิดอะไร</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) เพราะเป็น <b>PRIMARY KEY</b> ซึ่งห้าม NULL โดยอัตโนมัติ (Entity Integrity)<br>(ข) <code>decimal(3,2)</code> — MySQL ถือว่า NUMERIC เป็นชื่อเดียวกับ DECIMAL</p></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) เพราะเป็น <b>PRIMARY KEY</b> ซึ่งห้าม NULL โดยอัตโนมัติ (Entity Integrity)<br>(ข) <code>decimal(3,2)</code> — MySQL ถือว่า NUMERIC เป็นชื่อเดียวกับ DECIMAL</p></div></div></div>
 
 <h2 id="s4"><span class="sec">4.4</span> ข้อกำหนดบังคับ (Constraint)</h2>
 <p>กฎที่ DBMS ตรวจทุกครั้งที่เพิ่มหรือแก้ข้อมูล — บังคับใช้กับทุกช่องทาง จึงน่าเชื่อถือกว่าตรวจในโปรแกรม</p>
@@ -177,7 +178,7 @@ constraint enroll_grade  check (grade in (&#x27;A&#x27;, &#x27;B&#x27;, &#x27;C&
 <div class="box idea"><div class="box-t">💡 ลำดับการสร้าง/ลบตาราง</div><p>ต้องสร้างตารางที่<b>ถูกอ้างอิงก่อน</b>: student, subject, lecturer → section → enroll และลบในลำดับ<b>ย้อนกลับ</b>: enroll → section → lecturer, subject, student</p></div>
 
 <div class="ex" id="ex4.4"><div class="ex-head"><span class="ex-badge">ฝึก 4.4</span><span class="ex-title">เขียน CREATE TABLE เอง</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงสร้างตาราง <code>category(cid, cname)</code> และ <code>product</code> ที่มี <code>pid</code> (PK ตัวอักษร 8 ตัว), <code>pname</code> (ห้ามว่าง), <code>price</code> (ทศนิยม 2 ตำแหน่ง ต้องมากกว่า 0), <code>stock</code> (จำนวนเต็ม ค่าปริยาย 0), <code>cid</code> (FK → category, ห้ามลบหมวดที่ยังมีสินค้า) แล้วทดลองเพิ่มสินค้าราคา 0</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE category (
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE category (
     cid    INT PRIMARY KEY,
     cname  VARCHAR(50) NOT NULL
 );
@@ -251,7 +252,7 @@ ALTER TABLE student DROP COLUMN email, DROP COLUMN tel;</pre></div>
 </table>
 
 <div class="ex" id="ex4.5"><div class="ex-head"><span class="ex-badge">ฝึก 4.5</span><span class="ex-title">ALTER TABLE ตามโจทย์</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงเขียนคำสั่ง<br>(ก) เพิ่มคอลัมน์ <code>advisor_id</code> ในตาราง student<br>(ข) ให้ advisor_id เป็น FK อ้างอิง lecturer(lecid) โดยถ้าลบอาจารย์ให้ค่าเป็น NULL<br>(ค) ลบคอลัมน์ advisor_id ออก</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย (ก) + (ข)</span></div><pre class="sql">ALTER TABLE student ADD COLUMN advisor_id VARCHAR(10);
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย (ก) + (ข)</span></div><pre class="sql">ALTER TABLE student ADD COLUMN advisor_id VARCHAR(10);
 
 ALTER TABLE student
     ADD CONSTRAINT fk_std_advisor FOREIGN KEY (advisor_id)
@@ -293,7 +294,7 @@ SELECT LAST_INSERT_ID();</pre></div>
 <div class="run-err"><b>✖ Error Code: 1062.</b> Duplicate entry &#x27;CS001-t01-2023-1&#x27; for key &#x27;section.sec_uk&#x27;</div>
 
 <div class="ex" id="ex4.6"><div class="ex-head"><span class="ex-badge">ฝึก 4.6</span><span class="ex-title">เพิ่มรายวิชาใหม่ 3 วิชา</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงเพิ่ม CS011 Data Science 3 หน่วยกิต สาขา CS วิชาบังคับก่อน CS004 · CS012 Cloud Computing 3 หน่วยกิต สาขา CS ไม่มีวิชาบังคับก่อน · CS013 Cyber Security 2 หน่วยกิต สาขา CS วิชาบังคับก่อน CS001</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">INSERT INTO subject (subid, name, credit, major, pre) VALUES
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">INSERT INTO subject (subid, name, credit, major, pre) VALUES
     (&#x27;CS011&#x27;, &#x27;Data Science&#x27;,    3, &#x27;CS&#x27;, &#x27;CS004&#x27;),
     (&#x27;CS012&#x27;, &#x27;Cloud Computing&#x27;, 3, &#x27;CS&#x27;, NULL),
     (&#x27;CS013&#x27;, &#x27;Cyber Security&#x27;,  2, &#x27;CS&#x27;, &#x27;CS001&#x27;);</pre></div>
@@ -326,7 +327,7 @@ WHERE  stdid = &#x27;70033&#x27;;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th></tr><tr><td>t06</td><td>Goku</td><td>20000</td></tr><tr><td>t07</td><td>Vegeta</td><td>25000</td></tr><tr><td>t10</td><td>Piccolo</td><td>15000</td></tr><tr><td>t15</td><td>Gohan</td><td>20000</td></tr></table></div>
 
 <div class="ex" id="ex4.7"><div class="ex-head"><span class="ex-badge">ฝึก 4.7</span><span class="ex-title">UPDATE ตามเงื่อนไข</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงขึ้นเงินเดือนอาจารย์ที่มีเงินเดือนต่ำกว่า 30,000 บาท คนละ 5,000 บาท แล้วแสดงผล</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">UPDATE lecturer
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">UPDATE lecturer
 SET    salary = salary + 5000
 WHERE  salary &lt; 30000;</pre></div>
 <div class="run-msg">✔ Query OK · 4 row(s) affected</div>
@@ -356,7 +357,7 @@ SELECT COUNT(*) AS n_enroll_60001 FROM enroll WHERE stdid = &#x27;60001&#x27;;</
 <div class="box tip"><div class="box-t">✅ แนวปฏิบัติในงานจริง</div><p>ใช้ CASCADE อย่างระวัง ลบแถวเดียวอาจลบเป็นลูกโซ่ ระบบจริงหลายแห่งใช้ <b>Soft Delete</b> (เพิ่มคอลัมน์ เช่น <code>is_deleted</code>) แทนการลบจริง</p></div>
 
 <div class="ex" id="ex4.8"><div class="ex-head"><span class="ex-badge">ฝึก 4.8</span><span class="ex-title">ลบแล้วกระทบอะไร</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>จงเขียนคำสั่งลบกลุ่มเรียนทั้งหมดของภาคเรียน <code>2023-1</code> และอธิบายว่าส่งผลต่อตาราง enroll อย่างไร (ลองนับจำนวนแถวใน enroll ก่อนและหลัง)</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ก่อนลบ</span></div><pre class="sql">SELECT COUNT(*) AS enroll_rows FROM enroll;</pre></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ก่อนลบ</span></div><pre class="sql">SELECT COUNT(*) AS enroll_rows FROM enroll;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>enroll_rows</th></tr><tr><td>100</td></tr></table></div>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELETE FROM section WHERE term = &#x27;2023-1&#x27;;</pre></div>
 <div class="run-msg">✔ Query OK · 5 row(s) affected</div>

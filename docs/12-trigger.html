@@ -7,12 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
-<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text");if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script>
 </head>
 <body>
 <button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
   <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
+  <button class="theme-btn" type="button" aria-label="สลับโหมดมืด / สว่าง" title="โหมดมืด / สว่าง"></button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <button id="menuBtn" type="button" aria-label="เปิดเมนูบทเรียน">☰ เมนูบทเรียน</button>
   <nav>
@@ -219,12 +220,12 @@ SELECT secid, &#x27;60015&#x27; FROM section WHERE term = &#x27;2026-2&#x27; AND
         SIGNAL SQLSTATE &#x27;45000&#x27;
             SET MESSAGE_TEXT = &#x27;ลงทะเบียนเกิน 22 หน่วยกิตต่อภาคเรียน&#x27;;
     END IF;
-END</td><td>BEFORE</td><td>2026-11-11 21:45:20.690000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_enroll_after_update</td><td>UPDATE</td><td>enroll</td><td>BEGIN
+END</td><td>BEFORE</td><td>2026-11-11 22:40:37.710000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_enroll_after_update</td><td>UPDATE</td><td>enroll</td><td>BEGIN
     IF NOT (OLD.grade &lt;=&gt; NEW.grade) THEN
         INSERT INTO grade_log (secid, stdid, old_grade, new_grade, changed_by, changed_at)
         VALUES (OLD.secid, OLD.stdid, OLD.grade, NEW.grade, USER(), NOW());
     END IF;
-END</td><td>AFTER</td><td>2026-11-11 21:45:20.680000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_student_before_insert</td><td>INSERT</td><td>student</td><td>BEGIN
+END</td><td>AFTER</td><td>2026-11-11 22:40:37.700000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_student_before_insert</td><td>INSERT</td><td>student</td><td>BEGIN
     IF NEW.name IS NULL THEN
         SIGNAL SQLSTATE &#x27;45000&#x27;
             SET MESSAGE_TEXT = &#x27;ต้องระบุชื่อนิสิต&#x27;;
@@ -233,10 +234,10 @@ END</td><td>AFTER</td><td>2026-11-11 21:45:20.680000</td><td>ERROR_FOR_DIVISION_
     IF NEW.major IS NULL THEN
         SET NEW.major = &#x27;Undeclared&#x27;;
     END IF;
-END</td><td>BEFORE</td><td>2026-11-11 21:45:20.670000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_subject_before_insert</td><td>INSERT</td><td>subject</td><td>BEGIN
+END</td><td>BEFORE</td><td>2026-11-11 22:40:37.690000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_subject_before_insert</td><td>INSERT</td><td>subject</td><td>BEGIN
     SET NEW.subid = UPPER(TRIM(NEW.subid));
     SET NEW.name  = TRIM(NEW.name);
-END</td><td>BEFORE</td><td>2026-11-11 21:45:20.670000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr></table></div>
+END</td><td>BEFORE</td><td>2026-11-11 22:40:37.690000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr></table></div>
 <h2 id="s6"><span class="sec">12.6</span> รักษาข้อมูลสรุปให้สอดคล้องอัตโนมัติ</h2>
 <p>บางครั้งเราเลือก<b>ดีนอร์มัลไลซ์</b> (บทที่ 3) เก็บค่าสรุปไว้ในตาราง เพื่อให้อ่านเร็ว เช่น จำนวนนิสิตในแต่ละกลุ่มเรียน — ความเสี่ยงคือค่าไม่ตรงกับข้อมูลจริง ทริกเกอร์ช่วยปรับค่าให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง</p>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 1 — เพิ่มคอลัมน์ n_student ใน section และกำหนดค่าเริ่มต้นจากข้อมูลจริง</span></div><pre class="sql">ALTER TABLE section ADD COLUMN n_student INT NOT NULL DEFAULT 0;
@@ -325,7 +326,7 @@ DELIMITER ;</pre></div>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ลบทริกเกอร์ที่ผิด</span></div><pre class="sql">DROP TRIGGER tg_student_bad;</pre></div>
 
 <div class="ex" id="ex12.1"><div class="ex-head"><span class="ex-badge">ฝึก 12.1</span><span class="ex-title">ห้ามลดเงินเดือน</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงเขียนทริกเกอร์ที่ป้องกันไม่ให้ลดเงินเดือนอาจารย์ (ค่าใหม่น้อยกว่าค่าเดิมให้แจ้ง error) แล้วทดสอบ</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELIMITER $$
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELIMITER $$
 CREATE TRIGGER tg_lecturer_no_cut
 BEFORE UPDATE ON lecturer
 FOR EACH ROW
@@ -339,7 +340,7 @@ DELIMITER ;</pre></div>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ทดสอบ</span></div><pre class="sql">UPDATE lecturer SET salary = 30000 WHERE lecid = &#x27;t01&#x27;;</pre></div>
 <div class="run-err"><b>✖ Error Code: 1644.</b> ห้ามลดเงินเดือน</div></div></div></div>
 <div class="ex" id="ex12.2"><div class="ex-head"><span class="ex-badge">ฝึก 12.2</span><span class="ex-title">เก็บประวัตินิสิตที่ถูกลบ</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงเขียนทริกเกอร์ที่บันทึกข้อมูลนิสิตที่ถูกลบลงตาราง <code>student_deleted_log</code> พร้อมชื่อผู้ลบและเวลา</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE student_deleted_log (
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE student_deleted_log (
     stdid      VARCHAR(10),
     name       VARCHAR(50),
     major      VARCHAR(20),
@@ -361,7 +362,7 @@ DELETE FROM student WHERE stdid = &#x27;80011&#x27;;</pre></div>
 <div class="run-msg">✔ Query OK · 1 row(s) affected</div>
 <div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>deleted_by</th></tr><tr><td>80011</td><td>Inosuke</td><td>Undeclared</td><td>root@localhost</td></tr></table></div></div></div></div>
 <div class="ex" id="ex12.3"><div class="ex-head"><span class="ex-badge">ฝึก 12.3</span><span class="ex-title">จำกัด 40 คนต่อกลุ่ม</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>จงเขียนทริกเกอร์จำกัดจำนวนนิสิตในกลุ่มเรียนหนึ่งไม่ให้เกิน 40 คน</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELIMITER $$
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELIMITER $$
 CREATE TRIGGER tg_enroll_max40
 BEFORE INSERT ON enroll
 FOR EACH ROW

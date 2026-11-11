@@ -7,12 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
-<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text");if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script>
 </head>
 <body>
 <button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
   <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
+  <button class="theme-btn" type="button" aria-label="สลับโหมดมืด / สว่าง" title="โหมดมืด / สว่าง"></button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <button id="menuBtn" type="button" aria-label="เปิดเมนูบทเรียน">☰ เมนูบทเรียน</button>
   <nav>
@@ -81,7 +82,7 @@
 
 <div class="ex" id="ex3.1"><div class="ex-head"><span class="ex-badge">ฝึก 3.1</span><span class="ex-title">Degree และ Cardinality</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>ลองรันคำสั่งข้างล่างใน DBeaver แล้วบอก degree และ cardinality ของตาราง <code>section</code></p>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ทดลองรัน</span></div><pre class="sql">SELECT * FROM section;</pre></div>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>section มี 4 คอลัมน์ (secid, subid, lecid, term) → <b>degree = 4</b> และมี <b>52 แถว</b> → cardinality = 52</p>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>section มี 4 คอลัมน์ (secid, subid, lecid, term) → <b>degree = 4</b> และมี <b>52 แถว</b> → cardinality = 52</p>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตรวจด้วย COUNT</span></div><pre class="sql">SELECT COUNT(*) AS cardinality FROM section;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>cardinality</th></tr><tr><td>52</td></tr></table></div></div></div></div>
 
@@ -98,7 +99,7 @@
 <div class="box tip"><div class="box-t">✅ หลักการเลือกคีย์หลัก</div><p>ควร<b>คงที่ไม่เปลี่ยน ขนาดเล็ก ไม่มีความหมายทางธุรกิจ</b> — เบอร์โทรหรืออีเมลไม่เหมาะเป็น PK เพราะผู้ใช้เปลี่ยนได้</p></div>
 
 <div class="ex" id="ex3.2"><div class="ex-head"><span class="ex-badge">ฝึก 3.2</span><span class="ex-title">คีย์ไหนเป็นคีย์ไหน</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>ตาราง <code>section(secid, subid, lecid, term)</code> มีกฎ <code>UNIQUE (subid, lecid, term)</code> ด้วย จงระบุ<br>(ก) Primary Key<br>(ข) Candidate Key ทั้งหมด<br>(ค) Alternate Key<br>(ง) Foreign Key</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>secid</b><br>(ข) <b>secid</b> และ <b>(subid, lecid, term)</b> — ทั้งสองระบุแถวได้ไม่ซ้ำ และตัดคอลัมน์ออกไม่ได้<br>(ค) <b>(subid, lecid, term)</b> ซึ่งเป็น Composite Key ด้วย<br>(ง) <b>subid</b> → subject, <b>lecid</b> → lecturer</p></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>secid</b><br>(ข) <b>secid</b> และ <b>(subid, lecid, term)</b> — ทั้งสองระบุแถวได้ไม่ซ้ำ และตัดคอลัมน์ออกไม่ได้<br>(ค) <b>(subid, lecid, term)</b> ซึ่งเป็น Composite Key ด้วย<br>(ง) <b>subid</b> → subject, <b>lecid</b> → lecturer</p></div></div></div>
 
 <h2 id="s3"><span class="sec">3.3</span> กฎความคงสภาพของข้อมูล</h2>
 <ol>
@@ -116,7 +117,7 @@
 <div class="run-err"><b>✖ Error Code: 3819.</b> Check constraint &#x27;std_gpa&#x27; is violated.</div>
 
 <div class="ex" id="ex3.3"><div class="ex-head"><span class="ex-badge">ฝึก 3.3</span><span class="ex-title">กฎข้อใดถูกละเมิด</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>คำสั่ง <code>INSERT INTO enroll VALUES (99, '60001', 'A');</code> จะเกิดอะไรขึ้น ละเมิดกฎข้อใด (secid มีถึง 52)</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>ล้มเหลว — ละเมิด <b>Referential Integrity</b> เพราะ secid 99 ไม่มีในตาราง section</p>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>ล้มเหลว — ละเมิด <b>Referential Integrity</b> เพราะ secid 99 ไม่มีในตาราง section</p>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ผลจริง</span></div><pre class="sql">INSERT INTO enroll VALUES (99, &#x27;60001&#x27;, &#x27;A&#x27;);</pre></div>
 <div class="run-err"><b>✖ Error Code: 1452.</b> Cannot add or update a child row: a foreign key constraint fails (`std_66011200`.`enroll`, CONSTRAINT `enroll_fk_sec` FOREIGN KEY (`secid`) REFERENCES `section` (`secid`) ON DELETE CASCADE)</div></div></div></div>
 
@@ -160,7 +161,7 @@ teach    ( <u>lid</u>, <u>sid</u>, term )      -- term เป็นแอตท�
 
 <div class="ex" id="ex3.4"><div class="ex-head"><span class="ex-badge">ฝึก 3.4</span><span class="ex-title">แปลง ER ระบบข้อมูลบุคลากร</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแปลงแผนภาพ ER ต่อไปนี้ (จากบทที่ 2) เป็นตาราง ระบุ PK (ขีดเส้นใต้) และ FK (*)</p>
 <figure class="shot"><img src="image/fig2-27.svg" alt="ภาพที่ 2.27" loading="lazy" style="max-width:min(790px,100%)"><figcaption><b>ภาพที่ 2.27</b> ER ระบบข้อมูลบุคลากร</figcaption></figure>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span>เฉลย</span></div><pre>department ( <u>DID</u>, Name, Room, head_eid* )      -- head of (1:1) → FK อ้างอิง employee
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span>เฉลย</span></div><pre>department ( <u>DID</u>, Name, Room, head_eid* )      -- head of (1:1) → FK อ้างอิง employee
 employee   ( <u>EID</u>, Name, Salary, Birthday, DID* ) -- work at (1:M) → FK ฝั่งพนักงาน
 emp_phone  ( <u>EID</u>*, <u>Phone</u> )                    -- ถ้า Phone เป็นพหุค่า
 project    ( <u>PID</u>, Name, Budget, Start_date, End_date )
@@ -218,7 +219,7 @@ ORDER  BY TABLE_NAME;</pre></div>
 </ul>
 
 <div class="ex" id="ex3.5"><div class="ex-head"><span class="ex-badge">ฝึก 3.5</span><span class="ex-title">ระบุ FD</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จากตาราง <code>R(stdid, stdname, subid, subname, credit, grade)</code> ข้างบน จงเขียน FD ทั้งหมด และระบุว่าเป็น Full หรือ Partial</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span>เฉลย</span></div><pre>stdid          → stdname          (Partial — ขึ้นกับบางส่วนของคีย์)
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span>เฉลย</span></div><pre>stdid          → stdname          (Partial — ขึ้นกับบางส่วนของคีย์)
 subid          → subname, credit  (Partial)
 stdid, subid   → grade            (Full)</pre></div></div></div></div>
 
@@ -249,7 +250,7 @@ major   ( <u>major</u>, major_name, major_head )</pre></div>
 <div class="box note"><div class="box-t">📝 ในทางปฏิบัติ</div><p>ระบบงานประจำวัน (OLTP) ควรทำให้ถึง <b>3NF</b> เป็นอย่างน้อย — ตาราง <code>student.gpa</code> ในกรณีศึกษาเป็นตัวอย่างการดีนอร์มัลไลซ์ เพราะ GPA จริงคำนวณได้จาก enroll + subject (บทที่ 7)</p></div>
 
 <div class="ex" id="ex3.6"><div class="ex-head"><span class="ex-badge">ฝึก 3.6</span><span class="ex-title">ทำ Normalization ถึง 3NF</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>กำหนด <code>ORDER_DETAIL(order_id, product_id, product_name, unit_price, qty, customer_id, customer_name, order_date)</code> PK = (order_id, product_id) จงหา FD แล้วแยกตารางให้อยู่ใน 3NF</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span>FD</span></div><pre>product_id          → product_name, unit_price        (Partial)
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span>FD</span></div><pre>product_id          → product_name, unit_price        (Partial)
 order_id            → customer_id, order_date         (Partial)
 customer_id         → customer_name                   (Transitive: order_id → customer_id → customer_name)
 order_id,product_id → qty                             (Full)</pre></div>

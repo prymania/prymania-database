@@ -7,12 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
-<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text");if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script>
 </head>
 <body>
 <button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
   <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
+  <button class="theme-btn" type="button" aria-label="สลับโหมดมืด / สว่าง" title="โหมดมืด / สว่าง"></button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <button id="menuBtn" type="button" aria-label="เปิดเมนูบทเรียน">☰ เมนูบทเรียน</button>
   <nav>
@@ -86,7 +87,7 @@
 
 <div class="ex" id="ex1.1"><div class="ex-head"><span class="ex-badge">ฝึก 1.1</span><span class="ex-title">ข้อมูลหรือสารสนเทศ?</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงระบุว่าแต่ละข้อเป็น <b>ข้อมูล</b> หรือ <b>สารสนเทศ</b></p>
 <ol type="a"><li><code>CS004</code></li><li>“รายวิชา Programming ภาคเรียน 2023-1 (secid 1) มีนิสิตลงทะเบียน 5 คน”</li><li><code>'F'</code></li><li>“นิสิตสาขา Physics มีเกรดเฉลี่ยรวม 2.70”</li></ol>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><ol type="a"><li>ข้อมูล — เป็นรหัสวิชาเดี่ยว ๆ ยังไม่มีความหมายเพื่อการตัดสินใจ</li><li>สารสนเทศ — ได้จากการนับ (ประมวลผล) ข้อมูลการลงทะเบียน</li><li>ข้อมูล</li><li>สารสนเทศ — ได้จากการหาค่าเฉลี่ย</li></ol></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><ol type="a"><li>ข้อมูล — เป็นรหัสวิชาเดี่ยว ๆ ยังไม่มีความหมายเพื่อการตัดสินใจ</li><li>สารสนเทศ — ได้จากการนับ (ประมวลผล) ข้อมูลการลงทะเบียน</li><li>ข้อมูล</li><li>สารสนเทศ — ได้จากการหาค่าเฉลี่ย</li></ol></div></div></div>
 
 <h2 id="s2"><span class="sec">1.2</span> ระบบแฟ้มข้อมูลแบบเดิม และปัญหาที่เกิดขึ้น</h2>
 <p>ก่อนมีแนวคิดฐานข้อมูล แต่ละหน่วยงานหรือโปรแกรมจะสร้าง <b>แฟ้มข้อมูลของตัวเอง</b> แยกกัน (File-processing System) ดังภาพ (a) ส่วนแนวคิดฐานข้อมูลรวมข้อมูลไว้ส่วนกลาง และให้ทุกโปรแกรมเข้าถึงผ่าน DBMS ดังภาพ (b)</p>
@@ -106,7 +107,7 @@
 <ol type="a"><li>ระบบแสดงยอดเงินในบัญชีไม่ตรงกันระหว่างแอปมือถือกับสาขาธนาคาร</li>
 <li>พนักงานฝ่ายบัญชีเปิดแฟ้มพนักงานเพื่อดูเลขบัญชี แต่เห็นเงินเดือนของทุกคนด้วย</li>
 <li>ผู้บริหารขอรายงาน “นิสิตที่ค้างค่าเทอมและยืมหนังสือเกินกำหนด” แต่ต้องรอ 2 สัปดาห์</li></ol>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><ol type="a"><li>Data Inconsistency (มักเกิดจาก Data Redundancy)</li><li>Security Problem</li><li>Difficulty in Accessing Data และ Data Isolation (ข้อมูลอยู่คนละแฟ้ม คนละหน่วยงาน)</li></ol></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><ol type="a"><li>Data Inconsistency (มักเกิดจาก Data Redundancy)</li><li>Security Problem</li><li>Difficulty in Accessing Data และ Data Isolation (ข้อมูลอยู่คนละแฟ้ม คนละหน่วยงาน)</li></ol></div></div></div>
 
 <h2 id="s3"><span class="sec">1.3</span> ระบบจัดการฐานข้อมูล (DBMS)</h2>
 <p><span class="term">DBMS (Database Management System)</span> คือซอฟต์แวร์ตัวกลางระหว่างผู้ใช้/โปรแกรม กับข้อมูลที่เก็บจริงบนดิสก์ ผู้ใช้ไม่ต้องรู้ว่าข้อมูลเป็นไฟล์อะไร อยู่ตรงไหน แค่ส่งคำสั่ง SQL แล้วรอรับผลลัพธ์</p>
@@ -134,7 +135,7 @@
 <ol type="a"><li>ไฟดับระหว่างบันทึกเกรด เปิดเครื่องใหม่ข้อมูลกลับมาครบ</li>
 <li>ระบบไม่ยอมให้บันทึกเกรด <code>'E'</code> ลงตาราง enroll</li>
 <li>นิสิต 500 คนกดลงทะเบียนพร้อมกันตอน 9:00 น. แต่ไม่มีใครได้ที่นั่งเกิน</li></ol>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><ol type="a"><li>Backup &amp; Recovery (ใช้ Log File)</li><li>Integrity Control — ในสคริปต์ของเรามี <code>CHECK (grade IN ('A','B','C','D','F'))</code></li><li>Concurrency Control</li></ol></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><ol type="a"><li>Backup &amp; Recovery (ใช้ Log File)</li><li>Integrity Control — ในสคริปต์ของเรามี <code>CHECK (grade IN ('A','B','C','D','F'))</code></li><li>Concurrency Control</li></ol></div></div></div>
 
 <h2 id="s4"><span class="sec">1.4</span> องค์ประกอบของระบบฐานข้อมูล</h2>
 <figure class="shot"><img src="image/fig1-2.jpg" alt="ภาพที่ 1.2" loading="lazy" style="max-width:min(560px,100%)"><figcaption><b>ภาพที่ 1.2</b> องค์ประกอบ 5 ส่วนของระบบฐานข้อมูล</figcaption></figure>
@@ -154,7 +155,7 @@
 </table>
 
 <div class="ex" id="ex1.4"><div class="ex-head"><span class="ex-badge">ฝึก 1.4</span><span class="ex-title">ใครรับผิดชอบ</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>ในระบบลงทะเบียนเรียน งานต่อไปนี้เป็นของบุคลากรกลุ่มใด<br>(ก) ตั้งค่าให้อาจารย์แก้ไขได้เฉพาะคอลัมน์ grade<br>(ข) เขียนหน้าเว็บให้นิสิตกดลงทะเบียน<br>(ค) ตัดสินใจว่าต้องแยกตาราง section ออกจาก subject</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) DBA<br>(ข) Application Programmer<br>(ค) Database Designer</p></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) DBA<br>(ข) Application Programmer<br>(ค) Database Designer</p></div></div></div>
 
 <h2 id="s5"><span class="sec">1.5</span> สถาปัตยกรรมของระบบฐานข้อมูล</h2>
 <h3>สถาปัตยกรรม 3 ระดับ (ANSI-SPARC)</h3>
@@ -174,7 +175,7 @@
 <figure class="shot"><img src="image/fig1-5.jpg" alt="ภาพที่ 1.5" loading="lazy"><figcaption><b>ภาพที่ 1.5</b> การไหลของข้อมูลในการพัฒนาซอฟต์แวร์และตำแหน่งของชั้นฐานข้อมูล</figcaption></figure>
 
 <div class="ex" id="ex1.5"><div class="ex-head"><span class="ex-badge">ฝึก 1.5</span><span class="ex-title">อยู่ระดับไหน</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>มหาวิทยาลัยต้องการให้อาจารย์เห็นเฉพาะรายชื่อนิสิตในกลุ่มเรียนที่ตนสอน การออกแบบนี้อยู่ระดับใดของสถาปัตยกรรม 3 ระดับ และหากต่อมามีการสร้างดัชนีบนคอลัมน์ <code>stdid</code> จะกระทบมุมมองของอาจารย์หรือไม่ เพราะเหตุใด</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p><b>External Level</b> — เป็นมุมมองเฉพาะกลุ่มผู้ใช้ (สร้างด้วย View)</p><p>การสร้างดัชนีเป็นการเปลี่ยนแปลงที่ <b>Internal Level</b> จึง<b>ไม่กระทบ</b> มุมมองของอาจารย์ — นี่คือ <b>Physical Data Independence</b></p></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p><b>External Level</b> — เป็นมุมมองเฉพาะกลุ่มผู้ใช้ (สร้างด้วย View)</p><p>การสร้างดัชนีเป็นการเปลี่ยนแปลงที่ <b>Internal Level</b> จึง<b>ไม่กระทบ</b> มุมมองของอาจารย์ — นี่คือ <b>Physical Data Independence</b></p></div></div></div>
 
 <h2 id="s6"><span class="sec">1.6</span> แบบจำลองข้อมูล และประเภทของฐานข้อมูล</h2>
 <p><span class="term">แบบจำลองข้อมูล (Data Model)</span> คือชุดแนวคิดที่ใช้อธิบายโครงสร้าง ความสัมพันธ์ และกฎบังคับของข้อมูล</p>
@@ -193,7 +194,7 @@
 </table>
 
 <div class="ex" id="ex1.6"><div class="ex-head"><span class="ex-badge">ฝึก 1.6</span><span class="ex-title">Relational หรือ NoSQL</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>ระบบต่อไปนี้ควรเลือกฐานข้อมูลแบบใด<br>(ก) ระบบลงทะเบียนเรียนที่ต้องการความถูกต้องของเกรดและการเชื่อมโยงนิสิต-รายวิชา<br>(ข) ระบบเก็บ log การคลิกของผู้ใช้เว็บวันละหลายสิบล้านรายการ ที่รูปแบบข้อมูลเปลี่ยนบ่อย</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>Relational</b> — ข้อมูลมีโครงสร้างชัดเจน มีความสัมพันธ์ ต้องการกฎความคงสภาพและทรานแซกชัน</p><p>(ข) <b>NoSQL</b> — ปริมาณมาก โครงสร้างไม่คงที่ ต้องขยายระบบแนวนอน</p></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>Relational</b> — ข้อมูลมีโครงสร้างชัดเจน มีความสัมพันธ์ ต้องการกฎความคงสภาพและทรานแซกชัน</p><p>(ข) <b>NoSQL</b> — ปริมาณมาก โครงสร้างไม่คงที่ ต้องขยายระบบแนวนอน</p></div></div></div>
 
 <h3>1.6.1 ระบบฐานข้อมูลยุคใหม่ที่ควรรู้จัก</h3>
 <p>แนวคิดเชิงสัมพันธ์ที่เรียนในวิชานี้ยังเป็นแกนหลักของระบบงานส่วนใหญ่ แต่วิธี<b>ติดตั้ง ขยาย และใช้งาน</b>ฐานข้อมูลเปลี่ยนไปมากในช่วง 10 ปีหลัง</p>
@@ -215,7 +216,7 @@
 <div class="box warn"><div class="box-t">⚠️ กติกาเมื่อใช้ AI กับฐานข้อมูล</div><p>(1) รันคำสั่งที่ AI เขียนกับ<b>ข้อมูลทดสอบ</b>ก่อนเสมอ และตรวจจำนวนแถวที่ได้ว่าสมเหตุสมผล (2) คำสั่งที่แก้ไขข้อมูลต้อง SELECT ด้วยเงื่อนไขเดียวกันดูก่อน (บทที่ 4) (3) <b>ห้ามวางข้อมูลส่วนบุคคลจริง</b> (ชื่อ เลขบัตรประชาชน เกรด) ลงในเครื่องมือ AI สาธารณะ — ขัดกับ พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA) ให้ส่งเพียงโครงสร้างตาราง (CREATE TABLE) ก็พอ</p></div>
 
 <div class="ex" id="ex1.7"><div class="ex-head"><span class="ex-badge">ฝึก 1.7</span><span class="ex-title">เลือกระบบฐานข้อมูลยุคใหม่</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงเลือกกลุ่มฐานข้อมูลจากหัวข้อ 1.6.1 ที่เหมาะกับแต่ละงาน พร้อมเหตุผล<br>(ก) มหาวิทยาลัยไม่มี DBA ประจำ ต้องการระบบลงทะเบียนที่สำรองข้อมูลอัตโนมัติ<br>(ข) Chatbot ตอบคำถามนิสิตจากคู่มือระเบียบการ 300 หน้า<br>(ค) ผู้บริหารต้องการวิเคราะห์ผลการเรียนย้อนหลัง 20 ปีของทุกคณะ<br>(ง) แอปหาเพื่อนร่วมวิชาที่แนะนำ “เพื่อนของเพื่อนที่ลงวิชาเดียวกัน”</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>Cloud DBaaS</b> (เช่น MySQL บน Amazon RDS / Cloud SQL) — ผู้ให้บริการดูแลการสำรองและอัปเดต แต่ยังเป็นฐานข้อมูลเชิงสัมพันธ์ที่ใช้ SQL เหมือนเดิม<br>(ข) <b>Vector Database</b> — แปลงเนื้อหาคู่มือเป็นเวกเตอร์ แล้วค้นหาย่อหน้าที่ความหมายใกล้กับคำถาม ส่งให้ AI สรุปคำตอบ (RAG)<br>(ค) <b>Data Warehouse</b> — งานวิเคราะห์ (OLAP) อ่านข้อมูลจำนวนมากเพื่อสรุป ไม่ควรรันบนฐานข้อมูลที่ใช้ลงทะเบียนจริง<br>(ง) <b>Graph Database</b> (NoSQL) — คำถามแบบเดินตามความสัมพันธ์หลายชั้นทำได้ตรงกว่า JOIN หลายรอบ</p></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>Cloud DBaaS</b> (เช่น MySQL บน Amazon RDS / Cloud SQL) — ผู้ให้บริการดูแลการสำรองและอัปเดต แต่ยังเป็นฐานข้อมูลเชิงสัมพันธ์ที่ใช้ SQL เหมือนเดิม<br>(ข) <b>Vector Database</b> — แปลงเนื้อหาคู่มือเป็นเวกเตอร์ แล้วค้นหาย่อหน้าที่ความหมายใกล้กับคำถาม ส่งให้ AI สรุปคำตอบ (RAG)<br>(ค) <b>Data Warehouse</b> — งานวิเคราะห์ (OLAP) อ่านข้อมูลจำนวนมากเพื่อสรุป ไม่ควรรันบนฐานข้อมูลที่ใช้ลงทะเบียนจริง<br>(ง) <b>Graph Database</b> (NoSQL) — คำถามแบบเดินตามความสัมพันธ์หลายชั้นทำได้ตรงกว่า JOIN หลายรอบ</p></div></div></div>
 
 <h2 id="s7"><span class="sec">1.7</span> ข้อดีและข้อจำกัดของระบบฐานข้อมูล</h2>
 <div class="vs">
@@ -236,7 +237,7 @@
 <div class="box warn"><div class="box-t">⚠️ ข้อควรระวัง</div><p>ความผิดพลาดที่พบบ่อยที่สุดของผู้เริ่มต้น คือ <b>ข้ามขั้นตอนออกแบบแล้วสร้างตารางทันที</b> ซึ่งมักได้โครงสร้างที่ข้อมูลซ้ำซ้อนและแก้ไขยากในภายหลัง</p></div>
 
 <div class="ex" id="ex1.8"><div class="ex-head"><span class="ex-badge">ฝึก 1.8</span><span class="ex-title">เรียงลำดับให้ถูก</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>นิสิตกลุ่มหนึ่งทำโปรเจคระบบร้านกาแฟ จงเรียงลำดับงานต่อไปนี้ให้ถูกต้อง: (A) เขียน CREATE TABLE (B) สัมภาษณ์เจ้าของร้าน (C) วาด ER (D) ตรวจว่าตารางอยู่ใน 3NF (E) แปลง ER เป็นตาราง (F) เขียนรายงานยอดขายด้วย SELECT</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p><b>B → C → E → D → A → F</b></p></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p><b>B → C → E → D → A → F</b></p></div></div></div>
 
 <div class="review" id="review"><div class="review-head"><img src="icon/thinking.png" alt=""><h2>คำถามท้ายบท <span class="rv-tag">แบบฝึก ไม่มีคะแนน</span></h2><button type="button" class="review-copy">📋 คัดลอกคำถามทั้งหมด</button><button type="button" class="review-key">🔑 ดูเฉลย</button></div><form class="review-lock" hidden><label>รหัสผ่านสำหรับดูเฉลย</label><input type="password" autocomplete="off" placeholder="รหัสผ่าน"><button type="submit">ตกลง</button><span class="review-msg"></span></form><ol>
 <li class="part">ความหมายและแนวคิด</li>

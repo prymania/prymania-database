@@ -7,12 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
-<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text");if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script>
 </head>
 <body>
 <button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
   <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
+  <button class="theme-btn" type="button" aria-label="สลับโหมดมืด / สว่าง" title="โหมดมืด / สว่าง"></button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <button id="menuBtn" type="button" aria-label="เปิดเมนูบทเรียน">☰ เมนูบทเรียน</button>
   <nav>
@@ -99,7 +100,7 @@ FROM     ชื่อตาราง
 <div class="result-t">▸ ผลลัพธ์ (แสดง 5 จาก 22 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>score</th></tr><tr><td>60015</td><td>100.00</td></tr><tr><td>60004</td><td>99.50</td></tr><tr><td>60007</td><td>99.50</td></tr><tr><td>60009</td><td>99.50</td></tr><tr><td>60011</td><td>99.50</td></tr></table></div>
 
 <div class="ex" id="ex5.1"><div class="ex-head"><span class="ex-badge">ฝึก 5.1</span><span class="ex-title">ลำดับการประมวลผล</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>ในคำสั่ง <code>SELECT major, COUNT(*) FROM student WHERE gpa > 2 GROUP BY major HAVING COUNT(*) > 1 ORDER BY major;</code> ส่วนใดทำงานเป็นลำดับที่ 2 และ 4</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>ลำดับที่ 2 = <b>WHERE gpa &gt; 2</b> (คัดแถว), ลำดับที่ 4 = <b>HAVING COUNT(*) &gt; 1</b> (คัดกลุ่ม)</p></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>ลำดับที่ 2 = <b>WHERE gpa &gt; 2</b> (คัดแถว), ลำดับที่ 4 = <b>HAVING COUNT(*) &gt; 1</b> (คัดกลุ่ม)</p></div></div></div>
 
 <h2 id="s3"><span class="sec">5.3</span> การเลือกคอลัมน์ ชื่อแทน และการกำจัดค่าซ้ำ</h2>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตัวอย่างที่ 5.1 — ทุกคอลัมน์</span></div><pre class="sql">SELECT * FROM student;</pre></div>
@@ -123,7 +124,7 @@ FROM   lecturer;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (แสดง 6 จาก 16 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th><th>salary_per_year</th></tr><tr><td>t01</td><td>Peter Parker</td><td>40000</td><td>480000</td></tr><tr><td>t02</td><td>Steve Roger</td><td>50000</td><td>600000</td></tr><tr><td>t03</td><td>Yoda</td><td>80000</td><td>960000</td></tr><tr><td>t04</td><td>Post Malone</td><td>47000</td><td>564000</td></tr><tr><td>t05</td><td>IronMan</td><td>65000</td><td>780000</td></tr><tr><td>t06</td><td>Goku</td><td>20000</td><td>240000</td></tr></table></div>
 
 <div class="ex" id="ex5.2"><div class="ex-head"><span class="ex-badge">ฝึก 5.2</span><span class="ex-title">DISTINCT หลายคอลัมน์</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงคู่ (major, credit) ที่ไม่ซ้ำกันจากตาราง subject เรียงตาม major — มีกี่แถว</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT DISTINCT major, credit
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT DISTINCT major, credit
 FROM   subject
 ORDER  BY major, credit;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (10 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>credit</th></tr><tr><td>CS</td><td>2</td></tr><tr><td>CS</td><td>3</td></tr><tr><td>CS</td><td>4</td></tr><tr><td>CS</td><td>6</td></tr><tr><td>English</td><td>2</td></tr><tr><td>English</td><td>3</td></tr><tr><td>Math</td><td>3</td></tr><tr><td>Math</td><td>4</td></tr><tr><td>Physics</td><td>3</td></tr><tr><td>Thai</td><td>1</td></tr></table></div>
@@ -164,14 +165,14 @@ WHERE  major NOT IN (&#x27;CS&#x27;, &#x27;English&#x27;);</pre></div>
 <div class="box warn"><div class="box-t">⚠️ AND มาก่อน OR</div><p><code>WHERE major = 'CS' OR major = 'Math' AND gpa &gt; 3</code> จะถูกตีความเป็น <code>major = 'CS' OR (major = 'Math' AND gpa &gt; 3)</code> — ใส่วงเล็บให้ชัดเสมอ</p></div>
 
 <div class="ex" id="ex5.3"><div class="ex-head"><span class="ex-badge">ฝึก 5.3</span><span class="ex-title">เงื่อนไขหลายข้อ</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงรหัส ชื่อ สาขา gpa ของนิสิตสาขา CS <b>หรือ</b> Physics ที่มี gpa ตั้งแต่ 2.50 ขึ้นไป</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, major, gpa
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, major, gpa
 FROM   student
 WHERE  major IN (&#x27;CS&#x27;, &#x27;Physics&#x27;)
   AND  gpa &gt;= 2.50;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (6 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td></tr><tr><td>60013</td><td>Gon</td><td>CS</td><td>2.78</td></tr><tr><td>60014</td><td>Light</td><td>Physics</td><td>2.55</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td><td>4.00</td></tr><tr><td>70036</td><td>Sanji</td><td>CS</td><td>2.78</td></tr></table></div>
 <p>ถ้าเขียน <code>major = 'CS' OR major = 'Physics' AND gpa &gt;= 2.50</code> โดยไม่ใส่วงเล็บ จะได้นิสิต CS ทุกคน (รวม gpa ต่ำและ NULL) ผิดโจทย์</p></div></div></div>
 <div class="ex" id="ex5.4"><div class="ex-head"><span class="ex-badge">ฝึก 5.4</span><span class="ex-title">อาจารย์ที่ไม่ได้อยู่สาขาหลัก</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงแสดงอาจารย์ที่<b>ไม่ได้</b>อยู่สาขา CS และ Math และมีเงินเดือนมากกว่า 50,000</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT lecid, name, major, salary
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT lecid, name, major, salary
 FROM   lecturer
 WHERE  major NOT IN (&#x27;CS&#x27;, &#x27;Math&#x27;)
   AND  salary &gt; 50000;</pre></div>
@@ -202,7 +203,7 @@ WHERE  gpa IS NULL OR major IS NULL OR name IS NULL;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name_shown</th><th>gpa_shown</th><th>major_shown</th></tr><tr><td>60002</td><td>Sakuragi</td><td>0.00</td><td>CS</td></tr><tr><td>60005</td><td>(ไม่มีชื่อ)</td><td>2.78</td><td>Math</td></tr><tr><td>70022</td><td>(ไม่มีชื่อ)</td><td>0.00</td><td>English</td></tr><tr><td>70033</td><td>Zoro</td><td>3.98</td><td>ยังไม่ระบุ</td></tr><tr><td>70034</td><td>Luffy</td><td>1.55</td><td>ยังไม่ระบุ</td></tr><tr><td>70035</td><td>Nami</td><td>2.85</td><td>ยังไม่ระบุ</td></tr><tr><td>70037</td><td>Chopper</td><td>0.00</td><td>ยังไม่ระบุ</td></tr></table></div>
 
 <div class="ex" id="ex5.5"><div class="ex-head"><span class="ex-badge">ฝึก 5.5</span><span class="ex-title">ไม่ใช่ CS (รวมคนที่ไม่มีสาขา)</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงนิสิตทุกคนที่<b>ไม่ได้</b>อยู่สาขา CS โดยรวมนิสิตที่ยังไม่ระบุสาขาด้วย — ควรได้กี่แถว</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, major
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, major
 FROM   student
 WHERE  major &lt;&gt; &#x27;CS&#x27; OR major IS NULL;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (15 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th></tr><tr><td>60005</td><td class="null">NULL</td><td>Math</td></tr><tr><td>60006</td><td>Nobita</td><td>Math</td></tr><tr><td>60007</td><td>L</td><td>Art</td></tr><tr><td>60008</td><td>Kira</td><td>Art</td></tr><tr><td>60009</td><td>Killua</td><td>English</td></tr><tr><td>60010</td><td>Gon</td><td>English</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td></tr><tr><td>60014</td><td>Light</td><td>Physics</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td></tr><tr><td>60016</td><td>Mello</td><td>Physics</td></tr><tr><td>70022</td><td class="null">NULL</td><td>English</td></tr><tr><td>70033</td><td>Zoro</td><td class="null">NULL</td></tr><tr><td>70034</td><td>Luffy</td><td class="null">NULL</td></tr><tr><td>70035</td><td>Nami</td><td class="null">NULL</td></tr><tr><td>70037</td><td>Chopper</td><td class="null">NULL</td></tr></table></div>
@@ -228,7 +229,7 @@ WHERE  name LIKE &#x27;%Math%&#x27;;</pre></div>
 <div class="box note"><div class="box-t">📝 ผลต่อประสิทธิภาพ</div><p>LIKE ที่ขึ้นต้นด้วย <code>%</code> ใช้ดัชนีไม่ได้ ต้องอ่านทั้งตาราง ถ้าตารางใหญ่ควรพิจารณา Full-Text Index</p></div>
 
 <div class="ex" id="ex5.6"><div class="ex-head"><span class="ex-badge">ฝึก 5.6</span><span class="ex-title">LIKE</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>(ก) จงแสดงรายวิชาของสาขาภาษาอังกฤษโดยใช้รหัสวิชา (ขึ้นต้น EN)<br>(ข) จงแสดงนิสิตที่ชื่อมีตัวอักษรตัวที่สามเป็น <code>k</code></p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย (ก)</span></div><pre class="sql">SELECT subid, name FROM subject WHERE subid LIKE &#x27;EN%&#x27;;</pre></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย (ก)</span></div><pre class="sql">SELECT subid, name FROM subject WHERE subid LIKE &#x27;EN%&#x27;;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th></tr><tr><td>EN001</td><td>English</td></tr><tr><td>EN002</td><td>Reading</td></tr><tr><td>EN003</td><td>Conversation</td></tr><tr><td>EN004</td><td>Writing</td></tr></table></div>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย (ข)</span></div><pre class="sql">SELECT stdid, name FROM student WHERE name LIKE &#x27;__k%&#x27;;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th></tr><tr><td>60001</td><td>Rukawa</td></tr><tr><td>60002</td><td>Sakuragi</td></tr></table></div>
@@ -261,7 +262,7 @@ LIMIT  4 OFFSET 3;</pre></div>
 <div class="box warn"><div class="box-t">⚠️ LIMIT กับค่าที่เท่ากัน</div><p>Yoda (t03) และ Yoda (t14) มีเงินเดือน 80,000 เท่ากัน ถ้าจะเอา “อันดับ 1” ด้วย LIMIT 1 จะได้แค่คนเดียวแบบสุ่ม — วิธีที่ถูกคือใช้ Subquery (บทที่ 6) หรือ <code>RANK()</code> (Window Function — หัวข้อ 7.11)</p></div>
 
 <div class="ex" id="ex5.7"><div class="ex-head"><span class="ex-badge">ฝึก 5.7</span><span class="ex-title">ORDER BY + LIMIT</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงแสดงรายวิชา 3 วิชาที่มีหน่วยกิตมากที่สุด ถ้าหน่วยกิตเท่ากันให้เรียงตามรหัสวิชา</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT subid, name, credit
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT subid, name, credit
 FROM   subject
 ORDER  BY credit DESC, subid
 LIMIT  3;</pre></div>
@@ -292,7 +293,7 @@ FROM   lecturer;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_lecturer</th><th>has_salary</th><th>total_salary</th><th>avg_salary</th><th>max_salary</th><th>min_salary</th></tr><tr><td>16</td><td>13</td><td>632000</td><td>48615.38</td><td>80000</td><td>15000</td></tr></table></div>
 
 <div class="ex" id="ex5.8"><div class="ex-head"><span class="ex-badge">ฝึก 5.8</span><span class="ex-title">AVG กับ NULL</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงหาค่าเฉลี่ย gpa สองแบบ<br>(ก) แบบปกติด้วย AVG<br>(ข) แบบนับคนที่ไม่มี gpa เป็น 0 — ผลต่างกันเพราะอะไร</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT ROUND(AVG(gpa), 4)                      AS avg_skip_null,
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT ROUND(AVG(gpa), 4)                      AS avg_skip_null,
        ROUND(SUM(IFNULL(gpa, 0)) / COUNT(*), 4) AS avg_null_as_zero
 FROM   student;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>avg_skip_null</th><th>avg_null_as_zero</th></tr><tr><td>2.8758</td><td>2.4836</td></tr></table></div>
@@ -352,14 +353,14 @@ ORDER  BY n_student DESC, secid;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (8 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>n_student</th></tr><tr><td>1</td><td>5</td></tr><tr><td>19</td><td>5</td></tr><tr><td>2</td><td>4</td></tr><tr><td>5</td><td>4</td></tr><tr><td>6</td><td>4</td></tr><tr><td>12</td><td>4</td></tr><tr><td>15</td><td>4</td></tr><tr><td>34</td><td>4</td></tr></table></div>
 
 <div class="ex" id="ex5.9"><div class="ex-head"><span class="ex-badge">ฝึก 5.9</span><span class="ex-title">GROUP BY + HAVING</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงรหัสนิสิตและจำนวนรายการลงทะเบียน เฉพาะนิสิตที่ลงทะเบียนตั้งแต่ 8 รายการขึ้นไป เรียงจากมากไปน้อย</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, COUNT(*) AS n_enroll
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, COUNT(*) AS n_enroll
 FROM   enroll
 GROUP  BY stdid
 HAVING COUNT(*) &gt;= 8
 ORDER  BY n_enroll DESC, stdid;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (4 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>n_enroll</th></tr><tr><td>60001</td><td>9</td></tr><tr><td>60004</td><td>9</td></tr><tr><td>60010</td><td>9</td></tr><tr><td>60005</td><td>8</td></tr></table></div></div></div></div>
 <div class="ex" id="ex5.10"><div class="ex-head"><span class="ex-badge">ฝึก 5.10</span><span class="ex-title">นับเกรด A ในแต่ละกลุ่ม</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงรหัสกลุ่มเรียนและจำนวนนิสิตที่ได้เกรด A เฉพาะกลุ่มที่มีคนได้ A ตั้งแต่ 2 คน</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT secid, COUNT(*) AS n_A
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT secid, COUNT(*) AS n_A
 FROM   enroll
 WHERE  grade = &#x27;A&#x27;
 GROUP  BY secid
@@ -409,7 +410,7 @@ ORDER  BY birthday;</pre></div>
 <div class="box note"><div class="box-t">📝 ข้อสังเกต</div><p>ค่า age เปลี่ยนตามวันที่รันจริง — นี่คือเหตุผลที่เก็บ <code>birthday</code> ไม่เก็บ age (Derived Attribute ในบทที่ 2)</p></div>
 
 <div class="ex" id="ex5.11"><div class="ex-head"><span class="ex-badge">ฝึก 5.11</span><span class="ex-title">ฟังก์ชันสเกลาร์</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงรหัสนิสิต ชื่อ และเดือนเกิด (ตัวเลข) ของนิสิตที่เกิดในปี ค.ศ. 2015 เรียงตามวันเกิด</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, MONTH(birthday) AS birth_month
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT stdid, name, MONTH(birthday) AS birth_month
 FROM   student
 WHERE  YEAR(birthday) = 2015
 ORDER  BY birthday;</pre></div>
@@ -444,7 +445,7 @@ ORDER  BY secid;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 40 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>total</th><th>n_fail</th><th>n_pass</th></tr><tr><td>1</td><td>5</td><td>2</td><td>3</td></tr><tr><td>2</td><td>4</td><td>1</td><td>3</td></tr><tr><td>4</td><td>1</td><td>1</td><td>0</td></tr><tr><td>5</td><td>4</td><td>1</td><td>3</td></tr><tr><td>6</td><td>4</td><td>1</td><td>3</td></tr><tr><td>7</td><td>2</td><td>0</td><td>2</td></tr><tr><td>8</td><td>2</td><td>0</td><td>2</td></tr><tr><td>9</td><td>2</td><td>0</td><td>2</td></tr><tr><td>10</td><td>3</td><td>1</td><td>2</td></tr><tr><td>11</td><td>1</td><td>0</td><td>1</td></tr></table></div>
 
 <div class="ex" id="ex5.12"><div class="ex-head"><span class="ex-badge">ฝึก 5.12</span><span class="ex-title">CASE จัดประเภทวิชา</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงรหัสวิชา ชื่อวิชา และคอลัมน์ <code>credit_type</code> = “วิชาน้อยหน่วยกิต” เมื่อ &lt; 3, “วิชาปกติ” เมื่อ = 3, “วิชาหนัก” เมื่อ &gt; 3</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT subid, name, credit,
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT subid, name, credit,
        CASE
            WHEN credit &lt; 3 THEN &#x27;วิชาน้อยหน่วยกิต&#x27;
            WHEN credit = 3 THEN &#x27;วิชาปกติ&#x27;
@@ -453,7 +454,7 @@ ORDER  BY secid;</pre></div>
 FROM   subject;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (20 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>credit</th><th>credit_type</th></tr><tr><td>CS001</td><td>Programming</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>CS002</td><td>Java</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>CS003</td><td>Web Design</td><td>2</td><td>วิชาน้อยหน่วยกิต</td></tr><tr><td>CS004</td><td>Database</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>CS005</td><td>Graphics</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>CS006</td><td>Mobile Apps</td><td>2</td><td>วิชาน้อยหน่วยกิต</td></tr><tr><td>CS007</td><td>Robotics</td><td>4</td><td>วิชาหนัก</td></tr><tr><td>CS008</td><td>AI</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>CS009</td><td>Project</td><td>6</td><td>วิชาหนัก</td></tr><tr><td>CS010</td><td>Security</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>EN001</td><td>English</td><td>2</td><td>วิชาน้อยหน่วยกิต</td></tr><tr><td>EN002</td><td>Reading</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>EN003</td><td>Conversation</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>EN004</td><td>Writing</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>MA001</td><td>Mathematics</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>MA002</td><td>Discrete Math</td><td>4</td><td>วิชาหนัก</td></tr><tr><td>MA003</td><td>Statistics</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>PH001</td><td>Physics</td><td>3</td><td>วิชาปกติ</td></tr><tr><td>TH001</td><td>Thai</td><td>1</td><td>วิชาน้อยหน่วยกิต</td></tr><tr><td>TH002</td><td>Thai Writing</td><td>1</td><td>วิชาน้อยหน่วยกิต</td></tr></table></div></div></div></div>
 <div class="ex" id="ex5.13"><div class="ex-head"><span class="ex-badge">ฝึก 5.13</span><span class="ex-title">Pivot นับเกรดรายสาขา</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>จากตาราง student จงนับจำนวนนิสิตในแต่ละสาขาที่มี gpa ≥ 3.00 และ &lt; 3.00 แยกเป็นสองคอลัมน์ (ไม่นับคนที่ gpa เป็น NULL)</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT major,
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT major,
        SUM(CASE WHEN gpa &gt;= 3.00 THEN 1 ELSE 0 END) AS gpa_3_up,
        SUM(CASE WHEN gpa &lt;  3.00 THEN 1 ELSE 0 END) AS gpa_below_3
 FROM   student

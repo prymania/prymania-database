@@ -7,12 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
-<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text");if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script>
 </head>
 <body>
 <button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
   <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
+  <button class="theme-btn" type="button" aria-label="สลับโหมดมืด / สว่าง" title="โหมดมืด / สว่าง"></button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <button id="menuBtn" type="button" aria-label="เปิดเมนูบทเรียน">☰ เมนูบทเรียน</button>
   <nav>
@@ -189,7 +190,7 @@ WHERE  TABLE_SCHEMA = DATABASE() AND TABLE_NAME = &#x27;v_cs_student&#x27;;</pre
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ลบวิว</span></div><pre class="sql">DROP VIEW IF EXISTS v_bad_name;</pre></div>
 
 <div class="ex" id="ex7.1"><div class="ex-head"><span class="ex-badge">ฝึก 7.1</span><span class="ex-title">วิวอาจารย์สาขา English</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงสร้างวิว <code>v_english_lecturer</code> แสดงรหัส ชื่อ เงินเดือนของอาจารย์สาขา English แล้วใช้วิวแสดงอาจารย์ที่เงินเดือนต่ำกว่า 40,000</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_english_lecturer AS
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_english_lecturer AS
     SELECT    lecid, name, salary
     FROM      lecturer
     WHERE     major = &#x27;English&#x27;;
@@ -197,7 +198,7 @@ WHERE  TABLE_SCHEMA = DATABASE() AND TABLE_NAME = &#x27;v_cs_student&#x27;;</pre
 SELECT * FROM v_english_lecturer WHERE salary &lt; 40000;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th></tr><tr><td>t06</td><td>Goku</td><td>20000</td></tr><tr><td>t07</td><td>Vegeta</td><td>25000</td></tr></table></div></div></div></div>
 <div class="ex" id="ex7.2"><div class="ex-head"><span class="ex-badge">ฝึก 7.2</span><span class="ex-title">ตั้งชื่อคอลัมน์ให้วิว</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงสร้างวิว <code>v_subject_short(code, title, credit_hours)</code> จากตาราง subject แล้วแสดงวิชาที่มีมากกว่า 3 หน่วยกิต</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_subject_short (code, title, credit_hours) AS
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_subject_short (code, title, credit_hours) AS
     SELECT    subid, name, credit
     FROM      subject;
 
@@ -237,7 +238,7 @@ ORDER  BY n_student DESC;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>level</th><th>n_student</th></tr><tr><td>ดีเยี่ยม</td><td>7</td></tr><tr><td>ดี</td><td>6</td></tr><tr><td>ต้องปรับปรุง</td><td>4</td></tr><tr><td>ยังไม่มีข้อมูล</td><td>3</td></tr><tr><td>พอใช้</td><td>2</td></tr></table></div>
 
 <div class="ex" id="ex7.3"><div class="ex-head"><span class="ex-badge">ฝึก 7.3</span><span class="ex-title">วิวรายวิชาพร้อมประเภท</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงสร้างวิว <code>v_subject_type</code> แสดงรหัสวิชา ชื่อ หน่วยกิต สาขา และ <code>credit_type</code> (“น้อย” &lt; 3, “ปกติ” = 3, “หนัก” &gt; 3) และ <code>has_pre</code> (“มี” / “ไม่มี” วิชาบังคับก่อน) แล้วใช้วิวนับจำนวนวิชาแต่ละ credit_type ในสาขา CS</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_subject_type AS
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_subject_type AS
     SELECT    subid, name, credit, major,
               CASE WHEN credit &lt; 3 THEN &#x27;น้อย&#x27;
                    WHEN credit = 3 THEN &#x27;ปกติ&#x27;
@@ -328,13 +329,13 @@ ORDER  BY person_type, person_id;</pre></div>
 <div class="box note"><div class="box-t">📝 ชื่อคอลัมน์ของวิว UNION</div><p>ชื่อคอลัมน์ของวิวมาจาก SELECT <b>ชุดแรก</b> เท่านั้น (person_id, name, major, person_type) ชุดที่สองต้องมีจำนวนคอลัมน์เท่ากันและชนิดข้อมูลเข้ากันได้ — วิวที่มี UNION <b>ปรับปรุงข้อมูลผ่านไม่ได้</b> (หัวข้อ 7.9)</p></div>
 
 <div class="ex" id="ex7.4"><div class="ex-head"><span class="ex-badge">ฝึก 7.4</span><span class="ex-title">ใช้ v_section_detail</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>ใช้วิว v_section_detail แสดงชื่อวิชาและภาคเรียนที่อาจารย์สาขา CS สอนในปี 2024</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT secid, term, subject_name, lecturer_name
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT secid, term, subject_name, lecturer_name
 FROM   v_section_detail
 WHERE  lecturer_major = &#x27;CS&#x27; AND term LIKE &#x27;2024-%&#x27;
 ORDER  BY term, secid;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (13 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>term</th><th>subject_name</th><th>lecturer_name</th></tr><tr><td>11</td><td>2024-1</td><td>Programming</td><td>Peter Parker</td></tr><tr><td>12</td><td>2024-1</td><td>Database</td><td>Peter Parker</td></tr><tr><td>13</td><td>2024-1</td><td>Graphics</td><td>Steve Roger</td></tr><tr><td>24</td><td>2024-1</td><td>Programming</td><td>Steve Roger</td></tr><tr><td>26</td><td>2024-1</td><td>Robotics</td><td>Steve Roger</td></tr><tr><td>14</td><td>2024-2</td><td>AI</td><td>Steve Roger</td></tr><tr><td>15</td><td>2024-2</td><td>Programming</td><td>Peter Parker</td></tr><tr><td>16</td><td>2024-2</td><td>Java</td><td>Peter Parker</td></tr><tr><td>17</td><td>2024-2</td><td>Graphics</td><td>Peter Parker</td></tr><tr><td>28</td><td>2024-2</td><td>Project</td><td>Steve Roger</td></tr><tr><td>29</td><td>2024-2</td><td>Java</td><td>Steve Roger</td></tr><tr><td>20</td><td>2024-3</td><td>Database</td><td>Peter Parker</td></tr><tr><td>31</td><td>2024-3</td><td>Project</td><td>Steve Roger</td></tr></table></div></div></div></div>
 <div class="ex" id="ex7.5"><div class="ex-head"><span class="ex-badge">ฝึก 7.5</span><span class="ex-title">ใช้ v_enroll_detail</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>ใช้วิว v_enroll_detail แสดงรหัสนิสิต ชื่อ ชื่อวิชา ชื่อผู้สอน ภาคเรียน ของการเรียนที่ได้เกรด F เรียงตามรหัสนิสิต</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT student_id, student_name, subject_name, lecturer_name, term
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT student_id, student_name, subject_name, lecturer_name, term
 FROM   v_enroll_detail
 WHERE  grade = &#x27;F&#x27;
 ORDER  BY student_id, term;</pre></div>
@@ -392,7 +393,7 @@ SELECT * FROM v_term_summary ORDER BY term;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (10 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>term</th><th>n_section</th><th>n_enroll</th><th>avg_per_section</th></tr><tr><td>2023-1</td><td>5</td><td>14</td><td>2.80</td></tr><tr><td>2023-2</td><td>2</td><td>6</td><td>3.00</td></tr><tr><td>2023-3</td><td>3</td><td>7</td><td>2.33</td></tr><tr><td>2024-1</td><td>7</td><td>7</td><td>1.00</td></tr><tr><td>2024-2</td><td>9</td><td>20</td><td>2.22</td></tr><tr><td>2024-3</td><td>7</td><td>9</td><td>1.29</td></tr><tr><td>2025-1</td><td>5</td><td>12</td><td>2.40</td></tr><tr><td>2025-2</td><td>4</td><td>8</td><td>2.00</td></tr><tr><td>2025-3</td><td>8</td><td>15</td><td>1.88</td></tr><tr><td>2026-1</td><td>2</td><td>2</td><td>1.00</td></tr></table></div>
 
 <div class="ex" id="ex7.6"><div class="ex-head"><span class="ex-badge">ฝึก 7.6</span><span class="ex-title">วิวสรุปรายสาขา</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงสร้างวิว <code>v_major_stat</code> แสดงสาขา (NULL ให้แสดง Undeclared) จำนวนนิสิต gpa สูงสุด ต่ำสุด และเฉลี่ย แล้วใช้วิวแสดงสาขาที่มี gpa เฉลี่ยมากกว่า 2.80</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_major_stat AS
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_major_stat AS
     SELECT    IFNULL(major, &#x27;Undeclared&#x27;) AS major,
               COUNT(*)            AS n_student,
               MAX(gpa)            AS max_gpa,
@@ -405,7 +406,7 @@ SELECT * FROM v_major_stat WHERE avg_gpa &gt; 2.80 ORDER BY avg_gpa DESC;</pre><
 <div class="result-t">▸ ผลลัพธ์ (3 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>major</th><th>n_student</th><th>max_gpa</th><th>min_gpa</th><th>avg_gpa</th></tr><tr><td>Art</td><td>2</td><td>3.98</td><td>3.05</td><td>3.52</td></tr><tr><td>English</td><td>4</td><td>3.98</td><td>1.55</td><td>3.17</td></tr><tr><td>CS</td><td>7</td><td>3.98</td><td>2.00</td><td>2.88</td></tr></table></div>
 <p>สังเกตว่าเงื่อนไข <code>avg_gpa &gt; 2.80</code> เขียนใน WHERE ได้แล้ว — เพราะในมุมของคำสั่งชั้นนอก avg_gpa เป็นแค่คอลัมน์หนึ่งของวิว (เทียบกับต้องใช้ HAVING ถ้าไม่มีวิว)</p></div></div></div>
 <div class="ex" id="ex7.7"><div class="ex-head"><span class="ex-badge">ฝึก 7.7</span><span class="ex-title">วิวสรุปรายวิชา</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงสร้างวิว <code>v_subject_stat</code> แสดงรหัสวิชา ชื่อวิชา จำนวนครั้งที่เปิดสอน จำนวนนิสิตที่เคยลงทั้งหมด (รวมวิชาที่ไม่เคยเปิด ให้เป็น 0) แล้วใช้วิวแสดงวิชาที่ไม่เคยมีคนลงเลย</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_subject_stat AS
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_subject_stat AS
     SELECT    sub.subid, sub.name,
               COUNT(DISTINCT sec.secid) AS n_open,
               COUNT(e.stdid)            AS n_enroll
@@ -611,7 +612,7 @@ ORDER  BY n_violation DESC, e.student_id;</pre></div>
 <div class="box note"><div class="box-t">📝 ข้อสังเกต</div><p>ผลลัพธ์นี้คือ “ข้อมูลที่ผิดกฎธุรกิจ” ที่หลุดเข้ามาในฐานข้อมูล เพราะ CHECK ตรวจข้ามตารางไม่ได้ — ในบทที่ 12 เราจะเขียน<b>ทริกเกอร์</b>ป้องกันไม่ให้เกิดขึ้นอีก ส่วนวิวนี้ใช้เป็นรายงานตรวจสอบข้อมูลที่มีอยู่เดิมได้ทุกเมื่อ</p></div>
 
 <div class="ex" id="ex7.8"><div class="ex-head"><span class="ex-badge">ฝึก 7.8</span><span class="ex-title">นิสิตที่เกรดคำนวณต่างจาก gpa ในตาราง</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>ใช้วิว v_student_gpa และตาราง student แสดงนิสิตที่ <code>gpa_calc</code> ต่างจาก <code>student.gpa</code> มากกว่า 0.50 พร้อมผลต่าง</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT s.stdid, s.name, s.gpa, g.gpa_calc,
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT s.stdid, s.name, s.gpa, g.gpa_calc,
        ROUND(ABS(s.gpa - g.gpa_calc), 2) AS diff
 FROM   student s
        INNER JOIN v_student_gpa g ON s.stdid = g.student_id
@@ -619,7 +620,7 @@ WHERE  ABS(s.gpa - g.gpa_calc) &gt; 0.50
 ORDER  BY diff DESC;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (9 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>gpa</th><th>gpa_calc</th><th>diff</th></tr><tr><td>60008</td><td>Kira</td><td>3.05</td><td>0.00</td><td>3.05</td></tr><tr><td>60012</td><td>Hisoka</td><td>2.00</td><td>3.50</td><td>1.50</td></tr><tr><td>70034</td><td>Luffy</td><td>1.55</td><td>0.60</td><td>0.95</td></tr><tr><td>60006</td><td>Nobita</td><td>1.55</td><td>0.65</td><td>0.90</td></tr><tr><td>60009</td><td>Killua</td><td>3.98</td><td>3.14</td><td>0.84</td></tr><tr><td>60011</td><td>Kurapika</td><td>3.98</td><td>3.20</td><td>0.78</td></tr><tr><td>70036</td><td>Sanji</td><td>2.78</td><td>2.00</td><td>0.78</td></tr><tr><td>60004</td><td>Sendoh</td><td>3.98</td><td>3.38</td><td>0.60</td></tr><tr><td>60007</td><td>L</td><td>3.98</td><td>3.44</td><td>0.54</td></tr></table></div></div></div></div>
 <div class="ex" id="ex7.9"><div class="ex-head"><span class="ex-badge">ฝึก 7.9</span><span class="ex-title">อาจารย์ที่ไม่มีใครสอบตก</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>แสดงชื่ออาจารย์ที่สอนอย่างน้อย 2 กลุ่มเรียน และ<b>ไม่มีนิสิตได้ F เลย</b>ในทุกกลุ่มที่สอน (แนะนำ: สร้างวิวสรุปรายอาจารย์จาก v_section_summary ก่อน)</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย ขั้นที่ 1 — วิวสรุปรายอาจารย์</span></div><pre class="sql">CREATE OR REPLACE VIEW v_lecturer_result AS
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย ขั้นที่ 1 — วิวสรุปรายอาจารย์</span></div><pre class="sql">CREATE OR REPLACE VIEW v_lecturer_result AS
     SELECT    lecturer_name,
               COUNT(*)   AS n_section,
               SUM(n_F)   AS total_F,
@@ -634,7 +635,7 @@ WHERE  n_section &gt;= 2 AND total_F = 0;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (2 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecturer_name</th><th>n_section</th><th>total_F</th><th>total_A</th></tr><tr><td>Post Malone</td><td>4</td><td>0</td><td>4</td></tr><tr><td>Goku</td><td>2</td><td>0</td><td>2</td></tr></table></div>
 <p>ระวัง: จัดกลุ่มด้วยชื่ออาจารย์จะรวม Yoda (t03) กับ Yoda (t14) เป็นคนเดียว — ถ้าต้องการแม่นยำควรใส่ lecid ใน v_section_summary ด้วย</p></div></div></div>
 <div class="ex" id="ex7.10"><div class="ex-head"><span class="ex-badge">ฝึก 7.10</span><span class="ex-title">อาจารย์ที่สอนมากที่สุด</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>แสดงรหัสและชื่ออาจารย์ที่สอน<b>จำนวนกลุ่มเรียนมากที่สุด</b> (ถ้าเท่ากันให้แสดงทุกคน) — ทำไมโจทย์นี้ใช้ <code>ORDER BY … LIMIT 1</code> ไม่ได้</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย — ใช้ v_lecturer_load (หัวข้อ 7.6)</span></div><pre class="sql">SELECT lecid, name, n_section
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย — ใช้ v_lecturer_load (หัวข้อ 7.6)</span></div><pre class="sql">SELECT lecid, name, n_section
 FROM   v_lecturer_load
 WHERE  n_section =
        (SELECT MAX(n_section)
@@ -642,7 +643,7 @@ WHERE  n_section =
 <div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>n_section</th></tr><tr><td>t01</td><td>Peter Parker</td><td>14</td></tr></table></div>
 <p><code>LIMIT 1</code> จะได้เพียงคนเดียวแม้มีหลายคนสอนจำนวนเท่ากัน — เป็นโจทย์แบบเดียวกับโจทย์ที่ 1 (MAX ของ COUNT)</p></div></div></div>
 <div class="ex" id="ex7.11"><div class="ex-head"><span class="ex-badge">ฝึก 7.11</span><span class="ex-title">สาขาที่นิสิตมีเกรดเฉลี่ย (คำนวณจริง) สูงที่สุด</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>ใช้ v_student_gpa สร้างวิว <code>v_major_gpa</code> แสดงสาขา จำนวนนิสิต และค่าเฉลี่ยของ gpa_calc ของนิสิตในสาขา (ไม่นับนิสิตที่ไม่มีสาขา) แล้วแสดงสาขาที่ค่าเฉลี่ยนี้สูงที่สุด</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_major_gpa AS
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE OR REPLACE VIEW v_major_gpa AS
     SELECT    student_major       AS major,
               COUNT(*)            AS n_student,
               ROUND(AVG(gpa_calc), 2) AS avg_gpa_calc
@@ -720,7 +721,7 @@ WITH CHECK OPTION;</pre></div>
 <div class="box note"><div class="box-t">📝 CASCADED กับ LOCAL</div><p>เมื่อวิวสร้างซ้อนวิว <code>WITH CASCADED CHECK OPTION</code> (ค่าปริยาย) ตรวจเงื่อนไขของวิวทุกชั้น ส่วน <code>WITH LOCAL CHECK OPTION</code> ตรวจเฉพาะวิวชั้นที่มี LOCAL และชั้นล่างที่มี CHECK OPTION ของตัวเอง</p></div>
 
 <div class="ex" id="ex7.12"><div class="ex-head"><span class="ex-badge">ฝึก 7.12</span><span class="ex-title">UPDATE ได้หรือไม่</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จากวิวในบทนี้ จงทำนายว่าคำสั่งต่อไปนี้สำเร็จหรือไม่ แล้วตรวจคำตอบด้วย IS_UPDATABLE<br>(ก) <code>UPDATE v_english_lecturer SET salary = 30000 WHERE lecid = 't06'</code><br>(ข) <code>UPDATE v_major_stat SET avg_gpa = 3</code><br>(ค) <code>UPDATE v_section_detail SET term = '2026-2' WHERE secid = 52</code></p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>สำเร็จ</b> — ตารางเดียว คอลัมน์ปกติ<br>(ข) <b>ไม่สำเร็จ</b> — วิวมี GROUP BY<br>(ค) <b>สำเร็จ</b> — แม้วิวจะ JOIN 3 ตาราง แต่ term มาจากตาราง section ตารางเดียว</p>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>สำเร็จ</b> — ตารางเดียว คอลัมน์ปกติ<br>(ข) <b>ไม่สำเร็จ</b> — วิวมี GROUP BY<br>(ค) <b>สำเร็จ</b> — แม้วิวจะ JOIN 3 ตาราง แต่ term มาจากตาราง section ตารางเดียว</p>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ตรวจ (ค) ใน transaction แล้ว rollback</span></div><pre class="sql">UPDATE v_section_detail SET term = &#x27;2026-2&#x27; WHERE secid = 52;</pre></div>
 <div class="run-msg">✔ Query OK · 1 row(s) affected</div>
 <div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>subid</th><th>term</th></tr><tr><td>52</td><td>CS009</td><td>2026-2</td></tr></table></div></div></div></div>
@@ -774,7 +775,7 @@ ORDER  BY pct_A DESC, secid;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (19 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>secid</th><th>subject_name</th><th>pct_A</th></tr><tr><td>11</td><td>Programming</td><td>100.0</td></tr><tr><td>28</td><td>Project</td><td>100.0</td></tr><tr><td>30</td><td>Java</td><td>100.0</td></tr><tr><td>35</td><td>Programming</td><td>100.0</td></tr><tr><td>40</td><td>AI</td><td>100.0</td></tr><tr><td>41</td><td>Project</td><td>100.0</td></tr><tr><td>47</td><td>Statistics</td><td>100.0</td></tr><tr><td>34</td><td>English</td><td>66.7</td></tr><tr><td>43</td><td>Thai</td><td>66.7</td></tr><tr><td>19</td><td>Discrete Math</td><td>60.0</td></tr><tr><td>7</td><td>Web Design</td><td>50.0</td></tr><tr><td>8</td><td>Database</td><td>50.0</td></tr><tr><td>12</td><td>Database</td><td>50.0</td></tr><tr><td>13</td><td>Graphics</td><td>50.0</td></tr><tr><td>15</td><td>Programming</td><td>50.0</td></tr><tr><td>16</td><td>Java</td><td>50.0</td></tr><tr><td>31</td><td>Project</td><td>50.0</td></tr><tr><td>45</td><td>Security</td><td>50.0</td></tr><tr><td>48</td><td>Conversation</td><td>50.0</td></tr></table></div>
 
 <div class="ex" id="ex7.13"><div class="ex-head"><span class="ex-badge">ฝึก 7.13</span><span class="ex-title">สร้างหรือไม่สร้างวิว</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>สถานการณ์ต่อไปนี้ควรใช้ วิว, CTE, หรือตารางจริง พร้อมเหตุผล<br>(ก) รายงานทรานสคริปต์ที่หน้าเว็บเรียกวันละหลายพันครั้ง<br>(ข) คำถามวิเคราะห์ครั้งเดียวของผู้บริหาร<br>(ค) ให้ฝ่ายประชาสัมพันธ์เห็นเฉพาะชื่อและสาขานิสิต<br>(ง) เก็บผลการเรียนย้อนหลังที่ต้องไม่เปลี่ยนแม้ข้อมูลต้นทางเปลี่ยน</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>วิว</b> — ใช้ซ้ำบ่อย ตรรกะเดียวกันทุกที่<br>(ข) <b>CTE</b> — ใช้ครั้งเดียว ไม่ต้องสร้างของถาวร<br>(ค) <b>วิว</b> + GRANT เฉพาะวิว<br>(ง) <b>ตารางจริง</b> (snapshot ด้วย INSERT … SELECT / CREATE TABLE … AS SELECT) — เพราะวิวแสดงข้อมูลล่าสุดเสมอ ไม่เก็บค่าในอดีต</p></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) <b>วิว</b> — ใช้ซ้ำบ่อย ตรรกะเดียวกันทุกที่<br>(ข) <b>CTE</b> — ใช้ครั้งเดียว ไม่ต้องสร้างของถาวร<br>(ค) <b>วิว</b> + GRANT เฉพาะวิว<br>(ง) <b>ตารางจริง</b> (snapshot ด้วย INSERT … SELECT / CREATE TABLE … AS SELECT) — เพราะวิวแสดงข้อมูลล่าสุดเสมอ ไม่เก็บค่าในอดีต</p></div></div></div>
 
 <h2 id="s11"><span class="sec">7.11</span> CTE และ Window Function — เครื่องมือสมัยใหม่สำหรับโจทย์สรุปข้อมูล</h2>
 <p>ตั้งแต่ MySQL 8.0 รองรับเครื่องมือตามมาตรฐาน SQL อีก 2 อย่างที่ DBMS สมัยใหม่ทุกตัวมี (PostgreSQL, SQL Server, Oracle, SQLite) และพบบ่อยมากในงานวิเคราะห์ข้อมูลจริง — ทำโจทย์ในหัวข้อ 7.7 ได้สั้นลงโดย<b>ไม่ต้องสร้างวิวถาวร</b></p>
@@ -916,7 +917,7 @@ ORDER  BY student_id, term;</pre></div>
 <div class="box idea"><div class="box-t">💡 เลือกเครื่องมือไหนดี</div><p><b>วิว</b> — ตรรกะที่ใช้ซ้ำหลายคำสั่ง/หลายโปรแกรม หรือต้องให้สิทธิ์ · <b>CTE</b> — แตกโจทย์เป็นขั้นในคำสั่งเดียว และงานไล่ลำดับชั้น (Recursive) · <b>Window Function</b> — โจทย์ “อันดับ / สูงสุดต่อกลุ่ม / เทียบกับกลุ่ม / สะสม / เทียบแถวก่อน” ซึ่งเคยต้องใช้ Correlated Subquery — ใช้ร่วมกันได้ เช่น Window Function บนวิว แล้วครอบด้วย CTE อย่างตัวอย่างข้างบน</p></div>
 
 <div class="ex" id="ex7.14"><div class="ex-head"><span class="ex-badge">ฝึก 7.14</span><span class="ex-title">วิชายอดนิยมของแต่ละภาค ด้วย DENSE_RANK</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>เขียนโจทย์ที่ 4 (หัวข้อ 7.7) ใหม่โดยใช้วิว <code>v_term_subject</code> + <code>DENSE_RANK()</code> + CTE แสดงวิชาที่มีผู้ลงทะเบียนมากที่สุดของแต่ละภาค (ถ้าเท่ากันแสดงทุกวิชา)</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">WITH r AS (
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">WITH r AS (
     SELECT term, subject_name, n_student,
            DENSE_RANK() OVER (PARTITION BY term ORDER BY n_student DESC) AS rnk
     FROM   v_term_subject
@@ -929,7 +930,7 @@ ORDER  BY term, subject_name;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (11 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>term</th><th>subject_name</th><th>n_student</th></tr><tr><td>2023-1</td><td>Programming</td><td>5</td></tr><tr><td>2023-2</td><td>Java</td><td>4</td></tr><tr><td>2023-3</td><td>AI</td><td>3</td></tr><tr><td>2024-1</td><td>Database</td><td>4</td></tr><tr><td>2024-2</td><td>Discrete Math</td><td>5</td></tr><tr><td>2024-3</td><td>Database</td><td>5</td></tr><tr><td>2025-1</td><td>English</td><td>6</td></tr><tr><td>2025-2</td><td>Conversation</td><td>3</td></tr><tr><td>2025-3</td><td>Security</td><td>3</td></tr><tr><td>2025-3</td><td>Thai</td><td>3</td></tr><tr><td>2026-1</td><td>Database</td><td>2</td></tr></table></div>
 <p>ได้ผลเท่ากับโจทย์ที่ 4 — ถ้าเปลี่ยนเป็น <code>rnk &lt;= 2</code> จะได้ 2 อันดับแรกของทุกภาคทันที ซึ่งแบบ Subquery + MAX ทำได้ยาก</p></div></div></div>
 <div class="ex" id="ex7.15"><div class="ex-head"><span class="ex-badge">ฝึก 7.15</span><span class="ex-title">วิชาที่ต่อยอดจาก Programming ทุกชั้น</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>ใช้ Recursive CTE แสดงรหัส ชื่อ และระดับ (1 = ต่อจาก CS001 โดยตรง, 2 = ต่อจากวิชาระดับ 1, …) ของทุกวิชาที่ต้องผ่าน CS001 มาก่อนไม่ว่าทางตรงหรือทางอ้อม</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">WITH RECURSIVE next_sub AS (
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">WITH RECURSIVE next_sub AS (
     SELECT subid, name, 1 AS level
     FROM   subject
     WHERE  pre = &#x27;CS001&#x27;

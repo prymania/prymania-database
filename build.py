@@ -278,7 +278,7 @@ def render_ex(m):
     lv = LEVEL.get(str(a.get("level", "1")), "")
     return (f'<div class="ex" id="ex{a.get("no","")}"><div class="ex-head"><span class="ex-badge">ฝึก {a.get("no","")}</span>'
             f'<span class="ex-title">{a.get("title","")}</span><span class="ex-level">{lv}</span></div>'
-            f'<div class="ex-body">{q.strip()}\n<button type="button" class="ans-btn">👀 ดูเฉลย</button>'
+            f'<div class="ex-body">{q.strip()}\n<button type="button" class="ans-btn">ดูเฉลย</button>'
             f'<div class="answer"><div class="answer-t">✅ เฉลย</div>{ans.strip()}</div></div></div>')
 
 def render_review(m):
@@ -356,12 +356,13 @@ def layout(fname, meta, body):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
-<script>document.documentElement.classList.add("js");try{{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}}catch(e){{}}</script>
+<script>document.documentElement.classList.add("js");try{{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text");if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}}catch(e){{}}</script>
 </head>
 <body>
 <button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
   <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
+  <button class="theme-btn" type="button" aria-label="สลับโหมดมืด / สว่าง" title="โหมดมืด / สว่าง"></button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <button id="menuBtn" type="button" aria-label="เปิดเมนูบทเรียน">☰ เมนูบทเรียน</button>
   <nav>

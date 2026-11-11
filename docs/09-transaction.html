@@ -7,12 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
-<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text");if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script>
 </head>
 <body>
 <button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
   <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
+  <button class="theme-btn" type="button" aria-label="สลับโหมดมืด / สว่าง" title="โหมดมืด / สว่าง"></button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <button id="menuBtn" type="button" aria-label="เปิดเมนูบทเรียน">☰ เมนูบทเรียน</button>
   <nav>
@@ -86,7 +87,7 @@
 </table>
 
 <div class="ex" id="ex9.1"><div class="ex-head"><span class="ex-badge">ฝึก 9.1</span><span class="ex-title">จับคู่ ACID</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>สถานการณ์ใดเกี่ยวกับคุณสมบัติใด<br>(ก) ไฟดับหลังระบบแจ้งว่าลงทะเบียนสำเร็จ เปิดเครื่องใหม่ข้อมูลยังอยู่<br>(ข) เพิ่ม section สำเร็จแต่ลงทะเบียนล้มเหลว ระบบยกเลิก section นั้นด้วย<br>(ค) ระบบไม่ยอมให้บันทึกเกรด E<br>(ง) อาจารย์ 2 คนแก้เกรดนิสิตคนเดียวกันพร้อมกัน ผลลัพธ์ไม่ปนกัน</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) Durability<br>(ข) Atomicity<br>(ค) Consistency<br>(ง) Isolation</p></div></div></div>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>(ก) Durability<br>(ข) Atomicity<br>(ค) Consistency<br>(ง) Isolation</p></div></div></div>
 
 <h2 id="s3"><span class="sec">9.3</span> autocommit และคำสั่งควบคุมทรานแซกชัน</h2>
 <p>MySQL ทำงานแบบ <b>autocommit = 1</b> โดยปริยาย — ทุกคำสั่งเป็นทรานแซกชันของตัวเองและถูก COMMIT ทันทีที่รันเสร็จ</p>
@@ -124,7 +125,7 @@ SELECT COUNT(*) AS n_section_2026_1 FROM section WHERE term = &#x27;2026-1&#x27;
 <div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_section_2026_1</th></tr><tr><td>3</td></tr></table></div>
 
 <div class="ex" id="ex9.2"><div class="ex-head"><span class="ex-badge">ฝึก 9.2</span><span class="ex-title">ทรานแซกชันย้ายกลุ่มเรียน</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>นิสิต 60008 ลงทะเบียน section 51 (CS004, 2026-1) อยู่ จงเขียนทรานแซกชันย้ายไป section ใหม่ที่เพิ่งเปิดในหัวข้อนี้ (CS010, 2026-1) โดยทั้งการลบและการเพิ่มต้องสำเร็จพร้อมกัน</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">START TRANSACTION;
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">START TRANSACTION;
 DELETE FROM enroll WHERE secid = 51 AND stdid = &#x27;60008&#x27;;
 INSERT INTO enroll (secid, stdid)
 SELECT secid, &#x27;60008&#x27; FROM section WHERE subid = &#x27;CS010&#x27; AND term = &#x27;2026-1&#x27;;
@@ -187,7 +188,7 @@ except Exception as e:
     print("ลงทะเบียนไม่สำเร็จ:", e)</pre></div>
 
 <div class="ex" id="ex9.3"><div class="ex-head"><span class="ex-badge">ฝึก 9.3</span><span class="ex-title">ทรานแซกชันเปิดกลุ่มและลงทะเบียน 2 คน</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงเขียนทรานแซกชันที่ (1) เปิดกลุ่มเรียนวิชา MA003 อาจารย์ t15 ภาค 2026-1 (2) ลงทะเบียนนิสิต 60014 และ 60015 ในกลุ่มนั้น — ใช้ตัวแปร <code>@new_sec</code> เก็บรหัสกลุ่มใหม่</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">START TRANSACTION;
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">START TRANSACTION;
 INSERT INTO section (subid, lecid, term) VALUES (&#x27;MA003&#x27;, &#x27;t15&#x27;, &#x27;2026-1&#x27;);
 SET @new_sec = LAST_INSERT_ID();
 INSERT INTO enroll (secid, stdid) VALUES (@new_sec, &#x27;60014&#x27;), (@new_sec, &#x27;60015&#x27;);
@@ -259,7 +260,7 @@ SELECT lecid, salary FROM lecturer WHERE lecid = &#x27;t01&#x27;;</pre></div>
 <div class="box tip"><div class="box-t">✅ ลดโอกาส Deadlock</div><ul><li>เข้าถึงแถว/ตารางใน<b>ลำดับเดียวกัน</b>ทุกทรานแซกชัน (เช่น เรียงตาม lecid เสมอ)</li><li>ทำทรานแซกชันให้<b>สั้น</b> — ไม่รอ input จากผู้ใช้กลางทรานแซกชัน</li><li>มีดัชนีที่เหมาะสม เพื่อล็อกเฉพาะแถวที่จำเป็น</li><li>เตรียมโค้ดให้ลองใหม่ (retry) เมื่อเจอ Error 1213</li></ul></div>
 
 <div class="ex" id="ex9.4"><div class="ex-head"><span class="ex-badge">ฝึก 9.4</span><span class="ex-title">ระบุปัญหาและระดับที่เหมาะสม</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>ระบบลงทะเบียน: นิสิตกดลงทะเบียน → ระบบนับจำนวนคนในกลุ่ม → ถ้าน้อยกว่า 40 จึง INSERT — ถ้านิสิต 2 คนกดพร้อมกันตอนมี 39 คน จะเกิดอะไรขึ้น และควรแก้อย่างไร</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>ทั้งสองคนนับได้ 39 พร้อมกัน → ทั้งคู่ INSERT สำเร็จ → กลุ่มมี 41 คน (คล้าย Lost Update / Phantom)</p><p>แก้ได้ 3 แนวทาง (ทุกแนวทางต้องทำใน<b>ทรานแซกชันเดียว</b>)</p>
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><p>ทั้งสองคนนับได้ 39 พร้อมกัน → ทั้งคู่ INSERT สำเร็จ → กลุ่มมี 41 คน (คล้าย Lost Update / Phantom)</p><p>แก้ได้ 3 แนวทาง (ทุกแนวทางต้องทำใน<b>ทรานแซกชันเดียว</b>)</p>
 <ol><li><b>ล็อกแถวที่ใช้ตัดสินใจ</b> — <code>SELECT … FROM section WHERE secid = ? FOR UPDATE</code> ก่อนนับ session ที่สองต้องรอจนคนแรก COMMIT</li>
 <li><b>UPDATE แบบมีเงื่อนไขในคำสั่งเดียว (Atomic Update)</b> — ถ้าเก็บจำนวนที่นั่งคงเหลือไว้ <code>UPDATE section SET seats_left = seats_left - 1 WHERE secid = ? AND seats_left &gt; 0</code> แล้วตรวจจำนวนแถวที่ถูกแก้ ถ้าเป็น 0 แปลว่าเต็ม → ROLLBACK (InnoDB ล็อกแถวให้เองระหว่าง UPDATE จึงไม่มีทางลบเกิน)</li>
 <li><b>SERIALIZABLE</b> เฉพาะทรานแซกชันนี้ — ถูกต้องแต่รอกันมากและเกิด Deadlock ได้บ่อย</li></ol>

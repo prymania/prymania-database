@@ -20,6 +20,25 @@
   if (showBtn) showBtn.addEventListener("click", function () { side(false); });
 })();
 
+// ---------- โหมดมืด / สว่าง: ปุ่ม 🌙/☀️ บนเมนูซ้าย (ค่าเริ่มต้น = สว่าง, จำค่าไว้ทุกหน้า) ----------
+(function () {
+  var btn = document.querySelector(".theme-btn"), root = document.documentElement;
+  if (!btn) return;
+  function draw() {
+    var dark = root.dataset.theme === "dark";
+    btn.textContent = dark ? "☀️" : "🌙";
+    btn.title = dark ? "เปลี่ยนเป็นโหมดสว่าง" : "เปลี่ยนเป็นโหมดมืด";
+    btn.setAttribute("aria-pressed", String(dark));
+  }
+  btn.addEventListener("click", function () {
+    var dark = root.dataset.theme !== "dark";
+    if (dark) root.dataset.theme = "dark"; else delete root.dataset.theme;
+    try { localStorage.setItem("theme", dark ? "dark" : "light"); } catch (e) {}
+    draw();
+  });
+  draw();
+})();
+
 // ---------- ไฮไลต์ SQL อัตโนมัติ (<pre class="sql">) + ปุ่มคัดลอก ----------
 // เรียกซ้ำได้กับเนื้อหาที่เพิ่งใส่ลงหน้า (เช่น เฉลยที่เพิ่งถอดรหัส): window.dbEnhance(element)
 window.dbEnhance = function (root) { highlightSql(root); addCopyButtons(root); };
@@ -126,7 +145,7 @@ window.dbEnhance(document);
     function set(open) {
       ans.classList.toggle("show", open);
       btn.classList.toggle("open", open);
-      btn.textContent = open ? "🙈 ซ่อนเฉลย" : "👀 ดูเฉลย";
+      btn.textContent = open ? "ซ่อนเฉลย" : "ดูเฉลย";
     }
     var form = null;
     btn.addEventListener("click", function () {

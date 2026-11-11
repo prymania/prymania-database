@@ -7,12 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap">
 <link rel="stylesheet" href="assets/style.css">
-<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text")}catch(e){}</script>
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("side-collapsed")==="1")document.documentElement.classList.add("side-collapsed");if(localStorage.getItem("big-text")==="1")document.documentElement.classList.add("big-text");if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script>
 </head>
 <body>
 <button class="side-show" type="button" aria-label="แสดงเมนูบทเรียน">☰ เมนู</button>
 <aside class="sidebar" id="sidebar">
   <button class="side-hide" type="button" aria-label="ซ่อนเมนู" title="ซ่อนเมนู">«</button>
+  <button class="theme-btn" type="button" aria-label="สลับโหมดมืด / สว่าง" title="โหมดมืด / สว่าง"></button>
   <div class="brand"><a href="index.html"><span class="logo">DB</span><span class="t1">Database Design<br>&amp; Management</span><span class="t2">1204202 · Lecture Note · MySQL + DBeaver</span></a></div>
   <button id="menuBtn" type="button" aria-label="เปิดเมนูบทเรียน">☰ เมนูบทเรียน</button>
   <nav>
@@ -106,7 +107,7 @@ ORDER  BY s.stdid, e.secid;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (แสดง 10 จาก 32 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>secid</th></tr><tr><td>60001</td><td>Rukawa</td><td>1</td></tr><tr><td>60001</td><td>Rukawa</td><td>8</td></tr><tr><td>60001</td><td>Rukawa</td><td>10</td></tr><tr><td>60001</td><td>Rukawa</td><td>15</td></tr><tr><td>60001</td><td>Rukawa</td><td>31</td></tr><tr><td>60002</td><td>Sakuragi</td><td>2</td></tr><tr><td>60002</td><td>Sakuragi</td><td>12</td></tr><tr><td>60003</td><td>Mitsui</td><td>19</td></tr><tr><td>60004</td><td>Sendoh</td><td>12</td></tr><tr><td>60004</td><td>Sendoh</td><td>13</td></tr></table></div>
 
 <div class="ex" id="ex6.1"><div class="ex-head"><span class="ex-badge">ฝึก 6.1</span><span class="ex-title">JOIN 2 ตาราง</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงแสดงรหัสกลุ่มเรียน ภาคเรียน และ<b>ชื่ออาจารย์ผู้สอน</b> ของทุกกลุ่มเรียนในภาค 2025-3</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT sec.secid, sec.term, l.name AS lecturer
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT sec.secid, sec.term, l.name AS lecturer
 FROM   section sec
        INNER JOIN lecturer l ON sec.lecid = l.lecid
 WHERE  sec.term = &#x27;2025-3&#x27;
@@ -148,7 +149,7 @@ FROM   student s INNER JOIN enroll e ON s.stdid = e.stdid
 <div class="run-err"><b>✖ Error Code: 1052.</b> Column &#x27;name&#x27; in field list is ambiguous</div>
 
 <div class="ex" id="ex6.2"><div class="ex-head"><span class="ex-badge">ฝึก 6.2</span><span class="ex-title">ทรานสคริปต์ของนิสิต 1 คน</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงทรานสคริปต์ของนิสิต <code>60001</code>: ภาคเรียน รหัสวิชา ชื่อวิชา หน่วยกิต เกรด เรียงตามภาคเรียน</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT sec.term, sub.subid, sub.name, sub.credit, e.grade
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT sec.term, sub.subid, sub.name, sub.credit, e.grade
 FROM   enroll e
        INNER JOIN section sec ON e.secid   = sec.secid
        INNER JOIN subject sub ON sec.subid = sub.subid
@@ -156,7 +157,7 @@ WHERE  e.stdid = &#x27;60001&#x27;
 ORDER  BY sec.term, sub.subid;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (9 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>term</th><th>subid</th><th>name</th><th>credit</th><th>grade</th></tr><tr><td>2023-1</td><td>CS001</td><td>Programming</td><td>3</td><td>A</td></tr><tr><td>2023-1</td><td>CS004</td><td>Database</td><td>3</td><td>C</td></tr><tr><td>2023-2</td><td>CS002</td><td>Java</td><td>3</td><td>B</td></tr><tr><td>2023-3</td><td>CS004</td><td>Database</td><td>3</td><td>A</td></tr><tr><td>2023-3</td><td>CS008</td><td>AI</td><td>3</td><td>A</td></tr><tr><td>2024-2</td><td>CS001</td><td>Programming</td><td>3</td><td>A</td></tr><tr><td>2024-2</td><td>MA002</td><td>Discrete Math</td><td>4</td><td>B</td></tr><tr><td>2024-3</td><td>CS009</td><td>Project</td><td>6</td><td>A</td></tr><tr><td>2025-3</td><td>CS010</td><td>Security</td><td>3</td><td>B</td></tr></table></div></div></div></div>
 <div class="ex" id="ex6.3"><div class="ex-head"><span class="ex-badge">ฝึก 6.3</span><span class="ex-title">อาจารย์ที่เคยสอน Database</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงชื่ออาจารย์ที่เคยสอนรายวิชา CS004 โดยไม่ให้ชื่อซ้ำ</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT DISTINCT l.lecid, l.name
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT DISTINCT l.lecid, l.name
 FROM   section sec
        INNER JOIN lecturer l ON sec.lecid = l.lecid
 WHERE  sec.subid = &#x27;CS004&#x27;
@@ -211,14 +212,14 @@ ORDER  BY secid;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (แสดง 8 จาก 55 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>secid</th></tr><tr><td>t16</td><td>Levi</td><td class="null">NULL</td></tr><tr><td>t11</td><td>Batman</td><td class="null">NULL</td></tr><tr><td>t12</td><td>Wolverine</td><td class="null">NULL</td></tr><tr><td>t01</td><td>Peter Parker</td><td>1</td></tr><tr><td>t01</td><td>Peter Parker</td><td>2</td></tr><tr><td>t01</td><td>Peter Parker</td><td>3</td></tr><tr><td>t02</td><td>Steve Roger</td><td>4</td></tr><tr><td>t02</td><td>Steve Roger</td><td>5</td></tr></table></div>
 
 <div class="ex" id="ex6.4"><div class="ex-head"><span class="ex-badge">ฝึก 6.4</span><span class="ex-title">รายวิชาที่ยังไม่เคยเปิดสอน</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงรายวิชาทั้งหมดพร้อมจำนวนกลุ่มเรียนที่เคยเปิด โดยรายวิชาที่ไม่เคยเปิดให้แสดงเป็น 0</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT sub.subid, sub.name, COUNT(sec.secid) AS n_section
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT sub.subid, sub.name, COUNT(sec.secid) AS n_section
 FROM   subject sub
        LEFT JOIN section sec ON sub.subid = sec.subid
 GROUP  BY sub.subid, sub.name
 ORDER  BY n_section, sub.subid;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (20 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>subid</th><th>name</th><th>n_section</th></tr><tr><td>EN002</td><td>Reading</td><td>0</td></tr><tr><td>EN004</td><td>Writing</td><td>0</td></tr><tr><td>PH001</td><td>Physics</td><td>0</td></tr><tr><td>CS010</td><td>Security</td><td>1</td></tr><tr><td>MA003</td><td>Statistics</td><td>1</td></tr><tr><td>TH001</td><td>Thai</td><td>1</td></tr><tr><td>TH002</td><td>Thai Writing</td><td>1</td></tr><tr><td>CS006</td><td>Mobile Apps</td><td>2</td></tr><tr><td>CS007</td><td>Robotics</td><td>2</td></tr><tr><td>EN001</td><td>English</td><td>2</td></tr><tr><td>EN003</td><td>Conversation</td><td>2</td></tr><tr><td>MA002</td><td>Discrete Math</td><td>2</td></tr><tr><td>CS003</td><td>Web Design</td><td>3</td></tr><tr><td>CS005</td><td>Graphics</td><td>3</td></tr><tr><td>CS008</td><td>AI</td><td>3</td></tr><tr><td>CS009</td><td>Project</td><td>4</td></tr><tr><td>MA001</td><td>Mathematics</td><td>4</td></tr><tr><td>CS001</td><td>Programming</td><td>7</td></tr><tr><td>CS002</td><td>Java</td><td>7</td></tr><tr><td>CS004</td><td>Database</td><td>7</td></tr></table></div></div></div></div>
 <div class="ex" id="ex6.5"><div class="ex-head"><span class="ex-badge">ฝึก 6.5</span><span class="ex-title">กลุ่มเรียนที่ไม่มีคนลง</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงกลุ่มเรียน (secid, subid, term) ที่ยังไม่มีนิสิตลงทะเบียนเลย</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT sec.secid, sec.subid, sec.term
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT sec.secid, sec.subid, sec.term
 FROM   section sec
        LEFT JOIN enroll e ON sec.secid = e.secid
 WHERE  e.secid IS NULL
@@ -250,13 +251,13 @@ ORDER  BY a.major, a.stdid, b.stdid;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>n_rows</th></tr><tr><td>352</td></tr></table></div>
 
 <div class="ex" id="ex6.6"><div class="ex-head"><span class="ex-badge">ฝึก 6.6</span><span class="ex-title">Self Join ชื่อซ้ำ</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>จงหาคู่นิสิตที่<b>ชื่อเหมือนกัน</b> แต่รหัสต่างกัน แสดงรหัส ชื่อ และสาขาของทั้งคู่ (ไม่ให้คู่ซ้ำ)</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT a.stdid, a.name, a.major, b.stdid, b.major
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT a.stdid, a.name, a.major, b.stdid, b.major
 FROM   student a
        INNER JOIN student b ON a.name = b.name AND a.stdid &lt; b.stdid;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>stdid</th><th>major</th></tr><tr><td>60010</td><td>Gon</td><td>English</td><td>60013</td><td>CS</td></tr></table></div>
 <p>Gon มี 2 คน (60010 English และ 60013 CS) — เหตุผลที่ไม่ใช้ name เป็นคีย์หลัก</p></div></div></div>
 <div class="ex" id="ex6.7"><div class="ex-head"><span class="ex-badge">ฝึก 6.7</span><span class="ex-title">วิชาบังคับก่อนเป็น Programming</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงรายวิชาที่มีวิชาบังคับก่อนเป็นวิชา <b>Programming</b> (ใช้ชื่อวิชาเป็นเงื่อนไข ไม่ใช่รหัส)</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT sub.subid, sub.name
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT sub.subid, sub.name
 FROM   subject sub
        INNER JOIN subject pre ON sub.pre = pre.subid
 WHERE  pre.name = &#x27;Programming&#x27;;</pre></div>
@@ -288,7 +289,7 @@ ORDER  BY stdid;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (1 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th></tr><tr><td>60006</td></tr></table></div>
 
 <div class="ex" id="ex6.8"><div class="ex-head"><span class="ex-badge">ฝึก 6.8</span><span class="ex-title">ลงทั้ง CS001 และ CS004</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงแสดงรหัสนิสิตที่เคยลงทะเบียน<b>ทั้ง</b>รายวิชา CS001 และ CS004 (ภาคใดก็ได้) โดยใช้ตัวดำเนินการเชิงเซต</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT e.stdid FROM enroll e JOIN section s ON e.secid = s.secid WHERE s.subid = &#x27;CS001&#x27;
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT e.stdid FROM enroll e JOIN section s ON e.secid = s.secid WHERE s.subid = &#x27;CS001&#x27;
 INTERSECT
 SELECT e.stdid FROM enroll e JOIN section s ON e.secid = s.secid WHERE s.subid = &#x27;CS004&#x27;
 ORDER  BY stdid;</pre></div>
@@ -386,7 +387,7 @@ ORDER  BY n_section DESC;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (แสดง 6 จาก 16 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>n_section</th></tr><tr><td>t01</td><td>Peter Parker</td><td>14</td></tr><tr><td>t02</td><td>Steve Roger</td><td>11</td></tr><tr><td>t03</td><td>Yoda</td><td>8</td></tr><tr><td>t05</td><td>IronMan</td><td>6</td></tr><tr><td>t04</td><td>Post Malone</td><td>4</td></tr><tr><td>t06</td><td>Goku</td><td>2</td></tr></table></div>
 
 <div class="ex" id="ex6.9"><div class="ex-head"><span class="ex-badge">ฝึก 6.9</span><span class="ex-title">ไม่เคยได้ A — 2 วิธี</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>จงแสดงนิสิตที่<b>ยังไม่เคย</b>ได้เกรด A เลย (รวมคนที่ไม่เคยลงทะเบียน) โดยเขียน 2 วิธี คือ NOT IN และ NOT EXISTS</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>วิธีที่ 1 NOT IN</span></div><pre class="sql">SELECT stdid, name
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>วิธีที่ 1 NOT IN</span></div><pre class="sql">SELECT stdid, name
 FROM   student
 WHERE  stdid NOT IN
        (SELECT stdid
@@ -405,7 +406,7 @@ ORDER  BY s.stdid;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (9 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th></tr><tr><td>60008</td><td>Kira</td></tr><tr><td>60014</td><td>Light</td></tr><tr><td>60015</td><td>Near</td></tr><tr><td>60016</td><td>Mello</td></tr><tr><td>70033</td><td>Zoro</td></tr><tr><td>70034</td><td>Luffy</td></tr><tr><td>70035</td><td>Nami</td></tr><tr><td>70036</td><td>Sanji</td></tr><tr><td>70037</td><td>Chopper</td></tr></table></div>
 <p>ได้ผลเท่ากัน เพราะ <code>enroll.stdid</code> ไม่มี NULL (เป็นส่วนของ PK) — แต่ NOT EXISTS ปลอดภัยกว่าโดยทั่วไป</p></div></div></div>
 <div class="ex" id="ex6.10"><div class="ex-head"><span class="ex-badge">ฝึก 6.10</span><span class="ex-title">สูงกว่าค่าเฉลี่ยของสาขาตัวเอง</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>จงแสดงนิสิตที่มี gpa สูงกว่าค่าเฉลี่ย gpa ของนิสิต<b>ในสาขาเดียวกัน</b> (Correlated Subquery)</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT s.stdid, s.name, s.major, s.gpa
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT s.stdid, s.name, s.major, s.gpa
 FROM   student s
 WHERE  s.gpa &gt;
        (SELECT AVG(s2.gpa)
@@ -415,7 +416,7 @@ ORDER  BY s.major, s.gpa DESC;</pre></div>
 <div class="result-t">▸ ผลลัพธ์ (7 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>stdid</th><th>name</th><th>major</th><th>gpa</th></tr><tr><td>60007</td><td>L</td><td>Art</td><td>3.98</td></tr><tr><td>60004</td><td>Sendoh</td><td>CS</td><td>3.98</td></tr><tr><td>60001</td><td>Rukawa</td><td>CS</td><td>3.75</td></tr><tr><td>60009</td><td>Killua</td><td>English</td><td>3.98</td></tr><tr><td>60011</td><td>Kurapika</td><td>English</td><td>3.98</td></tr><tr><td>60005</td><td class="null">NULL</td><td>Math</td><td>2.78</td></tr><tr><td>60015</td><td>Near</td><td>Physics</td><td>4.00</td></tr></table></div>
 <p>นิสิตที่ major เป็น NULL จะไม่ถูกเลือก เพราะ <code>s2.major = NULL</code> ไม่เป็นจริง</p></div></div></div>
 <div class="ex" id="ex6.11"><div class="ex-head"><span class="ex-badge">ฝึก 6.11</span><span class="ex-title">อาจารย์ที่สอนมากที่สุด</span><span class="ex-level">⭐⭐⭐ ท้าทาย</span></div><div class="ex-body"><p>จงแสดงชื่ออาจารย์ที่สอนกลุ่มเรียนมากที่สุด พร้อมจำนวนกลุ่ม (ถ้าเท่ากันต้องแสดงทุกคน)</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT l.lecid, l.name, COUNT(*) AS n_section
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">SELECT l.lecid, l.name, COUNT(*) AS n_section
 FROM   lecturer l
        INNER JOIN section sec ON l.lecid = sec.lecid
 GROUP  BY l.lecid, l.name
@@ -460,7 +461,7 @@ SELECT * FROM enroll;</pre></div>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เพิ่มคีย์หลักภายหลัง</span></div><pre class="sql">ALTER TABLE enroll_backup ADD PRIMARY KEY (secid, stdid);</pre></div>
 
 <div class="ex" id="ex6.12"><div class="ex-head"><span class="ex-badge">ฝึก 6.12</span><span class="ex-title">สร้างตาราง TOP_STUDENT</span><span class="ex-level">⭐ ง่าย</span></div><div class="ex-body"><p>จงสร้างตาราง <code>top_student(stdid, name, gpa)</code> แล้วคัดลอกนิสิตที่มี gpa ตั้งแต่ 3.00 ขึ้นไปเข้าไป</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE top_student (
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">CREATE TABLE top_student (
     stdid VARCHAR(10) PRIMARY KEY,
     name  VARCHAR(50),
     gpa   DECIMAL(3,2)
@@ -520,7 +521,7 @@ WHERE  gpa &lt;
 <div class="run-msg">✔ Query OK · 11 row(s) affected</div>
 
 <div class="ex" id="ex6.13"><div class="ex-head"><span class="ex-badge">ฝึก 6.13</span><span class="ex-title">UPDATE อาจารย์ที่สอนเกิน 5 กลุ่ม</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงเพิ่มเงินเดือน 3,000 บาทให้อาจารย์ที่สอนมากกว่า 5 กลุ่มเรียน</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">UPDATE lecturer
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">UPDATE lecturer
 SET    salary = salary + 3000
 WHERE  lecid IN
        (SELECT lecid
@@ -531,7 +532,7 @@ WHERE  lecid IN
 <div class="result-t">▸ ข้อมูลหลังรันคำสั่ง (5 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th></tr><tr><td>t01</td><td>Peter Parker</td><td>43000</td></tr><tr><td>t02</td><td>Steve Roger</td><td>53000</td></tr><tr><td>t03</td><td>Yoda</td><td>83000</td></tr><tr><td>t04</td><td>Post Malone</td><td>47000</td></tr><tr><td>t05</td><td>IronMan</td><td>68000</td></tr></table></div>
 <p>ตรวจด้วย <code>SELECT lecid, COUNT(*) FROM section GROUP BY lecid</code> ก่อน จะเห็นว่ามี t01 (14 กลุ่ม), t02 (11), t03 (8) และ t05 (6) ที่สอนเกิน 5 กลุ่ม — t04 สอน 4 กลุ่ม แสดงไว้เทียบว่าไม่เปลี่ยน</p></div></div></div>
 <div class="ex" id="ex6.14"><div class="ex-head"><span class="ex-badge">ฝึก 6.14</span><span class="ex-title">DELETE ที่ยังไม่มีเกรด</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงลบการลงทะเบียนที่ยังไม่มีเกรด ในกลุ่มเรียนของภาคเรียน 2025-1</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELETE FROM enroll
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DELETE FROM enroll
 WHERE  grade IS NULL
   AND  secid IN
        (SELECT secid
@@ -555,7 +556,7 @@ WHERE  salary IS NOT NULL;</pre></div>
 <div class="result-t">▸ หลังปรับ (13 แถว)</div><div class="tbl-wrap"><table class="tbl result"><tr><th>lecid</th><th>name</th><th>salary</th></tr><tr><td>t01</td><td>Peter Parker</td><td>44000</td></tr><tr><td>t02</td><td>Steve Roger</td><td>55000</td></tr><tr><td>t03</td><td>Yoda</td><td>84000</td></tr><tr><td>t04</td><td>Post Malone</td><td>51700</td></tr><tr><td>t05</td><td>IronMan</td><td>68250</td></tr><tr><td>t06</td><td>Goku</td><td>23000</td></tr><tr><td>t07</td><td>Vegeta</td><td>28750</td></tr><tr><td>t08</td><td>Cell</td><td>73500</td></tr><tr><td>t09</td><td>Frieza</td><td>66000</td></tr><tr><td>t10</td><td>Piccolo</td><td>17250</td></tr><tr><td>t13</td><td>Thor</td><td>66000</td></tr><tr><td>t14</td><td>Yoda</td><td>84000</td></tr><tr><td>t15</td><td>Gohan</td><td>23000</td></tr></table></div>
 
 <div class="ex" id="ex6.15"><div class="ex-head"><span class="ex-badge">ฝึก 6.15</span><span class="ex-title">UPDATE + CASE สถานะนิสิต</span><span class="ex-level">⭐⭐ ปานกลาง</span></div><div class="ex-body"><p>จงเพิ่มคอลัมน์ <code>status</code> ในตาราง student แล้วกำหนดค่า “พ้นสภาพ” เมื่อ gpa &lt; 1.60, “รอพินิจ” เมื่อ 1.60–1.99, “ปกติ” กรณีอื่น (gpa เป็น NULL ให้เป็น “ยังไม่มีผล”)</p>
-<button type="button" class="ans-btn">👀 ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">ALTER TABLE student ADD COLUMN status VARCHAR(20);
+<button type="button" class="ans-btn">ดูเฉลย</button><div class="answer"><div class="answer-t">✅ เฉลย</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">ALTER TABLE student ADD COLUMN status VARCHAR(20);
 
 UPDATE student
 SET    status = CASE

@@ -46,7 +46,9 @@ b,strong{font-weight:700}
   padding:9px 14px;border-radius:10px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer}
 
 /* ---------- content ---------- */
-.content{margin-left:var(--side);max-width:940px;padding:36px 44px 60px}
+/* คอลัมน์เนื้อหา: เว้นจากเมนูอย่างน้อย --gap และจัดไว้กลางพื้นที่ที่เหลือเมื่อจอกว้าง (แบบ Calculus) */
+:root{--gap:clamp(16px,3vw,48px)}
+.content{margin-left:calc(var(--side) + max(var(--gap), (100% - var(--side) - 940px) / 2));max-width:940px;padding:36px 44px 60px}
 .page-head{margin-bottom:10px;padding-bottom:16px;border-bottom:2px dashed var(--line)}
 .page-head .kicker{display:inline-block;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--tang2);
   background:var(--tangbg);padding:3px 10px;border-radius:20px;margin-bottom:8px}
@@ -428,7 +430,7 @@ table.tbl.demo tr + tr.fr:not(.fr-top) td{border-top:1px solid var(--line)}
 
 /* โหมดฉายจอ (A+): ขยายคอลัมน์เนื้อหา — กระดานทดไม่ขยาย
    .content มี margin-left = ความกว้างเมนู ซึ่งถูก zoom ขยายด้วย จึงหารกลับให้ชิดเมนูเท่าเดิม */
-.big-text .content { zoom: 1.25; margin-left: calc(var(--side) / 1.25); }
+.big-text .content { zoom: 1.25; margin-left: calc((var(--side) + var(--gap)) / 1.25); }
 .ink-big { font: 700 15px var(--f-display) !important; color: var(--fg); }
 .big-text .ink-big { border-color: var(--brand) !important; background: var(--grapebg) !important; color: var(--brand); }
 @media print { .big-text .content { zoom: 1; } }
@@ -530,3 +532,163 @@ table.tbl.demo tr + tr.fr:not(.fr-top) td{border-top:1px solid var(--line)}
 .quiz-btn.checkin { background: #2e9e6a; }
 .quiz-btn.checkin:hover { background: #237a52; }
 @media print { .quiz-score { display: none; } }
+
+/* โหมด A+ บนจอแคบกว่า 1100px (เช่น iPad แนวตั้ง): ตารางผลลัพธ์กว้าง ให้เลื่อนในกรอบแทนการดันหน้าล้นจอ */
+@media (max-width: 1100px) { .big-text .content table.tbl { display: block; overflow-x: auto; } }
+
+/* ============================================================
+   ธีม Slate & Coral (เทาฟ้า + น้ำเงินอินดิโก + ปะการัง) — ทับสีของธีมเดิมด้านบน
+   ============================================================ */
+:root{
+  --paper:#F7F9FC; --card:#FFFFFF; --line:#E2E8F0; --ink:#0F172A; --mute:#64748B;
+  --deep:#1E293B; --deep2:#334155; --deep3:#475569;
+  --teal:#4C6EF5; --teal2:#3B5BDB; --tealbg:#EEF2FF;
+  --tang:#F0694E; --tang2:#D9480F; --tangbg:#FFF1EC;
+  --amber:#F59F00; --plum:#7048E8; --plumbg:#F3F0FF; --leaf:#2F9E44; --leafbg:#EBFBEE; --rose:#E03131; --rosebg:#FFF0F0;
+}
+body{background:var(--paper)}
+.sidebar{background:#fff;color:var(--ink);border-right:1px solid var(--line)}
+.brand{border-bottom:1px solid var(--line)} .brand a{color:var(--ink)} .brand .t2{color:var(--mute)}
+.brand .logo{background:linear-gradient(135deg,var(--tang),#F783AC);box-shadow:none}
+.navgroup-t{color:#94A3B8}
+.sidebar nav a{color:#334155} .sidebar nav a .no{color:#94A3B8}
+.sidebar nav a:hover{background:#F1F5F9;color:var(--ink)}
+.sidebar nav a.active{background:var(--tealbg);color:var(--teal2);border-left-color:var(--tang)}
+.sidebar nav a.active .no{color:var(--tang)}
+.sidebar nav .subnav a{color:#64748B} .sidebar nav .subnav a .sno{color:#A0AEC0}
+.sidebar nav .subnav a:hover{background:#F1F5F9;color:var(--ink)}
+.sidebar nav .subnav a.here{color:var(--teal2);background:#F5F7FF;box-shadow:inset 3px 0 0 var(--teal2)}
+.sidebar nav .subnav a.here .sno{color:var(--teal2)}
+.side-hide{background:#fff;border-color:var(--line);color:var(--mute)} .side-hide:hover{color:var(--teal2);border-color:var(--teal2)}
+.side-collapsed .side-show{background:var(--ink);color:#fff}
+.side-photo figcaption{color:var(--mute)}
+#menuBtn{background:#F1F5F9;border:1px solid var(--line);color:var(--ink)}
+
+.page-head{border-bottom:1px solid var(--line)}
+.page-head .kicker{background:var(--tangbg);color:var(--tang2)}
+.page-head h1{color:var(--ink);letter-spacing:-.2px}
+h2{color:var(--ink)} h2 .sec{background:var(--tang);color:#fff}
+h3{color:var(--teal2)}
+.term{color:var(--ink);border-bottom-color:var(--tang)}
+
+.box{background:#fff !important;border:1px solid var(--line);border-left:4px solid;border-radius:10px;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+.box.idea{border-left-color:var(--teal)} .box.idea .box-t{color:var(--teal2)}
+.box.note{border-left-color:var(--amber)} .box.note .box-t{color:#B35C00}
+.box.tip{border-left-color:var(--leaf)} .box.warn{border-left-color:var(--rose)}
+.pagetoc{box-shadow:0 1px 3px rgba(15,23,42,.05)}
+.code{background:#0F172A;box-shadow:0 4px 14px rgba(15,23,42,.12)} .code-head{background:#1E293B;color:#94A3B8}
+.code .k{color:#FFA94D} .code .s{color:#8CE99A} .code .f{color:#74C0FC} .code .n{color:#F783AC} .code .c{color:#64748B}
+table.tbl th{background:#1E293B}
+table.tbl tr:nth-child(even) td{background:#F8FAFC}
+.ex{border-color:#E5DBFF;box-shadow:0 1px 3px rgba(15,23,42,.05)} .ex-head{background:var(--plumbg)}
+.ans-btn,.review-copy,.review-key{box-shadow:none !important;border-radius:8px}
+.review{background:#fff;border:1px solid var(--line);border-top:4px solid var(--tang)}
+.pg{color:var(--ink);box-shadow:0 1px 3px rgba(15,23,42,.05)} .pg:hover{border-color:var(--teal2)}
+footer{border-top:1px solid var(--line)}
+.sidebar::-webkit-scrollbar-thumb{background:#CBD5E1}
+
+/* แบบฝึก (ฝึก 5.1 …) และปุ่มดูเฉลย: ใช้แบบธีม C = การ์ดไร้ขอบมีเงานุ่ม ป้าย/ปุ่มม่วงทรงแคปซูล ไม่มีเงาแข็ง */
+.ex{border:0;border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.05)}
+.ex-head{background:#F2ECFD;border-bottom:0}
+.ex-badge,.ans-btn{background:#7A4FD0}
+.ans-btn{border-radius:999px;box-shadow:none !important;padding:7px 18px}
+.ans-btn:active{transform:none}
+.ans-btn.open{background:#fff;color:#7A4FD0;border:1.5px solid #7A4FD0}
+
+/* ---------- ปุ่มโหมดมืด/สว่าง (🌙/☀️) บนเมนูซ้าย ใต้ปุ่ม « (มือถือ: มุมขวาบนของแถบเมนู) ---------- */
+.theme-btn{position:absolute;top:58px;right:10px;z-index:2;display:inline-flex;width:34px;height:34px;align-items:center;justify-content:center;
+  border:1px solid var(--line);border-radius:8px;background:#fff;padding:0;font-size:16px;line-height:1;cursor:pointer}
+.theme-btn:hover{border-color:var(--teal2)}
+@media(max-width:700px){
+  .sidebar{position:relative}
+  .theme-btn{top:14px;right:16px;width:38px;height:38px}
+  .brand{padding-right:64px}
+}
+
+/* ============================================================
+   โหมดมืด — html[data-theme="dark"] (ปุ่ม 🌙 บนเมนูซ้าย, จำค่าใน localStorage "theme")
+   ใช้ตัวแปรสีชุดเดียวกับธีมสว่าง แล้วแก้เฉพาะส่วนที่ฝังสีไว้ตายตัว
+   ============================================================ */
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0B1120; --card:#131C2E; --line:#27324A; --ink:#E2E8F0; --mute:#94A3B8; --soft:#1A2335;
+  --deep:#E2E8F0; --deep2:#CBD5E1; --deep3:#94A3B8;
+  --teal:#748FFC; --teal2:#91A7FF; --tealbg:#1C2448;
+  --tang:#FF7F61; --tang2:#FF9F85; --tangbg:#3A2019;
+  --amber:#FCC419; --amberbg:#30280F; --plum:#B197FC; --plumbg:#251E42;
+  --leaf:#51CF66; --leafbg:#13301C; --rose:#FF6B6B; --rosebg:#3A1A20;
+  --skybg:#16233F; --sky2:#8AB4FF; --grape2:#C4B0FF; --mango2:#FCC419; --mint2:#69DB7C; --coral2:#FFA28A;
+}
+[data-theme="dark"] body{background:var(--paper)}
+
+/* เมนูซ้าย */
+[data-theme="dark"] .sidebar{background:#0F172A;border-right-color:var(--line)}
+[data-theme="dark"] .sidebar::-webkit-scrollbar-thumb{background:#334155}
+[data-theme="dark"] .sidebar nav a{color:#CBD5E1}
+[data-theme="dark"] .sidebar nav a .no,[data-theme="dark"] .navgroup-t{color:#7C8AA0}
+[data-theme="dark"] .sidebar nav a:hover,[data-theme="dark"] .sidebar nav .subnav a:hover{background:#1E293B;color:#fff}
+[data-theme="dark"] .sidebar nav a.active{background:var(--tealbg);color:#fff}
+[data-theme="dark"] .sidebar nav .subnav a{color:#94A3B8}
+[data-theme="dark"] .sidebar nav .subnav a.here{background:#18203D;color:#fff}
+[data-theme="dark"] .side-hide,[data-theme="dark"] .theme-btn{background:transparent;border-color:#334155;color:#CBD5E1}
+[data-theme="dark"] #menuBtn{background:#1E293B;border-color:#334155;color:var(--ink)}
+[data-theme="dark"] .side-collapsed .side-show{background:#1E293B;color:#fff;border:1px solid #334155}
+[data-theme="dark"] .sidebar-img{opacity:.85}
+
+/* หัวข้อ กล่อง ตาราง โค้ด */
+[data-theme="dark"] .box{background:var(--card) !important;border-color:var(--line);box-shadow:none}
+[data-theme="dark"] .box.note .box-t{color:var(--amber)}
+[data-theme="dark"] .code{background:#0A0F1C;border:1px solid var(--line);box-shadow:none}
+[data-theme="dark"] .code-head{background:#141C2F}
+[data-theme="dark"] table.tbl th,[data-theme="dark"] .tb-h,[data-theme="dark"] .timeline th{background:#1E293B;color:#F1F5F9}
+[data-theme="dark"] table.tbl tr:nth-child(even) td{background:#172036}
+[data-theme="dark"] table.tbl.demo tr.hl td.keep,[data-theme="dark"] .legend-chip.col{background:#4A2A1E;color:#FFD8C9}
+[data-theme="dark"] .tb div.col{border-top-color:var(--line)}
+[data-theme="dark"] .layers .box2.tb,[data-theme="dark"] .tcard.p4 .num,[data-theme="dark"] .tcard .wk,[data-theme="dark"] .chip.off{background:#1E293B;color:var(--mute)}
+[data-theme="dark"] .chip.c3,[data-theme="dark"] .rv-tag{color:var(--amber);border-color:#5C4A12}
+[data-theme="dark"] .chip.c1{border-color:#33407A} [data-theme="dark"] .chip.c2{border-color:#4A3A80}
+[data-theme="dark"] .shot img{border-color:var(--line);filter:brightness(.92)}
+[data-theme="dark"] .hero{background:radial-gradient(circle at 92% 12%,rgba(255,127,97,.45) 0,rgba(255,127,97,0) 38%),linear-gradient(135deg,#1E293B 0%,#26305A 60%,#3B5BDB 100%)}
+
+/* แบบฝึก คำถามท้ายบท */
+[data-theme="dark"] .ex{background:var(--card);box-shadow:0 0 0 1px var(--line)}
+[data-theme="dark"] .ex-head{background:var(--plumbg)}
+[data-theme="dark"] .ex-title{color:#D0BFFF}
+[data-theme="dark"] .ex-level{color:var(--mute)}
+[data-theme="dark"] .ans-btn.open{background:transparent;color:#C4B0FF;border-color:#9775FA}
+[data-theme="dark"] .answer{border-top-color:var(--line)}
+[data-theme="dark"] .review{background:var(--card);border-color:var(--line)}
+[data-theme="dark"] .review-key{background:#334155}
+[data-theme="dark"] .review-lock input{background:#0B1120;color:var(--ink)}
+
+/* ภาคผนวก F (เกณฑ์คะแนน) */
+[data-theme="dark"] .sb-quiz,[data-theme="dark"] .gs-b,[data-theme="dark"] .gs-b2{background:#1B2A4D;color:#A5C0FF}
+[data-theme="dark"] .sb-final{background:#2A2147;color:#C8B6FF}
+[data-theme="dark"] .sb-bonus,[data-theme="dark"] .gs-c,[data-theme="dark"] .gs-c2{background:#30280F;color:#FCC419;border-color:#6B5414}
+[data-theme="dark"] .gs-d,[data-theme="dark"] .gs-d2{background:#3A2019;color:#FFA28A}
+[data-theme="dark"] .gs-f{background:#1E293B;color:#8792A2}
+[data-theme="dark"] .gs-a,[data-theme="dark"] .gc-row.ok{background:#13301C;color:#69DB7C}
+[data-theme="dark"] .grade-calc{border-color:var(--line)}
+[data-theme="dark"] .gc-out{background:var(--card)}
+[data-theme="dark"] .gc-form input{background:#0B1120}
+
+/* เก็บคะแนนท้ายบท */
+[data-theme="dark"] .quiz-card{border-color:#24365E;background:var(--skybg)}
+[data-theme="dark"] .quiz-card.checkin{border-color:#1F4D33;background:#10261A}
+[data-theme="dark"] .quiz-login,[data-theme="dark"] .quiz-score .chip{border-color:#5C2A30;background:#3A1A20;color:#FFA8A8}
+
+/* ปากกา: หมึกบนพื้นมืด — กลับสีหมึก (ดำ→ขาว, สีคงเฉด) แล้วผสมแบบ screen แทน multiply ไม่ให้หมึกหาย
+   กระดานทด (📒) ยังเป็นกระดาษขาว หมึกจึงแสดงตามปกติ */
+[data-theme="dark"] .ink-layer:not(.ink-board-layer){filter:invert(1) hue-rotate(180deg);mix-blend-mode:screen}
+[data-theme="dark"] .ink-bar button{background:var(--card);color:var(--ink);border-color:var(--line)}
+[data-theme="dark"] .ink-on .ink-toggle{background:#3B5BDB !important}
+[data-theme="dark"] .ink-tools{background:#131C2Ef2;border-color:var(--line)}
+[data-theme="dark"] .ink-tools .ink-pen.active span{box-shadow:0 0 0 3px var(--card),0 0 0 5px currentColor}
+[data-theme="dark"] .ink-toast{background:#E2E8F0;color:#0F172A}
+[data-theme="dark"] .ink-board{background:#0B1120}
+[data-theme="dark"] .pen-step{color:#17202D}
+[data-theme="dark"] .pen-demo{background:var(--card)}
+[data-theme="dark"] .pen-demo .pd-x{background:#3B5BDB}
+
+/* แผนภาพ SVG ที่ฝังในหน้า (บทที่ 2) วาดด้วยสีสำหรับพื้นขาว: วางบนการ์ดขาวแบบเดียวกับรูปภาพ */
+[data-theme="dark"] .shot > svg{background:#fff;border-radius:12px;padding:8px;filter:brightness(.92)}
