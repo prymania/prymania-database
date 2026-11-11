@@ -48,6 +48,45 @@ PAGES = [  # (file, nav-no, nav title, group)
     ("appendix-f-course.html", "F", "เกณฑ์คะแนน", "ภาคผนวก"),
     ("appendix-g-pen.html", "G", "วิธีใช้ปากกาเขียนบนหน้าเว็บ", "ภาคผนวก"),
 ]
+
+# Quiz ท้ายคาบ (Google Form, เก็บคะแนน) ของแต่ละบท — id จากโฟลเดอร์ Drive ของอาจารย์ ลิงก์นิสิตใช้ /viewform
+QUIZ_FORMS = {
+    1: "1qc7Z4jeeS-GaoN3BIMjROVezHeIQlFuTyiFps4C-bWU", 2: "18z-g700CkqufL3M66KG0dQqpoI8hGeywWn4BESTeouw",
+    3: "1MAlPs7Mqyh3hKqKkBurMepEcy_o8D3pHq9AZHtxEA2o", 4: "1aPGPV20mUgRsjDT01mu9TkZ6pR6A3XAknnkC0DIwFZ0",
+    5: "1tVGOt3_CinJp9hogzA9lj4qjoJvOXNwJ9acXBk7STCQ", 6: "1VdWvSqr0EZ4AzfffqnV8-BK-37ZMsPSevdANz50BgkA",
+    7: "1zNVh0ENAZi9ay98DffEFLG1yBq7Az-6wJOnhFBKJKOw", 8: "1dNKGhGRDLE_bi4MZpGWEYw6jKpUdyLa3O4Nhzwhpjv4",
+    9: "1uwC8F_c32rL95SVlOREDddorW4TiVWT30UMTurik_4M", 10: "1baO90rHjf8x8FAvC0hlcuPyjS2EFRVmEisVF6MyAzAE",
+    11: "1BMzdexqenJZRJUEyhQSDO5z34-6ymP6tZV1vP_AlPnk", 12: "1X5b75qWGl9-Wf_kHRUO0dmn61rhwaNGvIVDWX2JBftM",
+}
+
+
+# ระบบเช็คชื่อ (Apps Script) — ปุ่มขั้นที่ 1 ก่อนเปิด Quiz ทุกบท
+CHECKIN_URL = ("https://script.google.com/a/macros/msu.ac.th/s/AKfycbzpTf65VMcSGo4MXHRpm5UwfOpaCDismTxdNom5TLgB"
+               "Y6_NvAO_mg51YacITznabpgrHw/exec?page=teacher")
+
+
+def quiz_block(no):
+    fid = QUIZ_FORMS.get(no)
+    if not fid:
+        return ""
+    return ('<section class="quiz-score" id="quiz"><h2>เก็บคะแนนท้ายบท <span class="chip">มีคะแนน</span></h2>'
+            '<p class="quiz-login">🔐 Login ด้วยอีเมลมหาวิทยาลัย <b>@msu.ac.th</b> เท่านั้น</p>'
+            '<p class="quiz-lead">Quiz บทที่ %d · ส่งได้ครั้งเดียว — ทำตามลำดับ 2 ขั้น</p>'
+            '<ol class="quiz-steps">'
+            '<li class="quiz-card checkin"><div class="quiz-ico" aria-hidden="true">🙋</div><div>'
+            '<h4><span class="quiz-no">1</span>เช็คชื่อก่อนสอบ</h4>'
+            '<p>เช็คชื่อเข้าเรียนในคาบ — ไม่ได้เช็คชื่อ = ไม่ได้คะแนน Quiz บทนี้</p>'
+            '<a class="quiz-btn checkin" href="%s" target="_blank" rel="noopener">เช็คชื่อ ↗</a>'
+            '</div></li>'
+            '<li class="quiz-card"><div class="quiz-ico" aria-hidden="true">📝</div><div>'
+            '<h4><span class="quiz-no">2</span>ทำ Quiz บทที่ %d (Google Form)</h4>'
+            '<p>ต้องใช้ <b>รหัส Quiz</b> ที่อาจารย์บอกในห้องเรียน จึงจะทำส่วนถัดไปได้</p>'
+            '<a class="quiz-btn" href="https://docs.google.com/forms/d/%s/viewform" target="_blank" rel="noopener">เปิด Quiz บทที่ %d ↗</a>'
+            '</div></li>'
+            '</ol>'
+            '<p class="quiz-note">ดูกติกาคะแนนทั้งหมดที่ <a href="appendix-f-course.html">เกณฑ์คะแนน</a></p>'
+            '</section>') % (no, CHECKIN_URL, no, fid, no)
+
 LIB_SRC = ROOT / "library_tutorial_site"   # คัดลอกไปไว้ที่ docs/library_tutorial_site/ (ภาคผนวก จ เปิดแท็บใหม่)
 LIB_OUT = OUT / "library_tutorial_site"
 
@@ -273,6 +312,8 @@ def sub_items(body):
         items.append((i, sec.group(1) if sec else "", title))
     if 'id="review"' in body:
         items.append(("review", "✎", "คำถามท้ายบท"))
+    if 'id="quiz"' in body:
+        items.append(("quiz", "📝", "เก็บคะแนนท้ายบท"))
     return items
 
 def sidebar(active, subs=()):
@@ -357,6 +398,9 @@ def build(only=None):
         body = re.sub(r'<ex\b((?:[^>"]|"[^"]*")*)>(.*?)</ex>', render_ex, body, flags=re.S)
         body = re.sub(r"<review>(.*?)</review>", render_review, body, flags=re.S)
         body = re.sub(r'<fig n="([^"]+)"(?: w="(\d+)")?(?: no="([^"]+)")?>(.*?)</fig>', render_fig, body, flags=re.S)
+        no = next((n for f, n, *_ in PAGES if f == fname), "")
+        if no.isdigit() and int(no) in QUIZ_FORMS:   # ต่อจากคำถามท้ายบท: ลิงก์ Quiz เก็บคะแนน
+            body += quiz_block(int(no))
         body = body.replace("<toc/>", toc_html(body))
         (OUT / fname).write_text(layout(fname, meta, body), encoding="utf-8")
         print("built", fname)

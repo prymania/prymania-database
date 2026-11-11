@@ -38,7 +38,7 @@
 <a href="10-security.html"><span class="no">10</span>ความปลอดภัยของฐานข้อมูล</a>
 <a href="11-stored-procedure.html"><span class="no">11</span>Stored Procedure &amp; Function</a>
 <a href="12-trigger.html" class="active"><span class="no">12</span>ทริกเกอร์ (Trigger)</a>
-<div class="subnav"><a href="#s1"><span class="sno">12.1</span>แนวคิดของทริกเกอร์</a><a href="#s2"><span class="sno">12.2</span>โครงสร้างคำสั่ง CREATE TRIGGER</a><a href="#s3"><span class="sno">12.3</span>ทริกเกอร์ BEFORE — ตรวจสอบและแก้ไขข้อมูลก่อนบันทึก</a><a href="#s4"><span class="sno">12.4</span>ทริกเกอร์ AFTER — บันทึกประวัติการเปลี่ยนแปลง (Audit Log)</a><a href="#s5"><span class="sno">12.5</span>กฎธุรกิจที่ต้องอ่านข้อมูลหลายตาราง</a><a href="#s6"><span class="sno">12.6</span>รักษาข้อมูลสรุปให้สอดคล้องอัตโนมัติ</a><a href="#s7"><span class="sno">12.7</span>การจัดการทริกเกอร์ และข้อควรระวัง</a><a href="#review"><span class="sno">✎</span>คำถามท้ายบท</a></div>
+<div class="subnav"><a href="#s1"><span class="sno">12.1</span>แนวคิดของทริกเกอร์</a><a href="#s2"><span class="sno">12.2</span>โครงสร้างคำสั่ง CREATE TRIGGER</a><a href="#s3"><span class="sno">12.3</span>ทริกเกอร์ BEFORE — ตรวจสอบและแก้ไขข้อมูลก่อนบันทึก</a><a href="#s4"><span class="sno">12.4</span>ทริกเกอร์ AFTER — บันทึกประวัติการเปลี่ยนแปลง (Audit Log)</a><a href="#s5"><span class="sno">12.5</span>กฎธุรกิจที่ต้องอ่านข้อมูลหลายตาราง</a><a href="#s6"><span class="sno">12.6</span>รักษาข้อมูลสรุปให้สอดคล้องอัตโนมัติ</a><a href="#s7"><span class="sno">12.7</span>การจัดการทริกเกอร์ และข้อควรระวัง</a><a href="#review"><span class="sno">✎</span>คำถามท้ายบท</a><a href="#quiz"><span class="sno">📝</span>เก็บคะแนนท้ายบท</a></div>
 </div>
 <div class="navgroup"><div class="navgroup-t">ภาคผนวก</div>
 <a href="appendix-a-script.html"><span class="no">A</span>สคริปต์ฐานข้อมูลกรณีศึกษา</a>
@@ -219,12 +219,12 @@ SELECT secid, &#x27;60015&#x27; FROM section WHERE term = &#x27;2026-2&#x27; AND
         SIGNAL SQLSTATE &#x27;45000&#x27;
             SET MESSAGE_TEXT = &#x27;ลงทะเบียนเกิน 22 หน่วยกิตต่อภาคเรียน&#x27;;
     END IF;
-END</td><td>BEFORE</td><td>2026-11-11 19:12:10.030000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_enroll_after_update</td><td>UPDATE</td><td>enroll</td><td>BEGIN
+END</td><td>BEFORE</td><td>2026-11-11 21:06:23.400000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_enroll_after_update</td><td>UPDATE</td><td>enroll</td><td>BEGIN
     IF NOT (OLD.grade &lt;=&gt; NEW.grade) THEN
         INSERT INTO grade_log (secid, stdid, old_grade, new_grade, changed_by, changed_at)
         VALUES (OLD.secid, OLD.stdid, OLD.grade, NEW.grade, USER(), NOW());
     END IF;
-END</td><td>AFTER</td><td>2026-11-11 19:12:10.020000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_student_before_insert</td><td>INSERT</td><td>student</td><td>BEGIN
+END</td><td>AFTER</td><td>2026-11-11 21:06:23.400000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_student_before_insert</td><td>INSERT</td><td>student</td><td>BEGIN
     IF NEW.name IS NULL THEN
         SIGNAL SQLSTATE &#x27;45000&#x27;
             SET MESSAGE_TEXT = &#x27;ต้องระบุชื่อนิสิต&#x27;;
@@ -233,10 +233,10 @@ END</td><td>AFTER</td><td>2026-11-11 19:12:10.020000</td><td>ERROR_FOR_DIVISION_
     IF NEW.major IS NULL THEN
         SET NEW.major = &#x27;Undeclared&#x27;;
     END IF;
-END</td><td>BEFORE</td><td>2026-11-11 19:12:10.010000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_subject_before_insert</td><td>INSERT</td><td>subject</td><td>BEGIN
+END</td><td>BEFORE</td><td>2026-11-11 21:06:23.390000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr><tr><td>tg_subject_before_insert</td><td>INSERT</td><td>subject</td><td>BEGIN
     SET NEW.subid = UPPER(TRIM(NEW.subid));
     SET NEW.name  = TRIM(NEW.name);
-END</td><td>BEFORE</td><td>2026-11-11 19:12:10</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr></table></div>
+END</td><td>BEFORE</td><td>2026-11-11 21:06:23.380000</td><td>ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES</td><td>root@localhost</td><td>utf8mb4</td><td>utf8mb4_unicode_ci</td><td>utf8mb4_unicode_ci</td></tr></table></div>
 <h2 id="s6"><span class="sec">12.6</span> รักษาข้อมูลสรุปให้สอดคล้องอัตโนมัติ</h2>
 <p>บางครั้งเราเลือก<b>ดีนอร์มัลไลซ์</b> (บทที่ 3) เก็บค่าสรุปไว้ในตาราง เพื่อให้อ่านเร็ว เช่น จำนวนนิสิตในแต่ละกลุ่มเรียน — ความเสี่ยงคือค่าไม่ตรงกับข้อมูลจริง ทริกเกอร์ช่วยปรับค่าให้อัตโนมัติทุกครั้งที่มีการเปลี่ยนแปลง</p>
 <div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>ขั้นที่ 1 — เพิ่มคอลัมน์ n_student ใน section และกำหนดค่าเริ่มต้นจากข้อมูลจริง</span></div><pre class="sql">ALTER TABLE section ADD COLUMN n_student INT NOT NULL DEFAULT 0;
@@ -502,7 +502,7 @@ INSERT INTO student (stdid, name, major) VALUES (&#x27;80030&#x27;, &#x27;Zenits
 <div class="run-err"><b>✖ Error Code: 1442.</b> Can&#x27;t update table &#x27;student&#x27; in stored function/trigger because it is already used by statement which invoked this stored function/trigger.</div><div class="code"><div class="code-head"><span><span class="dots"><i></i><i></i><i></i></span>เฉลย</span></div><pre class="sql">DROP TRIGGER tg_student_bad;</pre></div></div></li>
 <li>เปรียบเทียบ Stored Procedure, Function และ Trigger ในแง่การเรียกใช้ พารามิเตอร์ ค่าที่คืน และงานที่เหมาะสม <span class="hint">(บทที่ 11–12)</span><div class="rv-ans"><ul><li><b>Procedure</b> — ผู้ใช้/โปรแกรมเรียกเองด้วย CALL · มี IN/OUT/INOUT · คืนผลลัพธ์ได้หลายชุด · งานหลายขั้นตอน เช่น ลงทะเบียน ย้ายกลุ่ม</li><li><b>Function</b> — เรียกในคำสั่ง SQL · มีเฉพาะ IN · คืนค่าเดียว · การคำนวณที่ใช้ซ้ำ เช่น อายุ เกรดเฉลี่ย</li><li><b>Trigger</b> — ทำงาน<b>อัตโนมัติ</b>เมื่อเกิด INSERT/UPDATE/DELETE บนตาราง เรียกเองไม่ได้ · ไม่มีพารามิเตอร์ (ใช้ OLD/NEW) · ไม่คืนค่า · บังคับกฎธุรกิจที่ต้องอ่านหลายตาราง บันทึก audit log รักษาข้อมูลสรุป</li></ul></div></li>
 </ol></div>
-
+<section class="quiz-score" id="quiz"><h2>เก็บคะแนนท้ายบท <span class="chip">มีคะแนน</span></h2><p class="quiz-login">🔐 Login ด้วยอีเมลมหาวิทยาลัย <b>@msu.ac.th</b> เท่านั้น</p><p class="quiz-lead">Quiz บทที่ 12 · ส่งได้ครั้งเดียว — ทำตามลำดับ 2 ขั้น</p><ol class="quiz-steps"><li class="quiz-card checkin"><div class="quiz-ico" aria-hidden="true">🙋</div><div><h4><span class="quiz-no">1</span>เช็คชื่อก่อนสอบ</h4><p>เช็คชื่อเข้าเรียนในคาบ — ไม่ได้เช็คชื่อ = ไม่ได้คะแนน Quiz บทนี้</p><a class="quiz-btn checkin" href="https://script.google.com/a/macros/msu.ac.th/s/AKfycbzpTf65VMcSGo4MXHRpm5UwfOpaCDismTxdNom5TLgBY6_NvAO_mg51YacITznabpgrHw/exec?page=teacher" target="_blank" rel="noopener">เช็คชื่อ ↗</a></div></li><li class="quiz-card"><div class="quiz-ico" aria-hidden="true">📝</div><div><h4><span class="quiz-no">2</span>ทำ Quiz บทที่ 12 (Google Form)</h4><p>ต้องใช้ <b>รหัส Quiz</b> ที่อาจารย์บอกในห้องเรียน จึงจะทำส่วนถัดไปได้</p><a class="quiz-btn" href="https://docs.google.com/forms/d/1X5b75qWGl9-Wf_kHRUO0dmn61rhwaNGvIVDWX2JBftM/viewform" target="_blank" rel="noopener">เปิด Quiz บทที่ 12 ↗</a></div></li></ol><p class="quiz-note">ดูกติกาคะแนนทั้งหมดที่ <a href="appendix-f-course.html">เกณฑ์คะแนน</a></p></section>
 <div class="pager"><a class="pg" href="11-stored-procedure.html">← 11 · Stored Procedure &amp; Function</a><a class="pg next" href="appendix-a-script.html">A · สคริปต์ฐานข้อมูลกรณีศึกษา →</a></div>
 <footer>Lecture Note · 1204202 การออกแบบและการจัดการฐานข้อมูล · อ.ดร.พรทิวา ปะวะระ · ภาควิชาวิทยาการคอมพิวเตอร์ คณะวิทยาการสารสนเทศ มหาวิทยาลัยมหาสารคาม</footer>
 </main>

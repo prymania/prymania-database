@@ -500,3 +500,24 @@ table.tbl.demo tr + tr.fr:not(.fr-top) td{border-top:1px solid var(--line)}
   .sidebar, #menuBtn, .ink-bar, .side-show, .side-hide, .pager { display: none !important; }
   .content { margin-left: 0 !important; }
 }
+
+/* ---------- เก็บคะแนนท้ายบท (Quiz Google Form) ---------- */
+:root { --skybg: #e8f1fe; }
+.quiz-score { margin-top: 32px; }
+.quiz-score .chip { padding: 1px 10px; border: 1px solid #f2c9c9; border-radius: 20px; background: #fff3f3; color: #9a2b2b; font: 700 12px var(--f-body); vertical-align: middle; }
+.quiz-card { display: flex; gap: 14px; align-items: flex-start; border: 1px solid #c9d8f2; border-left: 4px solid var(--sky); border-radius: 10px; background: var(--skybg); padding: 14px 18px; }
+.quiz-ico { flex: none; font-size: 30px; line-height: 1.1; }
+.quiz-card h4 { margin: 0 0 2px; font-size: 16.5px; }
+.quiz-card p { margin: 0 0 10px; color: var(--muted); font-size: 14.5px; }
+.quiz-btn { display: inline-flex; min-height: 42px; align-items: center; border-radius: 8px; background: var(--sky); padding: 8px 16px; color: #fff; font: 600 15px var(--f-body); text-decoration: none; }
+.quiz-btn:hover { background: #174a96; }
+.quiz-note { margin: 8px 0 0; color: var(--muted); font-size: 13.5px; }
+.quiz-login { display: inline-block; margin: 0 0 10px; border: 1px solid #f2c9c9; border-radius: 8px; background: #fff3f3; padding: 6px 12px; color: #9a2b2b; font-size: 14.5px; }
+.quiz-lead {margin: 0 0 10px; color: var(--muted); font-size: 14.5px; }
+.quiz-steps { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.quiz-no { display: inline-flex; width: 22px; height: 22px; margin-right: 8px; align-items: center; justify-content: center; border-radius: 50%; background: var(--sky); color: #fff; font-size: 13px; vertical-align: 2px; }
+.quiz-card.checkin { border-color: #bfe3cf; border-left-color: #2e9e6a; background: #eefaf3; }
+.quiz-card.checkin .quiz-no { background: #2e9e6a; }
+.quiz-btn.checkin { background: #2e9e6a; }
+.quiz-btn.checkin:hover { background: #237a52; }
+@media print { .quiz-score { display: none; } }
