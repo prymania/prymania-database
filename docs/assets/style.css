@@ -479,6 +479,9 @@ table.tbl.demo tr + tr.fr:not(.fr-top) td{border-top:1px solid var(--line)}
   .side-hide { position: absolute; top: 18px; right: 10px; display: inline-flex; width: 34px; height: 34px; align-items: center; justify-content: center; border: 1px solid #2a6870; border-radius: 8px; background: transparent; color: #cfe5e3; font-size: 17px; cursor: pointer; }
   .side-hide:hover { border-color: var(--tang); color: #fff; }
   .side-collapsed .sidebar { display: none; }
+  /* แถบปากกาตัดขึ้นบรรทัดใหม่ในพื้นที่เนื้อหาเท่านั้น ไม่ทับเมนูซ้าย/ปุ่ม « (iPad แนวตั้ง) — จาก Calculus */
+  html:not(.side-collapsed):not(.ink-board-open) .ink-bar { max-width: calc(100vw - var(--side) - 24px); }
+  html.side-collapsed:not(.ink-board-open) .ink-bar { max-width: calc(100vw - 112px); } /* เว้นที่ให้ปุ่ม ☰ เมนู มุมซ้ายบน */
   .side-collapsed .content { margin-left: auto; margin-right: auto; padding-top: 68px; }
   .side-collapsed .side-show { position: fixed; top: 12px; left: 12px; z-index: 1000; display: inline-flex; height: 44px; align-items: center; gap: 6px; border: none; border-radius: 10px; background: var(--deep); padding: 0 14px; color: #fff; font: 700 14px var(--f-body); box-shadow: 0 2px 8px #17202d22; cursor: pointer; }
   .side-collapsed .side-show:hover { background: var(--deep3); }
@@ -595,21 +598,13 @@ footer{border-top:1px solid var(--line)}
 .ans-btn:active{transform:none}
 .ans-btn.open{background:#fff;color:#7A4FD0;border:1.5px solid #7A4FD0}
 
-/* ---------- ปุ่มโหมดมืด/สว่าง (🌙/☀️) บนเมนูซ้าย ใต้ปุ่ม « (มือถือ: มุมขวาบนของแถบเมนู) ---------- */
-.theme-btn{position:absolute;top:58px;right:10px;z-index:2;display:inline-flex;width:34px;height:34px;align-items:center;justify-content:center;
-  border:1px solid var(--line);border-radius:8px;background:#fff;padding:0;font-size:16px;line-height:1;cursor:pointer}
-.theme-btn:hover{border-color:var(--teal2)}
-@media(max-width:700px){
-  .sidebar{position:relative}
-  .theme-btn{top:14px;right:16px;width:38px;height:38px}
-  .brand{padding-right:64px}
-}
-
 /* ============================================================
-   โหมดมืด — html[data-theme="dark"] (ปุ่ม 🌙 บนเมนูซ้าย, จำค่าใน localStorage "theme")
+   โหมดมืด — html.dark (ปุ่ม 🌙 ในแถบปากกา ข้าง A+ · ink.js · จำค่าใน localStorage "dark" แบบเดียวกับ Calculus)
+   อยู่ใน @media screen: เวลาพิมพ์ใช้ธีมสว่างเสมอ
    ใช้ตัวแปรสีชุดเดียวกับธีมสว่าง แล้วแก้เฉพาะส่วนที่ฝังสีไว้ตายตัว
    ============================================================ */
-:root[data-theme="dark"]{
+@media screen{
+html.dark{
   color-scheme:dark;
   --paper:#0B1120; --card:#131C2E; --line:#27324A; --ink:#E2E8F0; --mute:#94A3B8; --soft:#1A2335;
   --deep:#E2E8F0; --deep2:#CBD5E1; --deep3:#94A3B8;
@@ -619,76 +614,88 @@ footer{border-top:1px solid var(--line)}
   --leaf:#51CF66; --leafbg:#13301C; --rose:#FF6B6B; --rosebg:#3A1A20;
   --skybg:#16233F; --sky2:#8AB4FF; --grape2:#C4B0FF; --mango2:#FCC419; --mint2:#69DB7C; --coral2:#FFA28A;
 }
-[data-theme="dark"] body{background:var(--paper)}
+html.dark body{background:var(--paper)}
 
 /* เมนูซ้าย */
-[data-theme="dark"] .sidebar{background:#0F172A;border-right-color:var(--line)}
-[data-theme="dark"] .sidebar::-webkit-scrollbar-thumb{background:#334155}
-[data-theme="dark"] .sidebar nav a{color:#CBD5E1}
-[data-theme="dark"] .sidebar nav a .no,[data-theme="dark"] .navgroup-t{color:#7C8AA0}
-[data-theme="dark"] .sidebar nav a:hover,[data-theme="dark"] .sidebar nav .subnav a:hover{background:#1E293B;color:#fff}
-[data-theme="dark"] .sidebar nav a.active{background:var(--tealbg);color:#fff}
-[data-theme="dark"] .sidebar nav .subnav a{color:#94A3B8}
-[data-theme="dark"] .sidebar nav .subnav a.here{background:#18203D;color:#fff}
-[data-theme="dark"] .side-hide,[data-theme="dark"] .theme-btn{background:transparent;border-color:#334155;color:#CBD5E1}
-[data-theme="dark"] #menuBtn{background:#1E293B;border-color:#334155;color:var(--ink)}
-[data-theme="dark"] .side-collapsed .side-show{background:#1E293B;color:#fff;border:1px solid #334155}
-[data-theme="dark"] .sidebar-img{opacity:.85}
+html.dark .sidebar{background:#0F172A;border-right-color:var(--line)}
+html.dark .sidebar::-webkit-scrollbar-thumb{background:#334155}
+html.dark .sidebar nav a{color:#CBD5E1}
+html.dark .sidebar nav a .no,html.dark .navgroup-t{color:#7C8AA0}
+html.dark .sidebar nav a:hover,html.dark .sidebar nav .subnav a:hover{background:#1E293B;color:#fff}
+html.dark .sidebar nav a.active{background:var(--tealbg);color:#fff}
+html.dark .sidebar nav .subnav a{color:#94A3B8}
+html.dark .sidebar nav .subnav a.here{background:#18203D;color:#fff}
+html.dark .side-hide{background:transparent;border-color:#334155;color:#CBD5E1}
+html.dark #menuBtn{background:#1E293B;border-color:#334155;color:var(--ink)}
+html.dark.side-collapsed .side-show{background:#1E293B;color:#fff;border:1px solid #334155}
+html.dark .sidebar-img{opacity:.85}
 
 /* หัวข้อ กล่อง ตาราง โค้ด */
-[data-theme="dark"] .box{background:var(--card) !important;border-color:var(--line);box-shadow:none}
-[data-theme="dark"] .box.note .box-t{color:var(--amber)}
-[data-theme="dark"] .code{background:#0A0F1C;border:1px solid var(--line);box-shadow:none}
-[data-theme="dark"] .code-head{background:#141C2F}
-[data-theme="dark"] table.tbl th,[data-theme="dark"] .tb-h,[data-theme="dark"] .timeline th{background:#1E293B;color:#F1F5F9}
-[data-theme="dark"] table.tbl tr:nth-child(even) td{background:#172036}
-[data-theme="dark"] table.tbl.demo tr.hl td.keep,[data-theme="dark"] .legend-chip.col{background:#4A2A1E;color:#FFD8C9}
-[data-theme="dark"] .tb div.col{border-top-color:var(--line)}
-[data-theme="dark"] .layers .box2.tb,[data-theme="dark"] .tcard.p4 .num,[data-theme="dark"] .tcard .wk,[data-theme="dark"] .chip.off{background:#1E293B;color:var(--mute)}
-[data-theme="dark"] .chip.c3,[data-theme="dark"] .rv-tag{color:var(--amber);border-color:#5C4A12}
-[data-theme="dark"] .chip.c1{border-color:#33407A} [data-theme="dark"] .chip.c2{border-color:#4A3A80}
-[data-theme="dark"] .shot img{border-color:var(--line);filter:brightness(.92)}
-[data-theme="dark"] .hero{background:radial-gradient(circle at 92% 12%,rgba(255,127,97,.45) 0,rgba(255,127,97,0) 38%),linear-gradient(135deg,#1E293B 0%,#26305A 60%,#3B5BDB 100%)}
+html.dark .box{background:var(--card) !important;border-color:var(--line);box-shadow:none}
+html.dark .box.note .box-t{color:var(--amber)}
+html.dark .code{background:#0A0F1C;border:1px solid var(--line);box-shadow:none}
+html.dark .code-head{background:#141C2F}
+html.dark table.tbl th,html.dark .tb-h,html.dark .timeline th{background:#1E293B;color:#F1F5F9}
+html.dark table.tbl tr:nth-child(even) td{background:#172036}
+html.dark table.tbl.demo tr.hl td.keep,html.dark .legend-chip.col{background:#4A2A1E;color:#FFD8C9}
+html.dark .tb div.col{border-top-color:var(--line)}
+html.dark .layers .box2.tb,html.dark .tcard.p4 .num,html.dark .tcard .wk,html.dark .chip.off{background:#1E293B;color:var(--mute)}
+html.dark .chip.c3,html.dark .rv-tag{color:var(--amber);border-color:#5C4A12}
+html.dark .chip.c1{border-color:#33407A} html.dark .chip.c2{border-color:#4A3A80}
+html.dark .shot img{border-color:var(--line);filter:brightness(.92)}
+html.dark .hero{background:radial-gradient(circle at 92% 12%,rgba(255,127,97,.45) 0,rgba(255,127,97,0) 38%),linear-gradient(135deg,#1E293B 0%,#26305A 60%,#3B5BDB 100%)}
 
 /* แบบฝึก คำถามท้ายบท */
-[data-theme="dark"] .ex{background:var(--card);box-shadow:0 0 0 1px var(--line)}
-[data-theme="dark"] .ex-head{background:var(--plumbg)}
-[data-theme="dark"] .ex-title{color:#D0BFFF}
-[data-theme="dark"] .ex-level{color:var(--mute)}
-[data-theme="dark"] .ans-btn.open{background:transparent;color:#C4B0FF;border-color:#9775FA}
-[data-theme="dark"] .answer{border-top-color:var(--line)}
-[data-theme="dark"] .review{background:var(--card);border-color:var(--line)}
-[data-theme="dark"] .review-key{background:#334155}
-[data-theme="dark"] .review-lock input{background:#0B1120;color:var(--ink)}
+html.dark .ex{background:var(--card);box-shadow:0 0 0 1px var(--line)}
+html.dark .ex-head{background:var(--plumbg)}
+html.dark .ex-title{color:#D0BFFF}
+html.dark .ex-level{color:var(--mute)}
+html.dark .ans-btn.open{background:transparent;color:#C4B0FF;border-color:#9775FA}
+html.dark .answer{border-top-color:var(--line)}
+html.dark .review{background:var(--card);border-color:var(--line)}
+html.dark .review-key{background:#334155}
+html.dark .review-lock input{background:#0B1120;color:var(--ink)}
 
 /* ภาคผนวก F (เกณฑ์คะแนน) */
-[data-theme="dark"] .sb-quiz,[data-theme="dark"] .gs-b,[data-theme="dark"] .gs-b2{background:#1B2A4D;color:#A5C0FF}
-[data-theme="dark"] .sb-final{background:#2A2147;color:#C8B6FF}
-[data-theme="dark"] .sb-bonus,[data-theme="dark"] .gs-c,[data-theme="dark"] .gs-c2{background:#30280F;color:#FCC419;border-color:#6B5414}
-[data-theme="dark"] .gs-d,[data-theme="dark"] .gs-d2{background:#3A2019;color:#FFA28A}
-[data-theme="dark"] .gs-f{background:#1E293B;color:#8792A2}
-[data-theme="dark"] .gs-a,[data-theme="dark"] .gc-row.ok{background:#13301C;color:#69DB7C}
-[data-theme="dark"] .grade-calc{border-color:var(--line)}
-[data-theme="dark"] .gc-out{background:var(--card)}
-[data-theme="dark"] .gc-form input{background:#0B1120}
+html.dark .sb-quiz,html.dark .gs-b,html.dark .gs-b2{background:#1B2A4D;color:#A5C0FF}
+html.dark .sb-final{background:#2A2147;color:#C8B6FF}
+html.dark .sb-bonus,html.dark .gs-c,html.dark .gs-c2{background:#30280F;color:#FCC419;border-color:#6B5414}
+html.dark .gs-d,html.dark .gs-d2{background:#3A2019;color:#FFA28A}
+html.dark .gs-f{background:#1E293B;color:#8792A2}
+html.dark .gs-a,html.dark .gc-row.ok{background:#13301C;color:#69DB7C}
+html.dark .grade-calc{border-color:var(--line)}
+html.dark .gc-out{background:var(--card)}
+html.dark .gc-form input{background:#0B1120}
 
 /* เก็บคะแนนท้ายบท */
-[data-theme="dark"] .quiz-card{border-color:#24365E;background:var(--skybg)}
-[data-theme="dark"] .quiz-card.checkin{border-color:#1F4D33;background:#10261A}
-[data-theme="dark"] .quiz-login,[data-theme="dark"] .quiz-score .chip{border-color:#5C2A30;background:#3A1A20;color:#FFA8A8}
+html.dark .quiz-card{border-color:#24365E;background:var(--skybg)}
+html.dark .quiz-card.checkin{border-color:#1F4D33;background:#10261A}
+html.dark .quiz-login,html.dark .quiz-score .chip{border-color:#5C2A30;background:#3A1A20;color:#FFA8A8}
 
-/* ปากกา: หมึกบนพื้นมืด — กลับสีหมึก (ดำ→ขาว, สีคงเฉด) แล้วผสมแบบ screen แทน multiply ไม่ให้หมึกหาย
-   กระดานทด (📒) ยังเป็นกระดาษขาว หมึกจึงแสดงตามปกติ */
-[data-theme="dark"] .ink-layer:not(.ink-board-layer){filter:invert(1) hue-rotate(180deg);mix-blend-mode:screen}
-[data-theme="dark"] .ink-bar button{background:var(--card);color:var(--ink);border-color:var(--line)}
-[data-theme="dark"] .ink-on .ink-toggle{background:#3B5BDB !important}
-[data-theme="dark"] .ink-tools{background:#131C2Ef2;border-color:var(--line)}
-[data-theme="dark"] .ink-tools .ink-pen.active span{box-shadow:0 0 0 3px var(--card),0 0 0 5px currentColor}
-[data-theme="dark"] .ink-toast{background:#E2E8F0;color:#0F172A}
-[data-theme="dark"] .ink-board{background:#0B1120}
-[data-theme="dark"] .pen-step{color:#17202D}
-[data-theme="dark"] .pen-demo{background:var(--card)}
-[data-theme="dark"] .pen-demo .pd-x{background:#3B5BDB}
+/* ปากกา (แบบ Calculus): บนพื้นมืด multiply จะมองไม่เห็นหมึก → วาดปกติ และไฮไลต์ (เส้นหนา 18) โปร่ง 38%
+   พื้นใต้ข้อความจึงเป็นสีอมพาสเทลเข้ม ตัวหนังสือขาวยังอ่านชัด · ปากกาดำแสดงเป็นสีขาว · กระดานทด 📒 = กระดานดำ */
+html.dark .ink-layer{mix-blend-mode:normal}
+html.dark .ink-layer [stroke-width="18"]{stroke-opacity:.38}
+html.dark .ink-layer [stroke="#17202d"]{stroke:#f1f4f8}
+html.dark .ink-pen[data-i="0"] span{background:#f1f4f8 !important}
+html.dark .ink-toggle{border-color:var(--teal2) !important;color:var(--teal2)}
+html.dark.ink-on .ink-toggle{background:#3B5BDB !important;color:#fff}
+/* ป้ายเลขหัวข้อ / ปุ่มคัดลอกคำถาม: พื้นปะการังสว่างขึ้นในโหมดมืด ตัวหนังสือขาวจาง → ใช้ตัวเข้ม */
+html.dark h2 .sec,html.dark .review-copy,html.dark .vstep > .vstep-t .n{color:#24120B}
+html.dark .run-err{color:#FFA8B4;border-color:#5C2A30}
+html.dark .ink-paper{background-color:#1a2421}
+html.dark .ink-paper.paper-lines{background-image:linear-gradient(90deg,transparent 0 63px,#7a3b4f 63px,#7a3b4f 64px,transparent 64px),repeating-linear-gradient(to bottom,transparent 0 39px,#2d3d38 39px 40px)}
+html.dark .ink-paper.paper-grid{background-image:linear-gradient(#2d3d38 1px,transparent 1px),linear-gradient(90deg,#2d3d38 1px,transparent 1px)}
+html.dark .ink-bar button{background:var(--card);color:var(--ink);border-color:var(--line)}
+html.dark .ink-on .ink-toggle{background:#3B5BDB !important}
+html.dark .ink-tools{background:#131C2Ef2;border-color:var(--line)}
+html.dark .ink-tools .ink-pen.active span{box-shadow:0 0 0 3px var(--card),0 0 0 5px currentColor}
+html.dark .ink-toast{background:#E2E8F0;color:#0F172A}
+html.dark .ink-board{background:#0f1318}
+html.dark .pen-step{color:#17202D}
+html.dark .pen-demo{background:var(--card)}
+html.dark .pen-demo .pd-x{background:#3B5BDB}
 
 /* แผนภาพ SVG ที่ฝังในหน้า (บทที่ 2) วาดด้วยสีสำหรับพื้นขาว: วางบนการ์ดขาวแบบเดียวกับรูปภาพ */
-[data-theme="dark"] .shot > svg{background:#fff;border-radius:12px;padding:8px;filter:brightness(.92)}
+html.dark .shot > svg{background:#fff;border-radius:12px;padding:8px;filter:brightness(.92)}
+}

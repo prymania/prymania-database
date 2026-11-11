@@ -52,7 +52,7 @@ python apply_reviews.py && python build.py
  
 
 ## ฟีเจอร์ที่ย้ายมาจากเว็บ Calculus
-- 🎨 ธีม Slate & Coral (สีอยู่ท้าย `docs/assets/style.css`) + 🌙 โหมดมืด: ปุ่มบนเมนูซ้ายใต้ « ค่าเริ่มต้น = สว่าง จำค่าใน localStorage `theme` · CSS โหมดมืดอยู่ใต้ `[data-theme="dark"]`
+- 🎨 ธีม Slate & Coral (สีอยู่ท้าย `docs/assets/style.css`) + 🌙 โหมดมืด: ปุ่มในแถบปากกาข้าง A+ (`ink.js` แบบเดียวกับ Calculus) ค่าเริ่มต้น = สว่าง จำค่าใน localStorage `dark` · CSS อยู่ใต้ `html.dark` ท้าย `style.css`
 - ✏️ ปากกาเขียนทับหน้าเว็บ + 📒 กระดานทด + A+ โหมดฉายจอ: `docs/assets/ink.js` (วิธีใช้ = ภาคผนวก G) · หมึกเก็บใน localStorage ของเครื่องที่เขียน
 - ภาคผนวก F เกณฑ์คะแนน (`src/appendix-f-course.html`) — แก้คะแนนเต็มและ `cuts` ในสคริปต์ท้ายไฟล์ · ตาราง "การวัดผล" ในหน้าแรกต้องตรงกัน
 - « ซ่อนเมนูซ้าย (จอกว้าง) · รูปอาจารย์ท้ายเมนู · ลิงก์ Facebook/Discord ในหน้าแรก

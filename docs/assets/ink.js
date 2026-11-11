@@ -97,6 +97,7 @@
     '<button type="button" class="ink-import" title="นำไฟล์สำรองหมึกเข้ามา" aria-label="นำไฟล์สำรองเข้ามา">⬆️</button>' +
     '<input type="file" accept=".json,application/json" hidden>' +
     '</div>' +
+    '<button type="button" class="ink-dark" title="โหมดมืด (ถนอมสายตาเวลาฉายจอ)" aria-label="โหมดมืด" aria-pressed="false">🌙</button>' +
     '<button type="button" class="ink-big" title="โหมดฉายจอ: ขยายตัวหนังสือ" aria-label="โหมดฉายจอ ขยายตัวหนังสือ" aria-pressed="false">A+</button>' +
     '<button type="button" class="ink-toggle" title="ปากกา" aria-label="เปิดโหมดปากกา" aria-pressed="false">✏️</button>' +
     '<div class="ink-toast" hidden></div>';
@@ -292,6 +293,23 @@
     say(on ? "โหมดฉายจอ: ตัวหนังสือใหญ่ขึ้น" : "กลับเป็นขนาดปกติ");
   });
   setBig(document.documentElement.classList.contains("big-text"));
+
+  // ---- โหมดมืด (🌙): คลาส dark ที่ <html> จำค่าไว้ทุกหน้า (ใส่ตั้งแต่ <head> กันหน้ากระพริบ)
+  var darkBtn = $(".ink-dark");
+  function setDark(on) {
+    document.documentElement.classList.toggle("dark", on);
+    darkBtn.textContent = on ? "☀️" : "🌙";
+    darkBtn.setAttribute("aria-pressed", String(on));
+    darkBtn.title = on ? "กลับเป็นโหมดสว่าง" : "โหมดมืด (ถนอมสายตาเวลาฉายจอ)";
+    try { localStorage.setItem("dark", on ? "1" : "0"); } catch (e) {}
+  }
+  darkBtn.addEventListener("click", function () {
+    var on = !document.documentElement.classList.contains("dark");
+    setDark(on);
+    window.dispatchEvent(new Event("themechange"));   // ให้กราฟโต้ตอบ (widgets.js) วาดใหม่ด้วยสีชุดใหม่
+    say(on ? "โหมดมืด" : "โหมดสว่าง");
+  });
+  setDark(document.documentElement.classList.contains("dark"));
 
   // ---- ปุ่มทั่วไป
   toggle.addEventListener("click", function () {
